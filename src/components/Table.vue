@@ -11,7 +11,7 @@ export default {
   data() {
     return {
       msg: "主页",
-      danciList: ref([]),
+      danciList: [] as any[],
       difficulty: 1,
     };
   },
@@ -35,7 +35,7 @@ export default {
         });
     },
 
-    putDifficulty(row: Danci, difficulty: number, index: number) {
+    putDifficulty(row: Danci, difficulty: number) {
       var api = "http://localhost:8080/danci/" + row.id;
       if (row.difficulty == difficulty) {
         // 重新点击则恢复  可背诵
@@ -45,22 +45,17 @@ export default {
         row.difficulty = difficulty;
       }
 
-      if (row.difficulty == 0) {
-        row.know = -100;
-      }
-      if (row.difficulty == 2) {
-        row.know == 100;
-      }
-
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {
         console.log();
       });
 
-      this.danciList.splice(index, 1);
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
     },
 
-    addKnow(row: Danci, index: number) {
+    addKnow(row: Danci) {
       var api = "http://localhost:8080/danci/" + row.id;
 
       row.know++;
@@ -68,12 +63,14 @@ export default {
       axios.put(api, row).then(function (response) {
         console.log();
       });
-      this.danciList.splice(index, 1);
-      // tableRef.value.splice(index, 1);
+
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
     },
 
     // 减一
-    minusKnow(row: Danci, index: number) {
+    minusKnow(row: Danci) {
       var api = "http://localhost:8080/danci/" + row.id;
 
       row.know--;
@@ -82,7 +79,9 @@ export default {
         console.log();
       });
 
-      this.danciList.splice(index, 1);
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
     },
   },
 };
@@ -146,7 +145,7 @@ export default {
               link
               type="primary"
               size="small"
-              @click="addKnow(scope.row, scope.$index)"
+              @click="addKnow(scope.row)"
             >
               不认识
             </el-button>
@@ -154,7 +153,7 @@ export default {
               link
               type="danger"
               size="small"
-              @click="minusKnow(scope.row, scope.$index)"
+              @click="minusKnow(scope.row)"
             >
               认识
             </el-button>
@@ -162,22 +161,14 @@ export default {
         </el-table-column>
         <el-table-column fixed="right" label="Operations" width="220">
           <template #default="scope">
-            <el-button
-              link
-              size="small"
-              @click="putDifficulty(scope.row, 0, scope.$index)"
-            >
+            <el-button link size="small" @click="putDifficulty(scope.row, 0)">
               幼稚
             </el-button>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="Operations" width="220">
           <template #default="scope">
-            <el-button
-              link
-              size="small"
-              @click="putDifficulty(scope.row, 2, scope.$index)"
-            >
+            <el-button link size="small" @click="putDifficulty(scope.row, 2)">
               太难
             </el-button>
           </template>

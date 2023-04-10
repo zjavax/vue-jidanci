@@ -37,13 +37,8 @@ export default {
 
     putDifficulty(row: Danci, difficulty: number) {
       var api = "http://localhost:8080/danci/" + row.id;
-      if (row.difficulty == difficulty) {
-        // 重新点击则恢复  可背诵
-        row.difficulty = 1;
-        row.know = 1;
-      } else {
-        row.difficulty = difficulty;
-      }
+
+      row.difficulty = difficulty;
 
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {
@@ -55,29 +50,36 @@ export default {
       });
     },
 
-    addKnow(row: Danci) {
-      var api = "http://localhost:8080/danci/" + row.id;
-
-      row.know++;
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {
-        console.log();
-      });
-
-      this.danciList = this.danciList.filter((item) => {
-        return item?.id != row.id;
-      });
-    },
-
-    // 减一
+    // 减一  认识
     minusKnow(row: Danci) {
       var api = "http://localhost:8080/danci/" + row.id;
+
+      if (row.difficulty == 2) {
+        row.difficulty = 1;
+      }
 
       row.know--;
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {
         console.log();
       });
+
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
+    },
+
+    // 不认识  +1
+    addKnow(row: Danci) {
+      var api = "http://localhost:8080/danci/" + row.id;
+
+      if (row.difficulty == 0) {
+        row.difficulty = 1;
+      }
+
+      row.know++;
+      //2.使用axios 进行get请求
+      axios.put(api, row).then(function (response) {});
 
       this.danciList = this.danciList.filter((item) => {
         return item?.id != row.id;

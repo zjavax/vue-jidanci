@@ -104,12 +104,7 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-table
-        v-if="difficulty == 1"
-        ref="tableRef"
-        :data="danciList"
-        style="width: 100%"
-      >
+      <el-table ref="tableRef" :data="danciList" style="width: 100%">
         <el-table-column sortable prop="danci" label="单词" width="220" />
 
         <el-table-column
@@ -132,98 +127,6 @@ export default {
 
         <!-- <el-table-column prop="know" sortable label="Know" width="220" /> -->
 
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="addKnow(scope.row)"
-            >
-              不认识
-            </el-button>
-            <el-button
-              link
-              type="danger"
-              size="small"
-              @click="minusKnow(scope.row)"
-            >
-              认识
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button link size="small" @click="putDifficulty(scope.row, 0)">
-              幼稚
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button link size="small" @click="putDifficulty(scope.row, 2)">
-              太难
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table></el-form-item
-    >
-
-    <el-form-item>
-      <el-table
-        v-if="difficulty == 0"
-        ref="table"
-        :data="danciList"
-        style="width: 100%"
-      >
-        <el-table-column prop="danci" label="Danci" width="220" />
-        <el-table-column prop="know" sortable label="Know" width="220" />
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="addKnow(scope.row)"
-            >
-              不认识
-            </el-button>
-            <el-button
-              link
-              type="danger"
-              size="small"
-              @click="minusKnow(scope.row)"
-            >
-              认识
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button link size="small" @click="putDifficulty(scope.row, 0)">
-              幼稚
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
-            <el-button link size="small" @click="putDifficulty(scope.row, 2)">
-              太难
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table></el-form-item
-    >
-
-    <el-form-item>
-      <el-table
-        v-if="difficulty == 2"
-        ref="table"
-        :data="danciList"
-        style="width: 100%"
-      >
-        <el-table-column prop="danci" label="Danci" width="220" />
-        <el-table-column prop="know" sortable label="Know" width="220" />
         <el-table-column fixed="right" label="Operations" width="220">
           <template #default="scope">
             <el-button

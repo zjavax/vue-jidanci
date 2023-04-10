@@ -19,6 +19,10 @@ export default {
     this.getData(1);
   },
   methods: {
+    deleteRow(index: number) {
+      this.danciList.splice(index, 1);
+    },
+
     // /src/components/data.json
     getData(difficulty: number) {
       this.difficulty = difficulty;
@@ -40,8 +44,16 @@ export default {
       if (row.difficulty == difficulty) {
         // 重新点击则恢复  可背诵
         row.difficulty = 1;
+        row.know = 1;
       } else {
         row.difficulty = difficulty;
+      }
+
+      if (row.difficulty == 0) {
+        row.know = -100;
+      }
+      if (row.difficulty == 2) {
+        row.know == 100;
       }
 
       //2.使用axios 进行get请求
@@ -105,12 +117,13 @@ export default {
 
     <el-form-item>
       <el-table ref="tableRef" :data="danciList" style="width: 100%">
-        <el-table-column sortable prop="danci" label="单词" width="220" />
+        <el-table-column prop="danci" label="单词" width="220" />
 
         <el-table-column
           prop="know"
           label="熟练度"
           width="220"
+          sortable
           :filters="[
             { text: '0', value: '0' },
             { text: '1', value: '1' },
@@ -125,7 +138,18 @@ export default {
           filter-placement="bottom-end"
         />
 
-        <!-- <el-table-column prop="know" sortable label="Know" width="220" /> -->
+        <el-table-column fixed="right" label="Operations" width="120">
+          <template #default="scope">
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click.prevent="deleteRow(scope.$index)"
+            >
+              Remove
+            </el-button>
+          </template>
+        </el-table-column>
 
         <el-table-column fixed="right" label="Operations" width="220">
           <template #default="scope">

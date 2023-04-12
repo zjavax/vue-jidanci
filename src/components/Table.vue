@@ -54,9 +54,7 @@ export default {
       var api = "http://localhost:8080/danci/deleteById/" + row.id;
 
       //2.使用axios 进行get请求
-      axios.delete(api).then(function (response) {
-        console.log();
-      });
+      axios.delete(api).then(function (response) {});
 
       this.danciList = this.danciList.filter((item) => {
         return item?.id != row.id;
@@ -140,7 +138,7 @@ export default {
 
     <el-form-item>
       <el-table ref="tableRef" :data="danciList" style="width: 100%">
-        <el-table-column prop="danci" label="单词" width="220" />
+        <el-table-column prop="danci" sortable label="单词" width="220" />
 
         <el-table-column
           prop="know"
@@ -161,7 +159,7 @@ export default {
           filter-placement="bottom-end"
         />
 
-        <el-table-column fixed="right" label="Operations" width="220">
+        <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button
               link
@@ -187,15 +185,21 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
+        <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button link size="small" @click="deleteRow(scope.row)">
               删除
             </el-button>
           </template>
         </el-table-column>
-      </el-table></el-form-item
-    >
+        <el-table-column
+          fixed="right"
+          prop="chinese"
+          sortable
+          label="中文"
+          width="220"
+        /> </el-table
+    ></el-form-item>
   </el-form>
 </template>
 
@@ -265,6 +269,7 @@ const clearFilter = () => {
 interface Danci {
   id: number;
   danci: string;
+  chinese: string;
   know: number;
   difficulty: number;
 }

@@ -115,14 +115,21 @@ export default {
       ></el-form-item
     >
 
-    <el-form-item
-      label="批量输入单词"
-      v-if="difficulty == 0 || difficulty == 2"
-    >
+    <el-form-item label="批量输入单词" v-if="difficulty == 0">
       <el-input v-model="form.alldanci" type="textarea" />
     </el-form-item>
-    <el-form-item v-if="difficulty == 0 || difficulty == 2">
+
+    <el-form-item v-if="difficulty == 0">
       <el-button type="primary" @click="onSubmit">Create</el-button>
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+
+    <el-form-item label="批量输入单词组" v-if="difficulty == 2">
+      <el-input v-model="form.alldancigroup" type="textarea" />
+    </el-form-item>
+
+    <el-form-item v-if="difficulty == 2">
+      <el-button type="primary" @click="onSubmit2">添加词组，分行</el-button>
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
 
@@ -203,16 +210,16 @@ export default {
 // do not use same name with ref
 const form = reactive({
   alldanci: "",
+  alldancigroup: "",
 });
 
 var baseUrl = "http://localhost:8080/";
 
 const onCancel = () => {
   form.alldanci = "";
+  form.alldancigroup = "";
 };
 const onSubmit = () => {
-  console.log("submit!");
-
   axios
     .post(baseUrl + "alldanci", form)
     .then((res) => {
@@ -223,6 +230,25 @@ const onSubmit = () => {
       //请求失败的回调函数
       console.log(err);
     });
+
+  form.alldanci = "";
+  form.alldancigroup = "";
+};
+
+const onSubmit2 = () => {
+  axios
+    .post(baseUrl + "alldancigroup", form)
+    .then((res) => {
+      //请求成功的回调函数
+      console.log(res.data);
+    })
+    .catch((err) => {
+      //请求失败的回调函数
+      console.log(err);
+    });
+
+  form.alldanci = "";
+  form.alldancigroup = "";
 };
 
 const filterKnow = (value: number, row: Danci) => {

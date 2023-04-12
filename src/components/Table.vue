@@ -50,6 +50,19 @@ export default {
       });
     },
 
+    deleteRow(row: Danci) {
+      var api = "http://localhost:8080/danci/deleteById/" + row.id;
+
+      //2.使用axios 进行get请求
+      axios.delete(api).then(function (response) {
+        console.log();
+      });
+
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
+    },
+
     // 减一  认识
     minusKnow(row: Danci) {
       var api = "http://localhost:8080/danci/" + row.id;
@@ -159,19 +172,18 @@ export default {
             >
               认识
             </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="Operations" width="220">
-          <template #default="scope">
             <el-button link size="small" @click="putDifficulty(scope.row, 0)">
               幼稚
+            </el-button>
+            <el-button link size="small" @click="putDifficulty(scope.row, 2)">
+              太难
             </el-button>
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="Operations" width="220">
           <template #default="scope">
-            <el-button link size="small" @click="putDifficulty(scope.row, 2)">
-              太难
+            <el-button link size="small" @click="deleteRow(scope.row)">
+              删除
             </el-button>
           </template>
         </el-table-column>

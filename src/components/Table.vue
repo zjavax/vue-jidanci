@@ -140,25 +140,6 @@ export default {
       <el-table ref="tableRef" :data="danciList" style="width: 100%">
         <el-table-column prop="danci" sortable label="单词" width="220" />
 
-        <el-table-column
-          prop="know"
-          label="熟练度"
-          width="220"
-          sortable
-          :filters="[
-            { text: '0', value: '0' },
-            { text: '1', value: '1' },
-            { text: '2', value: '2' },
-            { text: '3', value: '3' },
-            { text: '4', value: '4' },
-            { text: '5', value: '5' },
-            { text: '6', value: '6' },
-            { text: '7', value: '7' },
-          ]"
-          :filter-method="filterKnow"
-          filter-placement="bottom-end"
-        />
-
         <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button
@@ -198,6 +179,24 @@ export default {
           sortable
           label="中文"
           width="220"
+        />
+        <el-table-column
+          prop="know"
+          label="熟练度"
+          width="220"
+          sortable
+          :filters="[
+            { text: '0', value: '0' },
+            { text: '1', value: '1' },
+            { text: '2', value: '2' },
+            { text: '3', value: '3' },
+            { text: '4', value: '4' },
+            { text: '5', value: '5' },
+            { text: '6', value: '6' },
+            { text: '7', value: '7' },
+          ]"
+          :filter-method="filterKnow"
+          filter-placement="bottom-end"
         /> </el-table
     ></el-form-item>
   </el-form>

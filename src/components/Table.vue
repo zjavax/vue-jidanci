@@ -53,16 +53,16 @@ export default {
       this.danciList.splice(index, 1);
     },
 
-    // deleteRow(row: Danci) {
-    //   var api = "http://localhost:8080/danci/deleteById/" + row.id;
+    deleteRow(row: Danci) {
+      var api = "http://localhost:8080/danci/deleteById/" + row.id;
 
-    //   //2.使用axios 进行get请求
-    //   axios.delete(api).then(function (response) {});
+      //2.使用axios 进行get请求
+      axios.delete(api).then(function (response) {});
 
-    //   this.danciList = this.danciList.filter((item) => {
-    //     return item?.id != row.id;
-    //   });
-    // },
+      this.danciList = this.danciList.filter((item) => {
+        return item?.id != row.id;
+      });
+    },
 
     // 减一  认识
     minusKnow(row: Danci, index: number) {
@@ -106,10 +106,10 @@ export default {
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
       <el-button type="warning" @click="getData(1)">可背诵</el-button>
-      <el-button @click="getData(0)">幼稚</el-button>
+      <el-button @click="getData(0)">简单</el-button>
       <el-button type="danger" @click="getData(2)">太难不背</el-button>
 
-      <el-button @click="getData(-10000)">删除</el-button>
+      <el-button @click="getData(-10000)">幼稚</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -139,7 +139,7 @@ export default {
       <el-table ref="tableRef" :data="danciList" style="width: 100%">
         <el-table-column sortable prop="danci" label="单词" width="220" />
 
-        <el-table-column fixed="right" label="操作" width="350">
+        <el-table-column fixed="right" label="操作" width="400">
           <template #default="scope">
             <el-button
               type="primary"
@@ -165,7 +165,7 @@ export default {
               size="small"
               @click="putDifficulty(scope.row, 0, scope.$index)"
             >
-              幼稚
+              简单
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 2 && scope.row.difficulty != -10000"
@@ -179,6 +179,13 @@ export default {
               size="small"
               @click="putDifficulty(scope.row, -10000, scope.$index)"
             >
+              幼稚
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column fixed="right" label="操作" width="150">
+          <template #default="scope">
+            <el-button size="small" @click="deleteRow(scope.row)">
               删除
             </el-button>
           </template>

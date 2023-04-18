@@ -6,6 +6,17 @@ import { reactive } from "vue";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
+// ================
+const tableData = ref([
+  {
+    id: 1,
+    danci: "============================",
+    chinese: "单词",
+    know: 1,
+    difficulty: 2,
+  },
+]);
+
 const tableRef = ref<TableInstance>();
 export default {
   data() {
@@ -83,11 +94,13 @@ export default {
 
     // 不认识  +1
     addKnow(row: Danci, index: number) {
+      tableData.value.push(row);
+
       var api = "http://localhost:8080/danci/" + row.id;
 
-      if (row.difficulty == 0) {
-        row.difficulty = 1;
-      }
+      // if (row.difficulty == 0) {
+      row.difficulty = 1;
+      // }
 
       row.know++;
       //2.使用axios 进行get请求
@@ -219,6 +232,32 @@ export default {
         />
       </el-table>
     </el-form-item>
+
+    <el-form-item style="margin-top: 150px">
+      <el-button type="warning" @click="getData(1)">可背诵</el-button>
+      <el-button @click="getData(0)">简单</el-button>
+      <el-button type="danger" @click="getData(2)">太难不背</el-button>
+
+      <el-button @click="getData(-10000)">幼稚</el-button>
+    </el-form-item>
+
+    <el-form-item>
+      <el-table :data="tableData" style="width: 100%">
+        <el-table-column prop="danci" label="单词" />
+        <el-table-column fixed="right" label="Operations">
+          <template #default="scope">
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click.prevent="deleteRow(scope.$index)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-form-item>
   </el-form>
 </template>
 
@@ -292,4 +331,9 @@ interface Danci {
   know: number;
   difficulty: number;
 }
+
+// ============
+const deleteRow = (index: number) => {
+  tableData.value.splice(index, 1);
+};
 </script>

@@ -250,7 +250,7 @@ export default {
               link
               type="primary"
               size="small"
-              @click.prevent="deleteRow(scope.$index)"
+              @click.prevent="deleteRowCache(scope.$index)"
             >
               删除
             </el-button>
@@ -333,7 +333,7 @@ interface Danci {
 }
 
 // ============
-const deleteRow = (index: number) => {
+const deleteRowCache = (index: number) => {
   tableData.value.splice(index, 1);
 };
 </script>

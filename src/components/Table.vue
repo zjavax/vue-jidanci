@@ -23,19 +23,24 @@ export default {
     return {
       msg: "主页",
       danciList: [] as any[],
-      difficulty: 1,
+      difficulty: 0,
     };
   },
   mounted() {
-    this.getData(0);
+    this.getData(this.difficulty, "no");
   },
   methods: {
     // /src/components/data.json
-    getData(difficulty: number) {
+    getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
       //2.使用axios 进行get请求
       axios
-        .get("http://localhost:8080/getDanci?difficulty=" + difficulty)
+        .get(
+          "http://localhost:8080/getDanci?difficulty=" +
+            difficulty +
+            "&sort=" +
+            sort
+        )
         .then((res) => {
           //请求成功的回调函数
           this.danciList = res.data;
@@ -116,11 +121,11 @@ export default {
 <template>
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button type="warning" @click="getData(1)">可背诵</el-button>
-      <el-button @click="getData(0)">简单</el-button>
-      <el-button type="danger" @click="getData(2)">太难不背</el-button>
+      <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
+      <el-button @click="getData(0, 'no')">简单</el-button>
+      <el-button type="danger" @click="getData(2, 'no')">太难不背</el-button>
 
-      <el-button @click="getData(-10000)">幼稚</el-button>
+      <el-button @click="getData(-10000, 'no')">幼稚</el-button>
     </el-form-item>
 
     <!-- <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -132,27 +137,29 @@ export default {
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item> -->
 
-    <!-- <el-form-item label="批量输入单词组" v-if="difficulty == 2">
+    <el-form-item label="批量输入单词组" v-if="difficulty == 2">
       <el-input v-model="form.alldancigroup" type="textarea" />
-    </el-form-item> -->
+    </el-form-item>
 
-    <!-- <el-form-item v-if="difficulty == 2">
+    <el-form-item v-if="difficulty == 2">
       <el-button type="primary" @click="onSubmit2">添加词组，分行</el-button>
       <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item> -->
+    </el-form-item>
 
-    <el-form-item label="输入文章">
+    <!-- <el-form-item label="输入文章">
       <el-input v-model="form.article" type="textarea" />
     </el-form-item>
 
     <el-form-item>
       <el-button type="primary" @click="addArticle">添加文章</el-button>
       <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item>
+    </el-form-item> -->
 
     <el-form-item> 总数：{{ danciList.length }} </el-form-item>
     <el-form-item>
       <el-button @click="clearFilter">reset all filters</el-button>
+      <el-button @click="getData(1, 'desc')">熟悉度降序</el-button>
+      <el-button @click="getData(1, 'asc')"> 熟悉度升序</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -244,11 +251,11 @@ export default {
     </el-form-item>
 
     <el-form-item style="margin-top: 150px">
-      <el-button type="warning" @click="getData(1)">可背诵</el-button>
-      <el-button @click="getData(0)">简单</el-button>
-      <el-button type="danger" @click="getData(2)">太难不背</el-button>
+      <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
+      <el-button @click="getData(0, 'no')">简单</el-button>
+      <el-button type="danger" @click="getData(2, 'no')">太难不背</el-button>
 
-      <el-button @click="getData(-10000)">幼稚</el-button>
+      <el-button @click="getData(-10000, 'no')">幼稚</el-button>
     </el-form-item>
 
     <el-form-item style="margin-top: 50px">

@@ -27,7 +27,7 @@ export default {
     };
   },
   mounted() {
-    this.getData(1);
+    this.getData(0);
   },
   methods: {
     // /src/components/data.json
@@ -47,7 +47,7 @@ export default {
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
-      var api = "http://localhost:8080/danci/" + row.id;
+      var api = "http://localhost:8080/danci/";
 
       row.difficulty = difficulty;
 
@@ -98,9 +98,7 @@ export default {
 
       var api = "http://localhost:8080/danci/" + row.id;
 
-      // if (row.difficulty == 0) {
-      row.difficulty = 1;
-      // }
+      // row.difficulty = 1;
 
       row.know++;
       //2.使用axios 进行get请求
@@ -125,21 +123,30 @@ export default {
       <el-button @click="getData(-10000)">幼稚</el-button>
     </el-form-item>
 
-    <el-form-item label="批量输入单词" v-if="difficulty == 0">
+    <!-- <el-form-item label="批量输入单词" v-if="difficulty == 0">
       <el-input v-model="form.alldanci" type="textarea" />
     </el-form-item>
 
     <el-form-item v-if="difficulty == 0">
       <el-button type="primary" @click="onSubmit">Create</el-button>
       <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item>
+    </el-form-item> -->
 
-    <el-form-item label="批量输入单词组" v-if="difficulty == 2">
+    <!-- <el-form-item label="批量输入单词组" v-if="difficulty == 2">
       <el-input v-model="form.alldancigroup" type="textarea" />
+    </el-form-item> -->
+
+    <!-- <el-form-item v-if="difficulty == 2">
+      <el-button type="primary" @click="onSubmit2">添加词组，分行</el-button>
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item> -->
+
+    <el-form-item label="输入文章">
+      <el-input v-model="form.article" type="textarea" />
     </el-form-item>
 
-    <el-form-item v-if="difficulty == 2">
-      <el-button type="primary" @click="onSubmit2">添加词组，分行</el-button>
+    <el-form-item>
+      <el-button type="primary" @click="addArticle">添加文章</el-button>
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
 
@@ -152,36 +159,39 @@ export default {
       <el-table ref="tableRef" :data="danciList" style="width: 100%">
         <el-table-column sortable prop="danci" label="单词" width="220" />
 
-        <el-table-column fixed="right" label="操作" width="400">
+        <el-table-column fixed="right" label="操作">
           <template #default="scope">
             <el-button
               type="primary"
               size="small"
               @click="addKnow(scope.row, scope.$index)"
             >
-              {{
-                scope.row.difficulty != 0 && scope.row.difficulty != -10000
-                  ? "+1不认识"
-                  : "可背诵"
-              }}
+              不认识
             </el-button>
             <el-button
-              v-if="scope.row.difficulty != -10000"
               type="danger"
               size="small"
               @click="minusKnow(scope.row, scope.$index)"
             >
-              {{ scope.row.difficulty != 2 ? "-1认识" : "可背诵" }}
+              认识
             </el-button>
             <el-button
-              v-if="scope.row.difficulty != 0 && scope.row.difficulty != -10000"
+              v-if="scope.row.difficulty != 0"
               size="small"
               @click="putDifficulty(scope.row, 0, scope.$index)"
             >
               简单
             </el-button>
             <el-button
-              v-if="scope.row.difficulty != 2 && scope.row.difficulty != -10000"
+              v-if="scope.row.difficulty != 1"
+              type="primary"
+              size="small"
+              @click="putDifficulty(scope.row, 1, scope.$index)"
+            >
+              可背诵
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty != 2"
               size="small"
               @click="putDifficulty(scope.row, 2, scope.$index)"
             >
@@ -198,7 +208,7 @@ export default {
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="150">
           <template #default="scope">
-            <el-button size="small" @click="deleteRow(scope.row)">
+            <el-button type="danger" size="small" @click="deleteRow(scope.row)">
               删除
             </el-button>
           </template>
@@ -241,7 +251,8 @@ export default {
       <el-button @click="getData(-10000)">幼稚</el-button>
     </el-form-item>
 
-    <el-form-item>
+    <el-form-item style="margin-top: 50px">
+      <el-tag>不认识</el-tag>
       <el-table :data="tableData" style="width: 100%">
         <el-table-column prop="danci" label="单词" />
         <el-table-column fixed="right" label="Operations">
@@ -273,6 +284,7 @@ export default {
 const form = reactive({
   alldanci: "",
   alldancigroup: "",
+  article: "",
 });
 
 var baseUrl = "http://localhost:8080/";
@@ -311,6 +323,23 @@ const onSubmit2 = () => {
 
   form.alldanci = "";
   form.alldancigroup = "";
+};
+
+const addArticle = () => {
+  axios
+    .post(baseUrl + "addArticle", form)
+    .then((res) => {
+      //请求成功的回调函数
+      console.log(res.data);
+    })
+    .catch((err) => {
+      //请求失败的回调函数
+      console.log(err);
+    });
+
+  form.alldanci = "";
+  form.alldancigroup = "";
+  form.article = "";
 };
 
 const filterKnow = (value: number, row: Danci) => {

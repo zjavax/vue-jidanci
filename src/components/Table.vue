@@ -8,13 +8,13 @@ import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
 const tableData = ref([
-  {
-    id: 1,
-    danci: "============================",
-    chinese: "单词",
-    know: 1,
-    difficulty: 2,
-  },
+  // {
+  //   id: 1,
+  //   danci: "============================",
+  //   chinese: "单词",
+  //   know: 1,
+  //   difficulty: 2,
+  // },
 ]);
 
 const tableRef = ref<TableInstance>();
@@ -261,7 +261,14 @@ export default {
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
       <el-table :data="tableData" style="width: 100%">
-        <el-table-column prop="danci" label="单词" />
+        <el-table-column label="单词">
+          <template v-slot="{ row }">
+            <el-tooltip :content="row.chinese" placement="left">
+              <span>{{ row.danci }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+
         <el-table-column fixed="right" label="Operations">
           <template #default="scope">
             <el-button

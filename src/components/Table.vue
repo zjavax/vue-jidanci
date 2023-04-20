@@ -8,13 +8,13 @@ import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
 const tableData = ref([
-  // {
-  //   id: 1,
-  //   danci: "============================",
-  //   chinese: "单词",
-  //   know: 1,
-  //   difficulty: 2,
-  // },
+  {
+    id: 1,
+    danci: "============================",
+    chinese: "单词",
+    know: 1,
+    difficulty: 2,
+  },
 ]);
 
 const tableRef = ref<TableInstance>();
@@ -121,10 +121,11 @@ export default {
 <template>
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
-      <el-button @click="getData(0, 'no')">简单</el-button>
-      <el-button type="danger" @click="getData(2, 'no')">太难不背</el-button>
-
+      <el-button @click="getData(4, 'no')">更简4</el-button>
+      <el-button @click="getData(0, 'no')">简单0</el-button>
+      <el-button type="warning" @click="getData(1, 'no')">可背1</el-button>
+      <el-button type="danger" @click="getData(2, 'no')">太难2</el-button>
+      <el-button type="danger" @click="getData(3, 'no')">稍难3</el-button>
       <el-button @click="getData(-10000, 'no')">幼稚</el-button>
     </el-form-item>
 
@@ -158,8 +159,8 @@ export default {
     <el-form-item> 总数：{{ danciList.length }} </el-form-item>
     <el-form-item>
       <el-button @click="clearFilter">reset all filters</el-button>
-      <el-button @click="getData(1, 'desc')">熟悉度降序</el-button>
-      <el-button @click="getData(1, 'asc')"> 熟悉度升序</el-button>
+      <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
+      <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -190,12 +191,19 @@ export default {
               简单
             </el-button>
             <el-button
+              v-if="scope.row.difficulty != 4"
+              size="small"
+              @click="putDifficulty(scope.row, 4, scope.$index)"
+            >
+              更简
+            </el-button>
+            <el-button
               v-if="scope.row.difficulty != 1"
               type="primary"
               size="small"
               @click="putDifficulty(scope.row, 1, scope.$index)"
             >
-              可背诵
+              可背
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 2"
@@ -203,6 +211,13 @@ export default {
               @click="putDifficulty(scope.row, 2, scope.$index)"
             >
               太难
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty != 3"
+              size="small"
+              @click="putDifficulty(scope.row, 3, scope.$index)"
+            >
+              稍难
             </el-button>
             <el-button
               v-if="scope.row.difficulty != -10000"
@@ -228,6 +243,11 @@ export default {
           label="中文"
           width="320"
         />
+
+        <!-- <el-table-column label="中文修改">
+          <el-input type="textarea" />
+        </el-table-column> -->
+
         <el-table-column
           fixed="right"
           prop="know"
@@ -252,8 +272,10 @@ export default {
 
     <el-form-item style="margin-top: 150px">
       <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
+      <el-button @click="getData(4, 'no')">更简单4</el-button>
       <el-button @click="getData(0, 'no')">简单</el-button>
       <el-button type="danger" @click="getData(2, 'no')">太难不背</el-button>
+      <el-button type="danger" @click="getData(3, 'no')">稍难</el-button>
 
       <el-button @click="getData(-10000, 'no')">幼稚</el-button>
     </el-form-item>

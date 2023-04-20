@@ -17,12 +17,31 @@ const tableData = ref([
   },
 ]);
 
-const tableRef = ref<TableInstance>();
+// var danciList = ref([
+//   {
+//     id: 1,
+//     danci: "============================",
+//     chinese: "单词",
+//     know: 1,
+//     difficulty: 2,
+//   },
+// ]);
+
+// const tableRef = ref<TableInstance>();
 export default {
   data() {
     return {
       msg: "主页",
-      danciList: [] as any[],
+      // danciList: [] as any[],
+      danciList: ref([
+        {
+          id: 1,
+          danci: "============================",
+          chinese: "单词",
+          know: 1,
+          difficulty: 2,
+        },
+      ]),
       difficulty: 0,
     };
   },
@@ -158,13 +177,13 @@ export default {
 
     <el-form-item> 总数：{{ danciList.length }} </el-form-item>
     <el-form-item>
-      <el-button @click="clearFilter">reset all filters</el-button>
+      <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
     </el-form-item>
 
     <el-form-item>
-      <el-table ref="tableRef" :data="danciList" style="width: 100%">
+      <el-table :data="danciList" style="width: 100%">
         <el-table-column sortable prop="danci" label="单词" width="220" />
 
         <el-table-column fixed="right" label="操作">
@@ -383,11 +402,11 @@ const filterKnow = (value: number, row: Danci) => {
 };
 
 // TODO: improvement typing when refactor table
-const clearFilter = () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  tableRef.value!.clearFilter();
-};
+// const clearFilter = () => {
+//   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//   // @ts-expect-error
+//   tableRef.value!.clearFilter();
+// };
 
 interface Danci {
   id: number;

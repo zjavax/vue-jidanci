@@ -148,21 +148,23 @@ export default {
       <el-button @click="getData(-10000, 'no')">幼稚</el-button>
     </el-form-item>
 
-    <!-- <el-form-item label="批量输入单词" v-if="difficulty == 0">
+    <el-form-item label="批量输入单词" v-if="difficulty == 0">
       <el-input v-model="form.alldanci" type="textarea" />
     </el-form-item>
 
     <el-form-item v-if="difficulty == 0">
       <el-button type="primary" @click="onSubmit">Create</el-button>
       <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item> -->
+    </el-form-item>
 
     <el-form-item label="批量输入单词组" v-if="difficulty == 2">
       <el-input v-model="form.alldancigroup" type="textarea" />
     </el-form-item>
 
     <el-form-item v-if="difficulty == 2">
-      <el-button type="primary" @click="onSubmit2">添加词组，分行</el-button>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组，分行</el-button
+      >
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
 
@@ -175,7 +177,9 @@ export default {
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item> -->
 
-    <el-form-item> 总数：{{ danciList.length }} </el-form-item>
+    <el-form-item>
+      总数：{{ danciList.length }} 困难度：{{ difficulty }}
+    </el-form-item>
     <el-form-item>
       <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
@@ -289,6 +293,21 @@ export default {
       </el-table>
     </el-form-item>
 
+    <el-form-item label="批量输入单词和中文">
+      <el-input
+        v-model="form.alldancigroup"
+        type="textarea"
+        placeholder="格式：单词 或者 单词:中文，支持多行"
+      />
+    </el-form-item>
+
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+
     <el-form-item style="margin-top: 150px">
       <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
       <el-button @click="getData(4, 'no')">更简单4</el-button>
@@ -340,6 +359,7 @@ const form = reactive({
   alldanci: "",
   alldancigroup: "",
   article: "",
+  difficulty: 0,
 });
 
 var baseUrl = "http://localhost:8080/";
@@ -364,7 +384,8 @@ const onSubmit = () => {
   form.alldancigroup = "";
 };
 
-const onSubmit2 = () => {
+const onSubmit2 = (difficulty: number) => {
+  form.difficulty = difficulty;
   axios
     .post(baseUrl + "alldancigroup", form)
     .then((res) => {

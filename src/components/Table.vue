@@ -176,15 +176,17 @@ export default {
 
 <template>
   <!-- 回到顶部按钮 -->
-  <el-backtop :visibility-height="0" :bottom="250" :right="1450"> </el-backtop>
+  <el-backtop :visibility-height="0" :bottom="300" :right="1450"
+    >顶部</el-backtop
+  >
 
   <!-- 回到底部按钮 -->
   <el-backtop
     class="scroll-to-bottom"
     :visibility-height="0"
-    :right="550"
+    :right="1450"
     @click="handleScrollToBottom"
-  >
+    >底部
   </el-backtop>
 
   <el-form :model="form" label-width="120px">
@@ -550,7 +552,7 @@ const deleteRowCache = (index: number) => {
 
 .scroll-to-bottom {
   position: fixed;
-  top: 120px;
+  top: 300px;
   right: 150px;
 }
 </style>

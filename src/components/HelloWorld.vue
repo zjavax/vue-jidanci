@@ -1,92 +1,104 @@
-<script setup lang="ts">
-import { ref } from "vue";
-import { ElMessage } from "element-plus";
-
-defineProps<{ msg: string }>();
-
-const count = ref(0);
-const input = ref("element-plus");
-
-const curDate = ref("");
-
-const toast = () => {
-  ElMessage.success("Hello");
-};
-</script>
-
 <template>
-  <h1>{{ msg }}</h1>
-
-  <p>
-    See
-    <a href="https://element-plus.org" target="_blank">element-plus</a> for more
-    information.
-  </p>
-
-  <!-- example components -->
-  <div class="mb-4">
-    <el-button size="large" @click="toast">El Message</el-button>
-  </div>
-
-  <div class="my-2 text-center flex flex-wrap justify-center items-center">
-    <el-button @click="count++">count is: {{ count }}</el-button>
-    <el-button type="primary" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="success" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="warning" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="danger" @click="count++">count is: {{ count }}</el-button>
-    <el-button type="info" @click="count++">count is: {{ count }}</el-button>
-  </div>
-
-  <div>
-    <el-tag type="success" class="m-1">Tag 1</el-tag>
-    <el-tag type="warning" class="m-1">Tag 1</el-tag>
-    <el-tag type="danger" class="m-1">Tag 1</el-tag>
-    <el-tag type="info" class="m-1">Tag 1</el-tag>
-  </div>
-
-  <div class="my-2">
-    <el-input class="m-2" v-model="input" style="width: 200px" />
-    <el-date-picker
-      class="m-2"
-      v-model="curDate"
-      type="date"
-      placeholder="Pick a day"
-    ></el-date-picker>
-  </div>
-
-  <p>For example, we can custom primary color to 'green'.</p>
-
-  <p>
-    Edit
-    <code>components/HelloWorld.vue</code> to test components.
-  </p>
-  <p>
-    Edit
-    <code>styles/element/var.scss</code> to test scss variables.
-  </p>
-
-  <p>
-    Full Example:
-    <a
-      href="https://github.com/element-plus/element-plus-vite-starter"
-      target="_blank"
-      >element-plus-vite-starter</a
-    >
-    | On demand Example:
-    <a
-      href="https://github.com/element-plus/unplugin-element-plus"
-      target="_blank"
-      >unplugin-element-plus/examples/vite</a
-    >
-  </p>
+  <el-button type="primary" @click="addDataToDB">添加数据到数据库</el-button>
+  <el-button type="primary" @click="clearDataToDB">清除数据库</el-button>
+  <el-table :data="tableData" border style="width: 100%">
+    <el-table-column prop="id" label="ID"></el-table-column>
+    <el-table-column prop="danci" label="单词"></el-table-column>
+  </el-table>
 </template>
 
-<style>
-.ep-button {
-  margin: 4px;
+<script lang="ts">
+import { defineComponent, ref, onMounted } from "vue";
+import { ElTable, ElTableColumn } from "element-plus";
+
+interface Danci {
+  id: number;
+  danci: string;
 }
-.ep-button + .ep-button {
-  margin-left: 0;
-  margin: 4px;
-}
-</style>
+
+const DB_NAME = "TestDB";
+const STORE_NAME = "danciList";
+
+let db: IDBDatabase;
+
+export default defineComponent({
+  components: {
+    ElTable,
+    ElTableColumn,
+  },
+  setup() {
+    const tableData = ref<Danci[]>([]);
+
+    onMounted(() => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onerror = (event) => {
+        console.log("打开数据库出错！", event.target.error);
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        store.createIndex("id", "id", { unique: true });
+      };
+
+      request.onsuccess = (event) => {
+        db = request.result;
+        console.log("成功打开数据库！");
+        getDataFromDB();
+      };
+    });
+
+    function clearDataToDB() {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+
+      transaction.oncomplete = () => {
+        console.log("清除数据库！");
+        getDataFromDB();
+      };
+    }
+    function addDataToDB() {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+
+      for (let i = 0; i < 5; i++) {
+        store.put({
+          id: i,
+          danci: `单词${i}`,
+        });
+      }
+
+      transaction.oncomplete = () => {
+        console.log("成功添加5条数据到数据库！");
+        getDataFromDB();
+      };
+
+      transaction.onerror = (event) => {
+        console.log("添加数据到数据库出错！", event.target.error);
+      };
+    }
+
+    function getDataFromDB() {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = (event) => {
+        tableData.value = event.target.result;
+      };
+
+      request.onerror = (event) => {
+        console.log("从数据库获取数据出错！", event.target.error);
+      };
+    }
+
+    return {
+      tableData,
+      addDataToDB,
+      clearDataToDB,
+    };
+  },
+});
+</script>

@@ -80,7 +80,9 @@ export default {
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      this.deleteTableRow(index);
+      if (index != -1) {
+        this.deleteTableRow(index);
+      }
     },
 
     deleteTableRow(index: number) {
@@ -139,9 +141,11 @@ export default {
       this.refreshTable();
     },
 
-    alterData(row: any, column: any) {
+    alterData(row: any, column: any, index: number) {
       row[column.property + "isShow"] = false;
       this.refreshTable();
+
+      this.putDifficulty(row, row.difficulty, -1);
     },
     refreshTable() {
       this.randomKey = Math.random();
@@ -295,7 +299,7 @@ export default {
               v-if="scope.row[scope.column.property + 'isShow']"
               :ref="scope.column.property"
               v-model="scope.row.chinese"
-              @blur="alterData(scope.row, scope.column)"
+              @blur="alterData(scope.row, scope.column, scope.$index)"
             ></el-input>
 
             <span v-else>{{ scope.row.chinese }}</span>

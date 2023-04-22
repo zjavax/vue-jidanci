@@ -40,17 +40,30 @@ export default {
           danci: "============================",
           chinese: "单词",
           know: 1,
-          difficulty: 2,
+          difficulty: 0,
         },
       ]),
-      difficulty: 0,
+      difficulty: 3,
       randomKey: Math.random(),
+      hoverRowIndex: -1,
     };
+  },
+  computed: {
+    isHoverRow() {
+      return (rowIndex: number) => rowIndex === this.hoverRowIndex;
+    },
   },
   mounted() {
     this.getData(this.difficulty, "no");
   },
   methods: {
+    handleMouseEnter(row: any, rowIndex: number) {
+      this.hoverRowIndex = rowIndex;
+    },
+    handleMouseLeave() {
+      this.hoverRowIndex = -1;
+    },
+
     // /src/components/data.json
     getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
@@ -302,7 +315,16 @@ export default {
               @blur="alterData(scope.row, scope.column, scope.$index)"
             ></el-input>
 
-            <span v-else>{{ scope.row.chinese }}</span>
+            <span
+              v-else
+              :class="{
+                'blur-text': true,
+                'hover-text': isHoverRow(scope.$index),
+              }"
+              @mouseenter="handleMouseEnter(scope.row, scope.$index)"
+              @mouseleave="handleMouseLeave"
+              >{{ scope.row.chinese }}</span
+            >
           </template>
         </el-table-column>
 
@@ -481,3 +503,14 @@ const deleteRowCache = (index: number) => {
   tableData.value.splice(index, 1);
 };
 </script>
+
+<style scoped>
+.blur-text {
+  filter: blur(4px);
+}
+
+.hover-text {
+  filter: none;
+  color: #000000;
+}
+</style>

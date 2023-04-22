@@ -17,18 +17,6 @@ const tableData = ref([
   },
 ]);
 
-// var danciList = ref([
-//   {
-//     id: 1,
-//     danci: "============================",
-//     chinese: "单词",
-//     know: 1,
-//     difficulty: 2,
-//   },
-// ]);
-
-// const tableRef = ref<TableInstance>();
-
 export default {
   data() {
     return {
@@ -43,11 +31,11 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 3,
+      difficulty: 1,
       randomKey: Math.random(),
       hoverRowIndex: -1,
-      isAllVisible: true,
-      isColumnVisible: true, // 列显示或者隐藏
+      isAllVisible: false,
+      isColumnVisible: false, // 列显示或者隐藏
     };
   },
   computed: {
@@ -260,7 +248,6 @@ export default {
         :data="danciList"
         style="width: 100%"
         :key="randomKey"
-        @cell-dblclick="editData"
       >
         <el-table-column prop="danci" label="单词" width="200" />
 
@@ -280,6 +267,7 @@ export default {
             ></el-input>
 
             <span
+              @click="editData(scope.row, scope.column)"
               v-else
               :class="{
                 'blur-text': !isVisible(scope.$index),
@@ -392,7 +380,7 @@ export default {
       <el-input
         v-model="form.alldancigroup"
         type="textarea"
-        placeholder="格式：单词 或者 单词:中文，支持多行"
+        placeholder="格式：单词 或者 单词::中文，支持多行"
       />
     </el-form-item>
 

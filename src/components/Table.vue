@@ -231,9 +231,11 @@ export default {
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
       <el-button @click="toggleAllVisible">{{
-        isAllVisible ? "全部模糊" : "全部显示"
+        isAllVisible ? "文字模糊" : "文字显示"
       }}</el-button>
-      <el-button @click="toggleColumn">隐藏显示列</el-button>
+      <el-button @click="toggleColumn">
+        {{ isColumnVisible ? "列隐藏" : "列显示" }}
+      </el-button>
     </el-form-item>
 
     <el-form-item>
@@ -351,8 +353,9 @@ export default {
 
         <el-table-column
           prop="know"
-          label="熟练度"
-          width="220"
+          label="熟悉度"
+	  width="220"
+          v-if="isColumnVisible"
           sortable
           :filters="[
             { text: '0', value: '0' },

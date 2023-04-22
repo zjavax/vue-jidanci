@@ -46,22 +46,31 @@ export default {
       difficulty: 3,
       randomKey: Math.random(),
       hoverRowIndex: -1,
+      isAllVisible: false,
     };
   },
   computed: {
-    isHoverRow() {
-      return (rowIndex: number) => rowIndex === this.hoverRowIndex;
+    isVisible(): (index: number) => boolean {
+      return (index: number) =>
+        this.isAllVisible || this.hoverRowIndex === index;
+    },
+    isHoverRow(): (index: number) => boolean {
+      return (index: number) => this.hoverRowIndex === index;
     },
   },
   mounted() {
     this.getData(this.difficulty, "no");
   },
   methods: {
-    handleMouseEnter(row: any, rowIndex: number) {
-      this.hoverRowIndex = rowIndex;
+    handleMouseEnter(_: any, index: number): void {
+      this.hoverRowIndex = index;
     },
-    handleMouseLeave() {
+    handleMouseLeave(): void {
       this.hoverRowIndex = -1;
+    },
+    toggleAllVisible(): void {
+      this.isAllVisible = !this.isAllVisible;
+      this.$forceUpdate();
     },
 
     // /src/components/data.json
@@ -217,6 +226,9 @@ export default {
       <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
+      <el-button @click="toggleAllVisible">{{
+        isAllVisible ? "全部隐藏" : "全部显示"
+      }}</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -318,7 +330,7 @@ export default {
             <span
               v-else
               :class="{
-                'blur-text': true,
+                'blur-text': !isVisible(scope.$index),
                 'hover-text': isHoverRow(scope.$index),
               }"
               @mouseenter="handleMouseEnter(scope.row, scope.$index)"

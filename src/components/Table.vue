@@ -187,7 +187,17 @@ export default {
 
 
 <template>
-  <el-backtop :right="100" :bottom="100" />
+  <!-- 回到顶部按钮 -->
+  <el-backtop :visibility-height="0" :bottom="150" :right="150"> </el-backtop>
+
+  <!-- 回到底部按钮 -->
+  <el-backtop
+    class="scroll-to-bottom"
+    :visibility-height="0"
+    :right="150"
+    @click="handleScrollToBottom"
+  >
+  </el-backtop>
 
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
@@ -437,7 +447,19 @@ export default {
 
 
 <script lang="ts" setup>
-// import tableData from "./data.json";
+// 记录当前滚动位置
+const scrollTop = ref(0);
+
+// 监听窗口滚动事件，更新scrollTop变量
+window.addEventListener("scroll", () => {
+  scrollTop.value =
+    document.documentElement.scrollTop || document.body.scrollTop;
+});
+
+// 回到底部
+const handleScrollToBottom = () => {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+};
 
 // do not use same name with ref
 const form = reactive({
@@ -536,5 +558,11 @@ const deleteRowCache = (index: number) => {
 .hover-text {
   filter: none;
   color: #000000;
+}
+
+.scroll-to-bottom {
+  position: fixed;
+  top: 150px;
+  right: 150px;
 }
 </style>

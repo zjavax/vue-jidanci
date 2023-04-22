@@ -46,7 +46,8 @@ export default {
       difficulty: 3,
       randomKey: Math.random(),
       hoverRowIndex: -1,
-      isAllVisible: false,
+      isAllVisible: true,
+      isColumnVisible: true,
     };
   },
   computed: {
@@ -71,6 +72,9 @@ export default {
     toggleAllVisible(): void {
       this.isAllVisible = !this.isAllVisible;
       this.$forceUpdate();
+    },
+    toggleColumn() {
+      this.isColumnVisible = !this.isColumnVisible;
     },
 
     // /src/components/data.json
@@ -229,16 +233,42 @@ export default {
       <el-button @click="toggleAllVisible">{{
         isAllVisible ? "全部隐藏" : "全部显示"
       }}</el-button>
+      <el-button @click="toggleColumn">切换第二列</el-button>
     </el-form-item>
 
     <el-form-item>
       <el-table
+        border
+        resizable
         :data="danciList"
         style="width: 100%"
         :key="randomKey"
         @cell-dblclick="editData"
       >
-        <el-table-column sortable prop="danci" label="单词" width="220" />
+        <el-table-column prop="danci" label="单词" width="200" />
+
+        <el-table-column label="中文" property="chinese" v-if="isColumnVisible">
+          <template #default="scope">
+            <el-input
+              type="textarea"
+              v-if="scope.row[scope.column.property + 'isShow']"
+              :ref="scope.column.property"
+              v-model="scope.row.chinese"
+              @blur="alterData(scope.row, scope.column, scope.$index)"
+            ></el-input>
+
+            <span
+              v-else
+              :class="{
+                'blur-text': !isVisible(scope.$index),
+                'hover-text': isHoverRow(scope.$index),
+              }"
+              @mouseenter="handleMouseEnter(scope.row, scope.$index)"
+              @mouseleave="handleMouseLeave"
+              >{{ scope.row.chinese }}</span
+            >
+          </template>
+        </el-table-column>
 
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
@@ -301,48 +331,18 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="150">
+        <el-table-column
+          fixed="right"
+          label="操作"
+          width="150"
+          v-if="isColumnVisible"
+        >
           <template #default="scope">
             <el-button type="danger" size="small" @click="deleteRow(scope.row)">
               删除
             </el-button>
           </template>
         </el-table-column>
-
-        <!-- <el-table-column
-          fixed="right"
-          prop="chinese"
-          sortable
-          label="中文"
-          width="320"
-        /> -->
-
-        <el-table-column label="中文" property="chinese">
-          <template #default="scope">
-            <el-input
-              type="textarea"
-              v-if="scope.row[scope.column.property + 'isShow']"
-              :ref="scope.column.property"
-              v-model="scope.row.chinese"
-              @blur="alterData(scope.row, scope.column, scope.$index)"
-            ></el-input>
-
-            <span
-              v-else
-              :class="{
-                'blur-text': !isVisible(scope.$index),
-                'hover-text': isHoverRow(scope.$index),
-              }"
-              @mouseenter="handleMouseEnter(scope.row, scope.$index)"
-              @mouseleave="handleMouseLeave"
-              >{{ scope.row.chinese }}</span
-            >
-          </template>
-        </el-table-column>
-
-        <!-- <el-table-column label="中文修改">
-          <el-input type="textarea" />
-        </el-table-column> -->
 
         <el-table-column
           fixed="right"

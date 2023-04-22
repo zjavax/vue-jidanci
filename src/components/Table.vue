@@ -231,9 +231,9 @@ export default {
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
       <el-button @click="toggleAllVisible">{{
-        isAllVisible ? "全部隐藏" : "全部显示"
+        isAllVisible ? "全部模糊" : "全部显示"
       }}</el-button>
-      <el-button @click="toggleColumn">切换第二列</el-button>
+      <el-button @click="toggleColumn">隐藏显示列</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -345,7 +345,6 @@ export default {
         </el-table-column>
 
         <el-table-column
-          fixed="right"
           prop="know"
           label="熟练度"
           width="220"

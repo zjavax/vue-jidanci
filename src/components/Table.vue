@@ -28,6 +28,7 @@ const tableData = ref([
 // ]);
 
 // const tableRef = ref<TableInstance>();
+
 export default {
   data() {
     return {
@@ -43,6 +44,7 @@ export default {
         },
       ]),
       difficulty: 0,
+      randomKey: Math.random(),
     };
   },
   mounted() {
@@ -130,6 +132,20 @@ export default {
 
       this.deleteTableRow(index);
     },
+
+    editData(row: any, column: any) {
+      row[column.property + "isShow"] = true;
+      //refreshTable是table数据改动时，刷新table的
+      this.refreshTable();
+    },
+
+    alterData(row: any, column: any) {
+      row[column.property + "isShow"] = false;
+      this.refreshTable();
+    },
+    refreshTable() {
+      this.randomKey = Math.random();
+    },
   },
 };
 </script>
@@ -187,7 +203,12 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-table :data="danciList" style="width: 100%">
+      <el-table
+        :data="danciList"
+        style="width: 100%"
+        :key="randomKey"
+        @cell-dblclick="editData"
+      >
         <el-table-column sortable prop="danci" label="单词" width="220" />
 
         <el-table-column fixed="right" label="操作">
@@ -259,13 +280,27 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column
+        <!-- <el-table-column
           fixed="right"
           prop="chinese"
           sortable
           label="中文"
           width="320"
-        />
+        /> -->
+
+        <el-table-column label="中文" property="chinese">
+          <template #default="scope">
+            <el-input
+              type="textarea"
+              v-if="scope.row[scope.column.property + 'isShow']"
+              :ref="scope.column.property"
+              v-model="scope.row.chinese"
+              @blur="alterData(scope.row, scope.column)"
+            ></el-input>
+
+            <span v-else>{{ scope.row.chinese }}</span>
+          </template>
+        </el-table-column>
 
         <!-- <el-table-column label="中文修改">
           <el-input type="textarea" />

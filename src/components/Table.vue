@@ -167,7 +167,7 @@ export default {
       this.refreshTable();
     },
 
-    alterData(row: any, column: any, index: number) {
+    alterData(row: any, column: any) {
       row[column.property + "isShow"] = false;
       this.refreshTable();
 
@@ -247,14 +247,19 @@ export default {
       >
         <el-table-column prop="danci" label="单词" width="200" />
 
-        <el-table-column label="中文" property="chinese" v-if="isColumnVisible">
+        <el-table-column
+          label="中文"
+          prop="chinese"
+          v-if="isColumnVisible"
+          width="250"
+        >
           <template #default="scope">
             <el-input
               type="textarea"
               v-if="scope.row[scope.column.property + 'isShow']"
               :ref="scope.column.property"
               v-model="scope.row.chinese"
-              @blur="alterData(scope.row, scope.column, scope.$index)"
+              @blur="alterData(scope.row, scope.column)"
             ></el-input>
 
             <span

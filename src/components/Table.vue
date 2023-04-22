@@ -47,7 +47,7 @@ export default {
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
-      isColumnVisible: true,
+      isColumnVisible: true, // 列显示或者隐藏
     };
   },
   computed: {
@@ -75,6 +75,7 @@ export default {
     },
     toggleColumn() {
       this.isColumnVisible = !this.isColumnVisible;
+      this.refreshTable();
     },
 
     // /src/components/data.json
@@ -96,6 +97,8 @@ export default {
           //请求失败的回调函数
           console.log(err);
         });
+
+      this.refreshTable();
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
@@ -184,6 +187,8 @@ export default {
 
 
 <template>
+  <el-backtop :right="100" :bottom="100" />
+
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
       <el-button @click="getData(4, 'no')">更简4</el-button>
@@ -354,7 +359,7 @@ export default {
         <el-table-column
           prop="know"
           label="熟悉度"
-	  width="220"
+          width="220"
           v-if="isColumnVisible"
           sortable
           :filters="[

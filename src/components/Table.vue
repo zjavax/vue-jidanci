@@ -10,6 +10,16 @@ import type { TableColumnCtx, TableInstance } from "element-plus";
 // ================
 var api = "http://localhost:8080/danci/";
 
+// do not use same name with ref
+const form1 = reactive({
+  alldanci: "",
+  alldancigroup: "",
+  article: "",
+  difficulty: 0,
+});
+
+var baseUrl = "http://localhost:8080/";
+
 export default {
   data() {
     return {
@@ -33,7 +43,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 4,
+      difficulty: 10,
       randomKey: Math.random(),
       randomKey2: Math.random(),
       hoverRowIndex: -1,
@@ -181,6 +191,62 @@ export default {
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
     },
+
+    addArticle() {
+      axios
+        .post(baseUrl + "addArticle", form1)
+        .then((res) => {
+          //请求成功的回调函数
+          console.log(res.data);
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+
+      form1.alldanci = "";
+      form1.alldancigroup = "";
+      form1.article = "";
+      this.getData(10, "desc");
+    },
+
+    onCancel() {
+      form1.alldanci = "";
+      form1.alldancigroup = "";
+    },
+
+    onSubmit() {
+      axios
+        .post(baseUrl + "alldanci", form1)
+        .then((res) => {
+          //请求成功的回调函数
+          console.log(res.data);
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+
+      form1.alldanci = "";
+      form1.alldancigroup = "";
+    },
+
+    onSubmit2(difficulty: number) {
+      form1.difficulty = difficulty;
+      axios
+        .post(baseUrl + "alldancigroup", form1)
+        .then((res) => {
+          //请求成功的回调函数
+          console.log(res.data);
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+
+      form1.alldanci = "";
+      form1.alldancigroup = "";
+    },
   },
 };
 </script>
@@ -203,7 +269,7 @@ export default {
     >底部
   </el-backtop>
 
-  <el-form :model="form" label-width="120px">
+  <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
       <el-button @click="getData(4, 'asc')">更简4</el-button>
       <el-button @click="getData(0, 'asc')">简单0</el-button>
@@ -212,10 +278,11 @@ export default {
       <el-button type="danger" @click="getData(3, 'asc')">稍难3</el-button>
       <el-button @click="getData(-10000, 'asc')">幼稚</el-button>
       <el-button @click="getData(-10000 - 1, 'asc')">幼稚-1</el-button>
+      <el-button @click="getData(10, 'asc')">文章</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
-      <el-input v-model="form.alldanci" type="textarea" />
+      <el-input v-model="form1.alldanci" type="textarea" />
     </el-form-item>
 
     <el-form-item v-if="difficulty == 0">
@@ -224,7 +291,7 @@ export default {
     </el-form-item>
 
     <el-form-item label="批量输入单词组" v-if="difficulty == 2">
-      <el-input v-model="form.alldancigroup" type="textarea" />
+      <el-input v-model="form1.alldancigroup" type="textarea" />
     </el-form-item>
 
     <el-form-item v-if="difficulty == 2">
@@ -234,14 +301,14 @@ export default {
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
 
-    <!-- <el-form-item label="输入文章">
-      <el-input v-model="form.article" type="textarea" />
+    <el-form-item label="输入文章" v-if="difficulty == 10">
+      <el-input v-model="form1.article" type="textarea" />
     </el-form-item>
 
-    <el-form-item>
+    <el-form-item v-if="difficulty == 10">
       <el-button type="primary" @click="addArticle">添加文章</el-button>
       <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item> -->
+    </el-form-item>
 
     <el-form-item>
       总数：{{ danciList.length }} 困难度：{{ difficulty }}
@@ -407,7 +474,7 @@ export default {
 
     <el-form-item label="批量输入单词和中文">
       <el-input
-        v-model="form.alldancigroup"
+        v-model="form1.alldancigroup"
         type="textarea"
         placeholder="格式：单词 或者 单词::中文，支持多行"
       />
@@ -494,70 +561,6 @@ window.addEventListener("scroll", () => {
 // 回到底部
 const handleScrollToBottom = () => {
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-};
-
-// do not use same name with ref
-const form = reactive({
-  alldanci: "",
-  alldancigroup: "",
-  article: "",
-  difficulty: 0,
-});
-
-var baseUrl = "http://localhost:8080/";
-
-const onCancel = () => {
-  form.alldanci = "";
-  form.alldancigroup = "";
-};
-const onSubmit = () => {
-  axios
-    .post(baseUrl + "alldanci", form)
-    .then((res) => {
-      //请求成功的回调函数
-      console.log(res.data);
-    })
-    .catch((err) => {
-      //请求失败的回调函数
-      console.log(err);
-    });
-
-  form.alldanci = "";
-  form.alldancigroup = "";
-};
-
-const onSubmit2 = (difficulty: number) => {
-  form.difficulty = difficulty;
-  axios
-    .post(baseUrl + "alldancigroup", form)
-    .then((res) => {
-      //请求成功的回调函数
-      console.log(res.data);
-    })
-    .catch((err) => {
-      //请求失败的回调函数
-      console.log(err);
-    });
-
-  form.alldanci = "";
-  form.alldancigroup = "";
-};
-
-const addArticle = () => {
-  axios
-    .post(baseUrl + "addArticle", form)
-    .then((res) => {
-      //请求成功的回调函数
-      console.log(res.data);
-    })
-    .catch((err) => {
-      //请求失败的回调函数
-      console.log(err);
-    });
-
-  form.alldanci = "";
-  form.alldancigroup = "";
-  form.article = "";
 };
 
 const filterKnow = (value: number, row: Danci) => {

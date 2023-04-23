@@ -3,19 +3,11 @@ import { ref } from "vue";
 import axios from "axios";
 
 import { reactive } from "vue";
+import { nextTick } from "vue";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
-const tableData = ref([
-  {
-    id: 1,
-    danci: "==================",
-    chinese: "单词",
-    know: 1,
-    difficulty: 2,
-  },
-]);
 var api = "http://localhost:8080/danci/";
 
 export default {
@@ -32,9 +24,17 @@ export default {
           difficulty: 0,
         },
       ]),
+      tableData: ref([
+        {
+          id: 1,
+          danci: "dog",
+          chinese: "单词",
+          know: 1,
+          difficulty: 2,
+        },
+      ]),
       difficulty: 1,
       randomKey: Math.random(),
-      randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: false,
       isColumnVisible: false, // 列显示或者隐藏
@@ -136,19 +136,17 @@ export default {
 
     // 不认识  +1
     addKnow(row: Danci, index: number) {
-      tableData.value.push(row);
-      // this.randomKey2 = Math.random();
-
       // var api = "http://localhost:8080/danci/" + row.id;
-
-      // row.difficulty = 1;
 
       row.know++;
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      // this.deleteTableRow(index);
-      this.danciList.splice(index, this.danciList.length - index);
+      nextTick(() => {
+        // this.deleteTableRow(index);
+        this.danciList.splice(index, this.danciList.length - index);
+        this.tableData.push(row);
+      });
     },
 
     editData(row: any, column: any) {
@@ -165,6 +163,9 @@ export default {
     },
     refreshTable() {
       this.randomKey = Math.random();
+    },
+    deleteRowCache(index: number) {
+      this.tableData.splice(index, 1);
     },
   },
 };
@@ -416,7 +417,7 @@ export default {
 
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
-      <el-table :data="tableData" style="width: 100%" :key="randomKey2">
+      <el-table :data="tableData" style="width: 100%">
         <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
             <el-tooltip :content="row.chinese" placement="left">
@@ -441,7 +442,7 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" label="Operations">
+        <el-table-column fixed="right" label="操作">
           <template #default="scope">
             <el-button
               link
@@ -562,9 +563,6 @@ interface Danci {
 }
 
 // ============
-const deleteRowCache = (index: number) => {
-  tableData.value.splice(index, 1);
-};
 </script>
 
 <style scoped>

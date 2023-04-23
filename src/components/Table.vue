@@ -8,13 +8,13 @@ import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
 const tableData = ref([
-  {
-    id: 1,
-    danci: "============================",
-    chinese: "单词",
-    know: 1,
-    difficulty: 2,
-  },
+  // {
+  //   id: 1,
+  //   danci: "==================",
+  //   chinese: "单词",
+  //   know: 1,
+  //   difficulty: 2,
+  // },
 ]);
 
 export default {
@@ -197,6 +197,7 @@ export default {
       <el-button type="danger" @click="getData(2, 'no')">太难2</el-button>
       <el-button type="danger" @click="getData(3, 'no')">稍难3</el-button>
       <el-button @click="getData(-10000, 'no')">幼稚</el-button>
+      <el-button @click="getData(-10000 - 1, 'no')">幼稚-1</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -233,8 +234,8 @@ export default {
     </el-form-item>
     <el-form-item>
       <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
-      <el-button @click="getData(difficulty, 'desc')">熟悉度降序</el-button>
-      <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序</el-button>
+      <el-button @click="getData(difficulty, 'desc')">熟悉度降序21</el-button>
+      <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序12</el-button>
       <el-button @click="toggleAllVisible">{{
         isAllVisible ? "文字模糊" : "文字显示"
       }}</el-button>
@@ -277,7 +278,9 @@ export default {
               }"
               @mouseenter="handleMouseEnter(scope.row, scope.$index)"
               @mouseleave="handleMouseLeave"
-              >{{ scope.row.chinese }}</span
+              >{{
+                scope.row.chinese == null ? "可双击输入中文" : scope.row.chinese
+              }}</span
             >
           </template>
         </el-table-column>
@@ -340,6 +343,13 @@ export default {
               @click="putDifficulty(scope.row, -10000, scope.$index)"
             >
               幼稚
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty != -10000 - 1"
+              size="small"
+              @click="putDifficulty(scope.row, -10000 - 1, scope.$index)"
+            >
+              幼稚-1
             </el-button>
           </template>
         </el-table-column>
@@ -406,11 +416,27 @@ export default {
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
       <el-table :data="tableData" style="width: 100%">
-        <el-table-column label="单词">
+        <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
             <el-tooltip :content="row.chinese" placement="left">
               <span>{{ row.danci }}</span>
             </el-tooltip>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="中文" prop="chinese" width="250">
+          <template #default="scope">
+            <el-input
+              type="textarea"
+              v-if="scope.row[scope.column.property + 'isShow']"
+              :ref="scope.column.property"
+              v-model="scope.row.chinese"
+              @blur="alterData(scope.row, scope.column)"
+            ></el-input>
+
+            <span @click="editData(scope.row, scope.column)" v-else>{{
+              scope.row.chinese == null ? "可双击输入中文" : scope.row.chinese
+            }}</span>
           </template>
         </el-table-column>
 

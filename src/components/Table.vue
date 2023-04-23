@@ -291,7 +291,7 @@ export default {
               @mouseenter="handleMouseEnter(scope.row, scope.$index)"
               @mouseleave="handleMouseLeave"
               >{{
-                scope.row.chinese == null ? "可双击输入中文" : scope.row.chinese
+                scope.row.chinese == null ? "可单击输入中文" : scope.row.chinese
               }}</span
             >
           </template>

@@ -35,9 +35,10 @@ export default {
       ]),
       difficulty: 1,
       randomKey: Math.random(),
+      randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
-      isColumnVisible: true, // 列显示或者隐藏
+      isColumnVisible: false, // 列显示或者隐藏
     };
   },
   computed: {
@@ -144,12 +145,17 @@ export default {
 
       this.danciList.splice(index, this.danciList.length - index);
       this.tableData.push(row);
+      this.refreshTable2();
     },
 
     editData(row: any, column: any) {
       row[column.property + "isShow"] = true;
       //refreshTable是table数据改动时，刷新table的
       this.refreshTable();
+    },
+    editData2(row: any, column: any) {
+      row[column.property + "isShow"] = true;
+      this.refreshTable2();
     },
 
     alterData(row: any, column: any) {
@@ -158,8 +164,17 @@ export default {
 
       this.putDifficulty(row, row.difficulty, -1);
     },
+    alterData2(row: any, column: any) {
+      row[column.property + "isShow"] = false;
+      this.refreshTable2();
+
+      this.putDifficulty(row, row.difficulty, -1);
+    },
     refreshTable() {
       this.randomKey = Math.random();
+    },
+    refreshTable2() {
+      this.randomKey2 = Math.random();
     },
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
@@ -414,7 +429,7 @@ export default {
 
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
-      <el-table :data="tableData" style="width: 100%">
+      <el-table :data="tableData" style="width: 100%" :key="randomKey2">
         <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
             <el-tooltip :content="row.chinese" placement="left">
@@ -430,10 +445,10 @@ export default {
               v-if="scope.row[scope.column.property + 'isShow']"
               :ref="scope.column.property"
               v-model="scope.row.chinese"
-              @blur="alterData(scope.row, scope.column)"
+              @blur="alterData2(scope.row, scope.column)"
             ></el-input>
 
-            <span @click="editData(scope.row, scope.column)" v-else>{{
+            <span @click="editData2(scope.row, scope.column)" v-else>{{
               scope.row.chinese == null ? "可双击输入中文" : scope.row.chinese
             }}</span>
           </template>

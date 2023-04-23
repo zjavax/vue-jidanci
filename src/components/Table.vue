@@ -36,8 +36,8 @@ export default {
       difficulty: 1,
       randomKey: Math.random(),
       hoverRowIndex: -1,
-      isAllVisible: false,
-      isColumnVisible: false, // 列显示或者隐藏
+      isAllVisible: true,
+      isColumnVisible: true, // 列显示或者隐藏
     };
   },
   computed: {
@@ -142,11 +142,8 @@ export default {
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      nextTick(() => {
-        // this.deleteTableRow(index);
-        this.danciList.splice(index, this.danciList.length - index);
-        this.tableData.push(row);
-      });
+      this.danciList.splice(index, this.danciList.length - index);
+      this.tableData.push(row);
     },
 
     editData(row: any, column: any) {

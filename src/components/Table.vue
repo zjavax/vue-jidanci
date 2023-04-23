@@ -147,7 +147,8 @@ export default {
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      this.deleteTableRow(index);
+      // this.deleteTableRow(index);
+      this.danciList.splice(index, this.danciList.length - index);
     },
 
     editData(row: any, column: any) {

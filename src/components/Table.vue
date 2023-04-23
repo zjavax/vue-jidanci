@@ -7,7 +7,7 @@ import { reactive } from "vue";
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
-const tableData = [
+const tableData = ref([
   {
     id: 1,
     danci: "==================",
@@ -15,7 +15,7 @@ const tableData = [
     know: 1,
     difficulty: 2,
   },
-];
+]);
 var api = "http://localhost:8080/danci/";
 
 export default {
@@ -136,8 +136,8 @@ export default {
 
     // 不认识  +1
     addKnow(row: Danci, index: number) {
-      tableData.push(row);
-      this.randomKey2 = Math.random();
+      tableData.value.push(row);
+      // this.randomKey2 = Math.random();
 
       // var api = "http://localhost:8080/danci/" + row.id;
 
@@ -287,18 +287,18 @@ export default {
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
             <el-button
-              type="primary"
+              type="danger"
               size="small"
               @click="addKnow(scope.row, scope.$index)"
             >
               不认识
             </el-button>
             <el-button
-              type="danger"
+              type="primary"
               size="small"
               @click="minusKnow(scope.row, scope.$index)"
             >
-              认识
+              认识-1
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 0"
@@ -308,6 +308,7 @@ export default {
               简单
             </el-button>
             <el-button
+              type="primary"
               v-if="scope.row.difficulty != 4"
               size="small"
               @click="putDifficulty(scope.row, 4, scope.$index)"
@@ -330,6 +331,7 @@ export default {
               太难
             </el-button>
             <el-button
+              type="danger"
               v-if="scope.row.difficulty != 3"
               size="small"
               @click="putDifficulty(scope.row, 3, scope.$index)"
@@ -561,7 +563,7 @@ interface Danci {
 
 // ============
 const deleteRowCache = (index: number) => {
-  tableData.splice(index, 1);
+  tableData.value.splice(index, 1);
 };
 </script>
 

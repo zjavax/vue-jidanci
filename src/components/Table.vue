@@ -7,15 +7,16 @@ import { reactive } from "vue";
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
-const tableData = ref([
-  // {
-  //   id: 1,
-  //   danci: "==================",
-  //   chinese: "单词",
-  //   know: 1,
-  //   difficulty: 2,
-  // },
-]);
+const tableData = [
+  {
+    id: 1,
+    danci: "==================",
+    chinese: "单词",
+    know: 1,
+    difficulty: 2,
+  },
+];
+var api = "http://localhost:8080/danci/";
 
 export default {
   data() {
@@ -33,6 +34,7 @@ export default {
       ]),
       difficulty: 1,
       randomKey: Math.random(),
+      randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: false,
       isColumnVisible: false, // 列显示或者隐藏
@@ -121,13 +123,8 @@ export default {
     },
 
     // 减一  认识
+
     minusKnow(row: Danci, index: number) {
-      var api = "http://localhost:8080/danci/" + row.id;
-
-      if (row.difficulty == 2) {
-        row.difficulty = 1;
-      }
-
       row.know--;
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {
@@ -139,9 +136,10 @@ export default {
 
     // 不认识  +1
     addKnow(row: Danci, index: number) {
-      tableData.value.push(row);
+      tableData.push(row);
+      this.randomKey2 = Math.random();
 
-      var api = "http://localhost:8080/danci/" + row.id;
+      // var api = "http://localhost:8080/danci/" + row.id;
 
       // row.difficulty = 1;
 
@@ -415,7 +413,7 @@ export default {
 
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
-      <el-table :data="tableData" style="width: 100%">
+      <el-table :data="tableData" style="width: 100%" :key="randomKey2">
         <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
             <el-tooltip :content="row.chinese" placement="left">
@@ -562,7 +560,7 @@ interface Danci {
 
 // ============
 const deleteRowCache = (index: number) => {
-  tableData.value.splice(index, 1);
+  tableData.splice(index, 1);
 };
 </script>
 

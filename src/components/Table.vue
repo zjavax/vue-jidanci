@@ -27,13 +27,13 @@ export default {
       tableData: ref([
         {
           id: 1,
-          danci: "dog",
+          danci: "==========",
           chinese: "单词",
           know: 1,
-          difficulty: 2,
+          difficulty: 0,
         },
       ]),
-      difficulty: 1,
+      difficulty: 4,
       randomKey: Math.random(),
       randomKey2: Math.random(),
       hoverRowIndex: -1,
@@ -51,7 +51,7 @@ export default {
     },
   },
   mounted() {
-    this.getData(this.difficulty, "no");
+    this.getData(this.difficulty, "asc");
   },
   methods: {
     handleMouseEnter(_: any, index: number): void {
@@ -203,13 +203,13 @@ export default {
 
   <el-form :model="form" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button @click="getData(4, 'no')">更简4</el-button>
-      <el-button @click="getData(0, 'no')">简单0</el-button>
-      <el-button type="warning" @click="getData(1, 'no')">可背1</el-button>
-      <el-button type="danger" @click="getData(2, 'no')">太难2</el-button>
-      <el-button type="danger" @click="getData(3, 'no')">稍难3</el-button>
-      <el-button @click="getData(-10000, 'no')">幼稚</el-button>
-      <el-button @click="getData(-10000 - 1, 'no')">幼稚-1</el-button>
+      <el-button @click="getData(4, 'asc')">更简4</el-button>
+      <el-button @click="getData(0, 'asc')">简单0</el-button>
+      <el-button type="warning" @click="getData(1, 'asc')">可背1</el-button>
+      <el-button type="danger" @click="getData(2, 'asc')">太难2</el-button>
+      <el-button type="danger" @click="getData(3, 'asc')">稍难3</el-button>
+      <el-button @click="getData(-10000, 'asc')">幼稚</el-button>
+      <el-button @click="getData(-10000 - 1, 'asc')">幼稚-1</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -418,13 +418,13 @@ export default {
     </el-form-item>
 
     <el-form-item style="margin-top: 150px">
-      <el-button type="warning" @click="getData(1, 'no')">可背诵</el-button>
-      <el-button @click="getData(4, 'no')">更简单4</el-button>
-      <el-button @click="getData(0, 'no')">简单</el-button>
-      <el-button type="danger" @click="getData(2, 'no')">太难不背</el-button>
-      <el-button type="danger" @click="getData(3, 'no')">稍难</el-button>
+      <el-button type="warning" @click="getData(1, 'asc')">可背诵</el-button>
+      <el-button @click="getData(4, 'asc')">更简单4</el-button>
+      <el-button @click="getData(0, 'asc')">简单</el-button>
+      <el-button type="danger" @click="getData(2, 'asc')">太难不背</el-button>
+      <el-button type="danger" @click="getData(3, 'asc')">稍难</el-button>
 
-      <el-button @click="getData(-10000, 'no')">幼稚</el-button>
+      <el-button @click="getData(-10000, 'asc')">幼稚</el-button>
     </el-form-item>
 
     <el-form-item style="margin-top: 50px">

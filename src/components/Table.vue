@@ -4,6 +4,7 @@ import axios from "axios";
 
 import { reactive } from "vue";
 import { nextTick } from "vue";
+import { debounce } from "lodash";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -43,12 +44,13 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 10,
+      difficulty: 4,
       randomKey: Math.random(),
       randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
       isColumnVisible: false, // 列显示或者隐藏
+      searchWords: "",
     };
   },
   computed: {
@@ -79,7 +81,27 @@ export default {
       this.refreshTable();
     },
 
-    // /src/components/data.json
+    // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
+    searchData: debounce(function (this: any, query: string) {
+      axios
+        .get("http://localhost:8080/searchWords?searchWords=" + query)
+        .then((res) => {
+          //请求成功的回调函数
+          this.danciList = res.data;
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    }, 200),
+
+    // searchData: debounce(function (this: any, search: string) {
+    //   this.danciList = this.danciList.filter(
+    //     (data: any) =>
+    //       !search || data.danci.toLowerCase().includes(search.toLowerCase())
+    //   );
+    // }, 200),
+
     getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
       //2.使用axios 进行get请求
@@ -98,8 +120,6 @@ export default {
           //请求失败的回调函数
           console.log(err);
         });
-
-      this.refreshTable();
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
@@ -334,7 +354,16 @@ export default {
         style="width: 100%"
         :key="randomKey"
       >
-        <el-table-column prop="danci" label="单词" width="200" />
+        <el-table-column prop="danci" label="单词" width="200">
+          <template #header>
+            <el-input
+              v-model="searchWords"
+              size="default"
+              placeholder="搜索单词"
+              @input="searchData(searchWords)"
+            />
+          </template>
+        </el-table-column>
 
         <el-table-column
           label="中文"

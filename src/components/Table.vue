@@ -101,7 +101,8 @@ export default {
       axios.put(api, row).then(function (response) {});
 
       if (index != -1) {
-        this.deleteTableRow(index);
+        // this.deleteTableRow(index);
+        this.danciList.splice(index, this.danciList.length - index);
       }
     },
 
@@ -132,7 +133,8 @@ export default {
         console.log();
       });
 
-      this.deleteTableRow(index);
+      // this.deleteTableRow(index);
+      this.danciList.splice(index, this.danciList.length - index);
     },
 
     // 不认识  +1
@@ -246,6 +248,7 @@ export default {
     </el-form-item>
     <el-form-item>
       <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
+      <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序21</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序12</el-button>
       <el-button @click="toggleAllVisible">{{
@@ -291,7 +294,7 @@ export default {
               @mouseenter="handleMouseEnter(scope.row, scope.$index)"
               @mouseleave="handleMouseLeave"
               >{{
-                scope.row.chinese == null ? "可单击输入中文" : scope.row.chinese
+                scope.row.chinese == null ? "？？？" : scope.row.chinese
               }}</span
             >
           </template>
@@ -448,9 +451,11 @@ export default {
               @blur="alterData2(scope.row, scope.column)"
             ></el-input>
 
-            <span @click="editData2(scope.row, scope.column)" v-else>{{
-              scope.row.chinese == null ? "可双击输入中文" : scope.row.chinese
-            }}</span>
+            <span @click="editData2(scope.row, scope.column)" v-else>
+              {{
+                scope.row.chinese == null ? "可单击输入中文" : scope.row.chinese
+              }}</span
+            >
           </template>
         </el-table-column>
 
@@ -589,7 +594,6 @@ interface Danci {
 
 .scroll-to-bottom {
   position: fixed;
-  top: 300px;
-  right: 150px;
+  top: 150px;
 }
 </style>

@@ -51,6 +51,7 @@ export default {
       isAllVisible: true,
       isColumnVisible: false, // 列显示或者隐藏
       searchWords: "",
+      sort: "asc",
     };
   },
   computed: {
@@ -83,16 +84,20 @@ export default {
 
     // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
     searchData: debounce(function (this: any, query: string) {
-      axios
-        .get("http://localhost:8080/searchWords?searchWords=" + query)
-        .then((res) => {
-          //请求成功的回调函数
-          this.danciList = res.data;
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
+      if (query != "") {
+        axios
+          .get("http://localhost:8080/searchWords?searchWords=" + query)
+          .then((res) => {
+            //请求成功的回调函数
+            this.danciList = res.data;
+          })
+          .catch((err) => {
+            //请求失败的回调函数
+            console.log(err);
+          });
+      } else {
+        this.getData(this.difficulty, this.sort);
+      }
     }, 200),
 
     // searchData: debounce(function (this: any, search: string) {
@@ -157,7 +162,7 @@ export default {
     // 减一  认识
 
     minusKnow(row: Danci, index: number) {
-      row.know--;
+      row.know = row.know + 5;
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {
         console.log();
@@ -171,7 +176,7 @@ export default {
     addKnow(row: Danci, index: number) {
       // var api = "http://localhost:8080/danci/" + row.id;
 
-      row.know++;
+      row.know--;
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 

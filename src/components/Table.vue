@@ -351,6 +351,8 @@ export default {
       </el-button>
     </el-form-item>
 
+    <!-- <Article /> -->
+
     <el-form-item>
       <el-table
         border
@@ -403,6 +405,7 @@ export default {
 
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
+            {{ scope.row.know }}
             <el-button
               type="danger"
               size="small"

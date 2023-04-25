@@ -44,7 +44,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 4,
+      difficulty: 0,
       randomKey: Math.random(),
       randomKey2: Math.random(),
       hoverRowIndex: -1,
@@ -79,7 +79,6 @@ export default {
     },
     toggleColumn() {
       this.isColumnVisible = !this.isColumnVisible;
-      this.refreshTable();
     },
 
     // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
@@ -296,6 +295,7 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
+      <el-button @click="getData(-1, 'asc')">-1</el-button>
       <el-button @click="getData(4, 'asc')">更简4</el-button>
       <el-button @click="getData(0, 'asc')">简单0</el-button>
       <el-button type="warning" @click="getData(1, 'asc')">可背1</el-button>
@@ -418,7 +418,14 @@ export default {
               size="small"
               @click="minusKnow(scope.row, scope.$index)"
             >
-              认识-1
+              认识+1
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty != -1"
+              size="small"
+              @click="putDifficulty(scope.row, -1, scope.$index)"
+            >
+              -1
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 0"
@@ -471,6 +478,13 @@ export default {
               @click="putDifficulty(scope.row, -10000 - 1, scope.$index)"
             >
               幼稚-1
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty != 10"
+              size="small"
+              @click="putDifficulty(scope.row, 10, scope.$index)"
+            >
+              文章
             </el-button>
           </template>
         </el-table-column>
@@ -579,10 +593,6 @@ export default {
     </el-form-item>
   </el-form>
 </template>
-
-
-
-
 
 
 <script lang="ts" setup>

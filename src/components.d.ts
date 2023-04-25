@@ -13,6 +13,7 @@ declare module '@vue/runtime-core' {
     BaseHeader: typeof import('./components/layouts/BaseHeader.vue')['default']
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
     Blank: typeof import('./components/blank.vue')['default']
+    copy: typeof import('./components/Table copy.vue')['default']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
@@ -25,5 +26,6 @@ declare module '@vue/runtime-core' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     Table: typeof import('./components/Table.vue')['default']
+    TableTest: typeof import('./components/TableTest.vue')['default']
   }
 }

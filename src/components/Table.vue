@@ -79,7 +79,8 @@ export default {
     },
     toggleColumn() {
       this.isColumnVisible = !this.isColumnVisible;
-      this.refreshTable(); // 防止列变宽
+      // this.refreshTable();  // 防止列变宽
+      this.randomKey = Math.random(); // 防止列变宽
     },
 
     // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
@@ -182,37 +183,38 @@ export default {
 
       this.danciList.splice(index, this.danciList.length - index);
       this.tableData.push(row);
-      this.refreshTable2();
+      // this.refreshTable2();
     },
 
-    editData(row: any, column: any) {
-      row[column.property + "isShow"] = true;
-      //refreshTable是table数据改动时，刷新table的
-      this.refreshTable();
-    },
-    editData2(row: any, column: any) {
-      row[column.property + "isShow"] = true;
-      this.refreshTable2();
-    },
+    // editData(row: any, column: any) {
+    //   row[column.property + "isShow"] = true;
+    //   //refreshTable是table数据改动时，刷新table的
+    //   this.refreshTable();
+    // },
+    // editData2(row: any, column: any) {
+    //   row[column.property + "isShow"] = true;
+    //   this.refreshTable2();
+    // },
 
-    alterData(row: any, column: any) {
-      row[column.property + "isShow"] = false;
-      this.refreshTable();
+    // alterData(row: any, column: any) {
+    //   row[column.property + "isShow"] = false;
+    //   this.refreshTable();
 
-      this.putDifficulty(row, row.difficulty, -1);
-    },
-    alterData2(row: any, column: any) {
-      row[column.property + "isShow"] = false;
-      this.refreshTable2();
+    //   this.putDifficulty(row, row.difficulty, -1);
+    // },
 
-      this.putDifficulty(row, row.difficulty, -1);
-    },
-    refreshTable() {
-      this.randomKey = Math.random();
-    },
-    refreshTable2() {
-      this.randomKey2 = Math.random();
-    },
+    // alterData2(row: any, column: any) {
+    //   row[column.property + "isShow"] = false;
+    //   this.refreshTable2();
+
+    //   this.putDifficulty(row, row.difficulty, -1);
+    // },
+    // refreshTable() {
+    //   this.randomKey = Math.random();
+    // },
+    // refreshTable2() {
+    //   this.randomKey2 = Math.random();
+    // },
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
     },
@@ -373,7 +375,19 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column
+        <el-table-column label="可编辑列" v-if="isColumnVisible" width="300">
+          <template #default="{ row }">
+            <el-input
+              autosize
+              type="textarea"
+              placeholder="Please input"
+              v-model="row.chinese"
+              @blur="putDifficulty(row, row.difficulty, -1)"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <!-- <el-table-column
           label="中文"
           prop="chinese"
           v-if="isColumnVisible"
@@ -402,7 +416,7 @@ export default {
               }}</span
             >
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
         <el-table-column fixed="right" label="操作">
           <template #default="scope">
@@ -540,7 +554,7 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="中文" prop="chinese" width="250">
+        <!-- <el-table-column label="中文" prop="chinese" width="250">
           <template #default="scope">
             <el-input
               type="textarea"
@@ -556,7 +570,7 @@ export default {
               }}</span
             >
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
         <el-table-column fixed="right" label="操作">
           <template #default="scope">

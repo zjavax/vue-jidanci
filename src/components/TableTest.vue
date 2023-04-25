@@ -3,6 +3,7 @@
     <el-table-column label="可编辑列">
       <template #default="{ row }">
         <el-input
+          autosize
           type="textarea"
           v-model="row.editableColumn"
           @blur="onEditDone(row)"

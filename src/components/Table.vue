@@ -44,11 +44,11 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 0,
+      difficulty: 4,
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
-      isColumnVisible: true, // 列显示或者隐藏
+      isColumnVisible: false, // 列显示或者隐藏
       searchWords: "",
       sort: "asc",
     };
@@ -283,6 +283,7 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
+      <el-button @click="getData(-2, 'asc')">-2</el-button>
       <el-button @click="getData(-1, 'asc')">-1</el-button>
       <el-button @click="getData(4, 'asc')">更简4</el-button>
       <el-button @click="getData(0, 'asc')">简单0</el-button>
@@ -420,12 +421,19 @@ export default {
             >
               认识+1
             </el-button>
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != -1"
               size="small"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
               -1
+            </el-button> -->
+            <el-button
+              v-if="scope.row.difficulty != -2"
+              size="small"
+              @click="putDifficulty(scope.row, -2, scope.$index)"
+            >
+              -2
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 0"

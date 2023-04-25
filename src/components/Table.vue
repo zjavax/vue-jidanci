@@ -500,26 +500,6 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-
-        <el-table-column
-          prop="know"
-          label="熟悉度"
-          width="220"
-          v-if="isColumnVisible"
-          sortable
-          :filters="[
-            { text: '0', value: '0' },
-            { text: '1', value: '1' },
-            { text: '2', value: '2' },
-            { text: '3', value: '3' },
-            { text: '4', value: '4' },
-            { text: '5', value: '5' },
-            { text: '6', value: '6' },
-            { text: '7', value: '7' },
-          ]"
-          :filter-method="filterKnow"
-          filter-placement="bottom-end"
-        />
       </el-table>
     </el-form-item>
 
@@ -609,17 +589,6 @@ window.addEventListener("scroll", () => {
 const handleScrollToBottom = () => {
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 };
-
-const filterKnow = (value: number, row: Danci) => {
-  return row.know == value;
-};
-
-// TODO: improvement typing when refactor table
-// const clearFilter = () => {
-//   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//   // @ts-expect-error
-//   tableRef.value!.clearFilter();
-// };
 
 interface Danci {
   id: number;

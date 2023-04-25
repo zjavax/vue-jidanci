@@ -46,7 +46,6 @@ export default {
       ]),
       difficulty: 0,
       randomKey: Math.random(),
-      randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
       isColumnVisible: true, // 列显示或者隐藏
@@ -191,10 +190,6 @@ export default {
     //   //refreshTable是table数据改动时，刷新table的
     //   this.refreshTable();
     // },
-    // editData2(row: any, column: any) {
-    //   row[column.property + "isShow"] = true;
-    //   this.refreshTable2();
-    // },
 
     // alterData(row: any, column: any) {
     //   row[column.property + "isShow"] = false;
@@ -202,18 +197,8 @@ export default {
 
     //   this.putDifficulty(row, row.difficulty, -1);
     // },
-
-    // alterData2(row: any, column: any) {
-    //   row[column.property + "isShow"] = false;
-    //   this.refreshTable2();
-
-    //   this.putDifficulty(row, row.difficulty, -1);
-    // },
     // refreshTable() {
     //   this.randomKey = Math.random();
-    // },
-    // refreshTable2() {
-    //   this.randomKey2 = Math.random();
     // },
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
@@ -545,7 +530,7 @@ export default {
 
     <el-form-item style="margin-top: 50px">
       <el-tag>不认识</el-tag>
-      <el-table :data="tableData" style="width: 100%" :key="randomKey2">
+      <el-table :data="tableData" style="width: 100%">
         <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
             <el-tooltip :content="row.chinese" placement="left">

@@ -49,7 +49,7 @@ export default {
       randomKey2: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
-      isColumnVisible: false, // 列显示或者隐藏
+      isColumnVisible: true, // 列显示或者隐藏
       searchWords: "",
       sort: "asc",
     };
@@ -79,6 +79,7 @@ export default {
     },
     toggleColumn() {
       this.isColumnVisible = !this.isColumnVisible;
+      this.refreshTable(); // 防止列变宽
     },
 
     // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this

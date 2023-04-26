@@ -44,13 +44,13 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 4,
+      difficulty: 1,
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
-      isColumnVisible: false, // 列显示或者隐藏
+      isColumnVisible: true, // 列显示或者隐藏
       searchWords: "",
-      sort: "asc",
+      sort: "no",
     };
   },
   computed: {
@@ -63,7 +63,7 @@ export default {
     },
   },
   mounted() {
-    this.getData(this.difficulty, "asc");
+    this.getData(this.difficulty, this.sort);
   },
   methods: {
     handleMouseEnter(_: any, index: number): void {
@@ -283,16 +283,16 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button @click="getData(-2, 'asc')">-2</el-button>
-      <el-button @click="getData(-1, 'asc')">-1</el-button>
-      <el-button @click="getData(4, 'asc')">更简4</el-button>
-      <el-button @click="getData(0, 'asc')">简单0</el-button>
-      <el-button type="warning" @click="getData(1, 'asc')">可背1</el-button>
-      <el-button type="danger" @click="getData(2, 'asc')">太难2</el-button>
-      <el-button type="danger" @click="getData(3, 'asc')">稍难3</el-button>
-      <el-button @click="getData(-10000, 'asc')">幼稚</el-button>
-      <el-button @click="getData(-10000 - 1, 'asc')">幼稚-1</el-button>
-      <el-button @click="getData(10, 'asc')">文章</el-button>
+      <el-button @click="getData(-2, sort)">-2</el-button>
+      <el-button @click="getData(-1, sort)">-1</el-button>
+      <el-button @click="getData(4, sort)">更简4</el-button>
+      <el-button @click="getData(0, sort)">简单0</el-button>
+      <el-button type="warning" @click="getData(1, sort)">可背1</el-button>
+      <el-button type="danger" @click="getData(2, sort)">太难2</el-button>
+      <el-button type="danger" @click="getData(3, sort)">稍难3</el-button>
+      <el-button @click="getData(-10000, sort)">幼稚</el-button>
+      <el-button @click="getData(-10000 - 1, sort)">幼稚-1</el-button>
+      <el-button @click="getData(10, sort)">文章</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -428,20 +428,13 @@ export default {
             >
               -1
             </el-button> -->
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != -2"
               size="small"
               @click="putDifficulty(scope.row, -2, scope.$index)"
             >
               -2
-            </el-button>
-            <el-button
-              v-if="scope.row.difficulty != 0"
-              size="small"
-              @click="putDifficulty(scope.row, 0, scope.$index)"
-            >
-              简单
-            </el-button>
+            </el-button> -->
             <el-button
               type="primary"
               v-if="scope.row.difficulty != 4"
@@ -450,6 +443,15 @@ export default {
             >
               更简
             </el-button>
+
+            <!-- <el-button
+              v-if="scope.row.difficulty != 0"
+              size="small"
+              @click="putDifficulty(scope.row, 0, scope.$index)"
+            >
+              简单
+            </el-button> -->
+
             <el-button
               v-if="scope.row.difficulty != 1"
               type="primary"
@@ -465,14 +467,14 @@ export default {
             >
               太难
             </el-button>
-            <el-button
+            <!-- <el-button
               type="danger"
               v-if="scope.row.difficulty != 3"
               size="small"
               @click="putDifficulty(scope.row, 3, scope.$index)"
             >
               稍难
-            </el-button>
+            </el-button> -->
             <el-button
               v-if="scope.row.difficulty != -10000"
               size="small"
@@ -480,13 +482,13 @@ export default {
             >
               幼稚
             </el-button>
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != -10000 - 1"
               size="small"
               @click="putDifficulty(scope.row, -10000 - 1, scope.$index)"
             >
               幼稚-1
-            </el-button>
+            </el-button> -->
             <el-button
               v-if="scope.row.difficulty != 10"
               size="small"
@@ -527,13 +529,13 @@ export default {
     </el-form-item>
 
     <el-form-item style="margin-top: 150px">
-      <el-button type="warning" @click="getData(1, 'asc')">可背诵</el-button>
-      <el-button @click="getData(4, 'asc')">更简单4</el-button>
-      <el-button @click="getData(0, 'asc')">简单</el-button>
-      <el-button type="danger" @click="getData(2, 'asc')">太难不背</el-button>
-      <el-button type="danger" @click="getData(3, 'asc')">稍难</el-button>
+      <el-button type="warning" @click="getData(1, sort)">可背</el-button>
+      <el-button @click="getData(4, sort)">更简4</el-button>
+      <el-button @click="getData(0, sort)">简单</el-button>
+      <el-button type="danger" @click="getData(2, sort)">太难</el-button>
+      <el-button type="danger" @click="getData(3, sort)">稍难</el-button>
 
-      <el-button @click="getData(-10000, 'asc')">幼稚</el-button>
+      <el-button @click="getData(-10000, sort)">幼稚</el-button>
     </el-form-item>
 
     <el-form-item style="margin-top: 50px">

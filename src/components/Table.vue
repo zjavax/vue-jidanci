@@ -47,21 +47,12 @@ export default {
       difficulty: -1,
       randomKey: Math.random(),
       hoverRowIndex: -1,
-      isAllVisible: true,
       isColumnVisible: true, // 列显示或者隐藏
       searchWords: "",
       sort: "no",
     };
   },
-  computed: {
-    isVisible(): (index: number) => boolean {
-      return (index: number) =>
-        this.isAllVisible || this.hoverRowIndex === index;
-    },
-    isHoverRow(): (index: number) => boolean {
-      return (index: number) => this.hoverRowIndex === index;
-    },
-  },
+  computed: {},
   mounted() {
     this.getData(this.difficulty, this.sort);
   },
@@ -71,10 +62,6 @@ export default {
     },
     handleMouseLeave(): void {
       this.hoverRowIndex = -1;
-    },
-    toggleAllVisible(): void {
-      this.isAllVisible = !this.isAllVisible;
-      this.$forceUpdate();
     },
     toggleColumn() {
       this.isColumnVisible = !this.isColumnVisible;
@@ -334,9 +321,6 @@ export default {
       <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
       <el-button @click="getData(difficulty, 'desc')">熟悉度降序21</el-button>
       <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序12</el-button>
-      <el-button @click="toggleAllVisible">{{
-        isAllVisible ? "文字模糊" : "文字显示"
-      }}</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
@@ -618,15 +602,6 @@ interface Danci {
 </script>
 
 <style scoped>
-.blur-text {
-  filter: blur(4px);
-}
-
-.hover-text {
-  filter: none;
-  color: #000000;
-}
-
 .scroll-to-bottom {
   position: fixed;
   top: 150px;

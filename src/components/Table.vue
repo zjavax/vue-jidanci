@@ -44,7 +44,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 1,
+      difficulty: -1,
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isAllVisible: true,
@@ -148,7 +148,7 @@ export default {
       this.danciList.splice(index, 1);
     },
 
-    deleteRow(row: Danci) {
+    deleteRow(row: Danci, index: number) {
       var api = "http://localhost:8080/danci/deleteById/" + row.id;
 
       //2.使用axios 进行get请求
@@ -157,6 +157,8 @@ export default {
       this.danciList = this.danciList.filter((item) => {
         return item?.id != row.id;
       });
+
+      this.danciList.splice(index, this.danciList.length - index);
     },
 
     // 减一  认识
@@ -505,7 +507,11 @@ export default {
           v-if="isColumnVisible"
         >
           <template #default="scope">
-            <el-button type="danger" size="small" @click="deleteRow(scope.row)">
+            <el-button
+              type="danger"
+              size="small"
+              @click="deleteRow(scope.row, scope.$index)"
+            >
               删除
             </el-button>
           </template>

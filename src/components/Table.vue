@@ -6,9 +6,12 @@ import { reactive } from "vue";
 import { nextTick } from "vue";
 import { debounce } from "lodash";
 
+import Dicts from "./../dicts/suffix_word.json";
+
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
+var baseUrl = "http://localhost:8080/";
 var api = "http://localhost:8080/danci/";
 
 // do not use same name with ref
@@ -18,8 +21,6 @@ const form1 = reactive({
   article: "",
   difficulty: 0,
 });
-
-var baseUrl = "http://localhost:8080/";
 
 export default {
   data() {
@@ -44,7 +45,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: -1,
+      difficulty: 1, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -54,9 +55,26 @@ export default {
   },
   computed: {},
   mounted() {
-    this.getData(this.difficulty, this.sort);
+    if (Dicts.length == 0) {
+      this.getData(this.difficulty, this.sort);
+    } else {
+      this.addALL();
+    }
   },
   methods: {
+    addALL() {
+      axios
+        .post(baseUrl + "addAll", Dicts)
+        .then((res) => {
+          //请求成功的回调函数
+          console.log(res.data);
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    },
+
     handleMouseEnter(_: any, index: number): void {
       this.hoverRowIndex = index;
     },
@@ -107,6 +125,7 @@ export default {
         .then((res) => {
           //请求成功的回调函数
           this.danciList = res.data;
+          this.randomKey = Math.random();
         })
         .catch((err) => {
           //请求失败的回调函数
@@ -336,7 +355,7 @@ export default {
         style="width: 100%"
         :key="randomKey"
       >
-        <el-table-column prop="danci" label="单词" width="200">
+        <el-table-column prop="danci" label="单词" width="300">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -347,7 +366,7 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="可编辑列" v-if="isColumnVisible" width="300">
+        <el-table-column label="可编辑列" v-if="isColumnVisible" width="400">
           <template #default="{ row }">
             <el-input
               autosize
@@ -421,22 +440,22 @@ export default {
             >
               -2
             </el-button> -->
-            <el-button
+            <!-- <el-button
               type="primary"
               v-if="scope.row.difficulty != 4"
               size="small"
               @click="putDifficulty(scope.row, 4, scope.$index)"
             >
               更简
-            </el-button>
+            </el-button> -->
 
-            <!-- <el-button
+            <el-button
               v-if="scope.row.difficulty != 0"
               size="small"
               @click="putDifficulty(scope.row, 0, scope.$index)"
             >
               简单
-            </el-button> -->
+            </el-button>
 
             <el-button
               v-if="scope.row.difficulty != 1"

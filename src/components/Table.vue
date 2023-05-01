@@ -34,8 +34,8 @@ export default {
       danciList: ref([
         {
           id: 1,
-          danci: "============================",
-          chinese: "单词",
+          name: "============================",
+          trans: "单词",
           know: 1,
           difficulty: 0,
         },
@@ -43,8 +43,8 @@ export default {
       tableData: ref([
         {
           id: 1,
-          danci: "==========",
-          chinese: "单词",
+          name: "==========",
+          trans: "单词",
           know: 1,
           difficulty: 0,
         },
@@ -357,7 +357,7 @@ export default {
         style="width: 100%"
         :key="randomKey"
       >
-        <el-table-column prop="danci" label="单词" width="300">
+        <el-table-column prop="name" label="单词" width="300">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -368,9 +368,21 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column prop="chinese" label="中文" width="300" />
+        <!-- <el-table-column prop="trans" label="中文" width="300" /> -->
 
-        <el-table-column label="备注" v-if="isColumnVisible" width="400">
+        <el-table-column label="中文" v-if="isColumnVisible" width="400">
+          <template #default="{ row }">
+            <el-input
+              autosize
+              type="textarea"
+              placeholder="Please input"
+              v-model="row.trans"
+              @blur="putDifficulty(row, row.difficulty, -1)"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <!-- <el-table-column label="备注" v-if="isColumnVisible" width="400">
           <template #default="{ row }">
             <el-input
               autosize
@@ -380,11 +392,11 @@ export default {
               @blur="putDifficulty(row, row.difficulty, -1)"
             ></el-input>
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
         <!-- <el-table-column
           label="中文"
-          prop="chinese"
+          prop="trans"
           v-if="isColumnVisible"
           width="250"
         >
@@ -393,7 +405,7 @@ export default {
               type="textarea"
               v-if="scope.row[scope.column.property + 'isShow']"
               :ref="scope.column.property"
-              v-model="scope.row.chinese"
+              v-model="scope.row.trans"
               @blur="alterData(scope.row, scope.column)"
             ></el-input>
 
@@ -407,7 +419,7 @@ export default {
               @mouseenter="handleMouseEnter(scope.row, scope.$index)"
               @mouseleave="handleMouseLeave"
               >{{
-                scope.row.chinese == null ? "？？？" : scope.row.chinese
+                scope.row.trans == null ? "？？？" : scope.row.trans
               }}</span
             >
           </template>
@@ -556,25 +568,25 @@ export default {
       <el-table :data="tableData" style="width: 100%">
         <el-table-column label="单词" width="200">
           <template v-slot="{ row }">
-            <el-tooltip :content="row.chinese" placement="left">
-              <span>{{ row.danci }}</span>
+            <el-tooltip :content="row.trans" placement="left">
+              <span>{{ row.name }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
 
-        <!-- <el-table-column label="中文" prop="chinese" width="250">
+        <!-- <el-table-column label="中文" prop="trans" width="250">
           <template #default="scope">
             <el-input
               type="textarea"
               v-if="scope.row[scope.column.property + 'isShow']"
               :ref="scope.column.property"
-              v-model="scope.row.chinese"
+              v-model="scope.row.trans"
               @blur="alterData2(scope.row, scope.column)"
             ></el-input>
 
             <span @click="editData2(scope.row, scope.column)" v-else>
               {{
-                scope.row.chinese == null ? "可单击输入中文" : scope.row.chinese
+                scope.row.trans == null ? "可单击输入中文" : scope.row.trans
               }}</span
             >
           </template>
@@ -615,8 +627,8 @@ const handleScrollToBottom = () => {
 
 interface Danci {
   id: number;
-  danci: string;
-  chinese: string;
+  name: string;
+  trans: string;
   know: number;
   difficulty: number;
   notes: string;

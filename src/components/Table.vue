@@ -10,7 +10,8 @@ import { debounce } from "lodash";
 // import Dicts from "./../dicts/Top50Prepositions.json";
 // import Dicts from "./../dicts/Top250AdverbWords.json";
 // import Dicts from "./../dicts/Top500AdjectiveWords.json";
-import Dicts from "./../dicts/top2000words.json";
+// import Dicts from "./../dicts/top2000words.json";
+import Dicts from "./../dicts/NCE_1.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -55,6 +56,10 @@ export default {
       isColumnVisible: true, // 列显示或者隐藏
       searchWords: "",
       sort: "no",
+      total: 0,
+      currentPage: 1,
+      pageSize: 100,
+      totalData: [],
     };
   },
   computed: {},
@@ -113,6 +118,15 @@ export default {
     //   );
     // }, 200),
 
+    handleCurrentChange(page: number) {
+      this.currentPage = page;
+      this.danciList = this.totalData.slice(
+        (page - 1) * this.pageSize,
+        page * this.pageSize
+      );
+      this.randomKey = Math.random();
+    },
+
     getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
       //2.使用axios 进行get请求
@@ -125,7 +139,9 @@ export default {
         )
         .then((res) => {
           //请求成功的回调函数
-          this.danciList = res.data.splice(0, 100);
+          this.totalData = res.data;
+          this.danciList = res.data.slice(0, 100);
+          this.total = res.data.length;
           this.randomKey = Math.random();
         })
         .catch((err) => {
@@ -347,6 +363,19 @@ export default {
       </el-button>
     </el-form-item>
 
+    <el-form-item>
+      <el-pagination
+        background
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-size="100"
+        :page-sizes="[50, 100, 200]"
+        :pager-count="11"
+        layout="prev, pager, next"
+        :total="total"
+      />
+    </el-form-item>
+
     <!-- <Article /> -->
 
     <el-form-item>
@@ -357,7 +386,7 @@ export default {
         style="width: 100%"
         :key="randomKey"
       >
-        <el-table-column prop="name" label="单词" width="300">
+        <el-table-column prop="name" label="单词" width="200">
           <template #header>
             <el-input
               v-model="searchWords"

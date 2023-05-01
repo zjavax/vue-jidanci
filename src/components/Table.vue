@@ -6,7 +6,11 @@ import { reactive } from "vue";
 import { nextTick } from "vue";
 import { debounce } from "lodash";
 
-import Dicts from "./../dicts/suffix_word.json";
+// import Dicts from "./../dicts/suffix_word.json";
+// import Dicts from "./../dicts/Top50Prepositions.json";
+// import Dicts from "./../dicts/Top250AdverbWords.json";
+// import Dicts from "./../dicts/Top500AdjectiveWords.json";
+import Dicts from "./../dicts/top2000words.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -45,7 +49,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 1, // 1完全通过  0也差不多
+      difficulty: 0, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -55,11 +59,8 @@ export default {
   },
   computed: {},
   mounted() {
-    if (Dicts.length == 0) {
-      this.getData(this.difficulty, this.sort);
-    } else {
-      this.addALL();
-    }
+    this.getData(this.difficulty, this.sort);
+    // this.addALL();
   },
   methods: {
     addALL() {
@@ -124,7 +125,7 @@ export default {
         )
         .then((res) => {
           //请求成功的回调函数
-          this.danciList = res.data;
+          this.danciList = res.data.splice(0, 100);
           this.randomKey = Math.random();
         })
         .catch((err) => {
@@ -333,6 +334,7 @@ export default {
     </el-form-item>
 
     <el-form-item>
+      <el-button type="primary" @click="addALL">添加数据</el-button>
       总数：{{ danciList.length }} 困难度：{{ difficulty }}
     </el-form-item>
     <el-form-item>
@@ -366,13 +368,15 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="可编辑列" v-if="isColumnVisible" width="400">
+        <el-table-column prop="chinese" label="中文" width="300" />
+
+        <el-table-column label="备注" v-if="isColumnVisible" width="400">
           <template #default="{ row }">
             <el-input
               autosize
               type="textarea"
               placeholder="Please input"
-              v-model="row.chinese"
+              v-model="row.notes"
               @blur="putDifficulty(row, row.difficulty, -1)"
             ></el-input>
           </template>
@@ -426,20 +430,20 @@ export default {
             >
               认识+1
             </el-button>
-            <!-- <el-button
+            <el-button
               v-if="scope.row.difficulty != -1"
               size="small"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
               -1
-            </el-button> -->
-            <!-- <el-button
+            </el-button>
+            <el-button
               v-if="scope.row.difficulty != -2"
               size="small"
               @click="putDifficulty(scope.row, -2, scope.$index)"
             >
               -2
-            </el-button> -->
+            </el-button>
             <!-- <el-button
               type="primary"
               v-if="scope.row.difficulty != 4"
@@ -615,6 +619,7 @@ interface Danci {
   chinese: string;
   know: number;
   difficulty: number;
+  notes: string;
 }
 
 // ============

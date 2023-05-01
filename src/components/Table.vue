@@ -310,14 +310,14 @@ export default {
     <el-form-item style="margin-top: 40px">
       <el-button @click="getData(-2, sort)">-2</el-button>
       <el-button @click="getData(-1, sort)">-1</el-button>
-      <el-button @click="getData(4, sort)">更简4</el-button>
       <el-button @click="getData(0, sort)">简单0</el-button>
       <el-button type="warning" @click="getData(1, sort)">可背1</el-button>
-      <el-button type="danger" @click="getData(2, sort)">太难2</el-button>
-      <el-button type="danger" @click="getData(3, sort)">稍难3</el-button>
+      <el-button type="danger" @click="getData(2, sort)">稍难2</el-button>
+      <el-button type="danger" @click="getData(3, sort)">太难3</el-button>
       <el-button @click="getData(-10000, sort)">幼稚</el-button>
       <el-button @click="getData(-10000 - 1, sort)">幼稚-1</el-button>
       <el-button @click="getData(10, sort)">文章</el-button>
+      <el-button @click="getData(4, sort)">更简4</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -379,13 +379,7 @@ export default {
     <!-- <Article /> -->
 
     <el-form-item>
-      <el-table
-        border
-        resizable
-        :data="danciList"
-        style="width: 100%"
-        :key="randomKey"
-      >
+      <el-table border resizable :data="danciList" :key="randomKey">
         <el-table-column prop="name" label="单词" width="200">
           <template #header>
             <el-input
@@ -454,7 +448,7 @@ export default {
           </template>
         </el-table-column> -->
 
-        <el-table-column fixed="right" label="操作">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
             {{ scope.row.know }}
             <el-button
@@ -471,13 +465,10 @@ export default {
             >
               认识+1
             </el-button>
-            <el-button
-              v-if="scope.row.difficulty != -1"
-              size="small"
-              @click="putDifficulty(scope.row, -1, scope.$index)"
-            >
-              -1
-            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作2" width="300">
+          <template #default="scope">
             <el-button
               v-if="scope.row.difficulty != -2"
               size="small"
@@ -485,6 +476,14 @@ export default {
             >
               -2
             </el-button>
+            <el-button
+              v-if="scope.row.difficulty != -1"
+              size="small"
+              @click="putDifficulty(scope.row, -1, scope.$index)"
+            >
+              -1
+            </el-button>
+
             <!-- <el-button
               type="primary"
               v-if="scope.row.difficulty != 4"
@@ -515,7 +514,7 @@ export default {
               size="small"
               @click="putDifficulty(scope.row, 2, scope.$index)"
             >
-              太难
+              稍难
             </el-button>
             <!-- <el-button
               type="danger"
@@ -525,13 +524,13 @@ export default {
             >
               稍难
             </el-button> -->
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != -10000"
               size="small"
               @click="putDifficulty(scope.row, -10000, scope.$index)"
             >
               幼稚
-            </el-button>
+            </el-button> -->
             <!-- <el-button
               v-if="scope.row.difficulty != -10000 - 1"
               size="small"
@@ -539,21 +538,16 @@ export default {
             >
               幼稚-1
             </el-button> -->
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != 10"
               size="small"
               @click="putDifficulty(scope.row, 10, scope.$index)"
             >
               文章
-            </el-button>
+            </el-button> -->
           </template>
         </el-table-column>
-        <el-table-column
-          fixed="right"
-          label="操作"
-          width="150"
-          v-if="isColumnVisible"
-        >
+        <el-table-column label="操作" v-if="isColumnVisible">
           <template #default="scope">
             <el-button
               type="danger"

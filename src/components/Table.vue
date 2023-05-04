@@ -50,7 +50,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 0, // 1完全通过  0也差不多
+      difficulty: 1, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -308,10 +308,12 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
+      <el-button @click="getData(-20, sort)">-20</el-button>
       <el-button @click="getData(-2, sort)">-2</el-button>
       <el-button @click="getData(-1, sort)">-1</el-button>
       <el-button @click="getData(0, sort)">简单0</el-button>
       <el-button type="warning" @click="getData(1, sort)">可背1</el-button>
+      <el-button type="warning" @click="getData(11, sort)">可背11</el-button>
       <el-button type="danger" @click="getData(2, sort)">稍难2</el-button>
       <el-button type="danger" @click="getData(3, sort)">太难3</el-button>
       <el-button @click="getData(-10000, sort)">幼稚</el-button>
@@ -351,7 +353,7 @@ export default {
 
     <el-form-item>
       <el-button type="primary" @click="addALL">添加数据</el-button>
-      总数：{{ danciList.length }} 困难度：{{ difficulty }}
+      总数：{{ totalData.length }} 困难度：{{ difficulty }}
     </el-form-item>
     <el-form-item>
       <!-- <el-button @click="clearFilter">reset all filters</el-button> -->
@@ -393,7 +395,7 @@ export default {
 
         <!-- <el-table-column prop="trans" label="中文" width="300" /> -->
 
-        <el-table-column label="中文" v-if="isColumnVisible" width="400">
+        <el-table-column label="中文" v-if="isColumnVisible" width="200">
           <template #default="{ row }">
             <el-input
               autosize
@@ -467,8 +469,16 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作2" width="300">
+        <el-table-column label="操作2">
           <template #default="scope">
+            <el-button
+              v-if="scope.row.difficulty != -20"
+              size="small"
+              @click="putDifficulty(scope.row, -20, scope.$index)"
+            >
+              -20
+            </el-button>
+
             <el-button
               v-if="scope.row.difficulty != -2"
               size="small"
@@ -476,13 +486,13 @@ export default {
             >
               -2
             </el-button>
-            <el-button
+            <!-- <el-button
               v-if="scope.row.difficulty != -1"
               size="small"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
               -1
-            </el-button>
+            </el-button> -->
 
             <!-- <el-button
               type="primary"
@@ -510,20 +520,28 @@ export default {
               可背
             </el-button>
             <el-button
+              v-if="scope.row.difficulty != 11"
+              type="primary"
+              size="small"
+              @click="putDifficulty(scope.row, 11, scope.$index)"
+            >
+              可背11
+            </el-button>
+            <!-- <el-button
               v-if="scope.row.difficulty != 2"
               size="small"
               @click="putDifficulty(scope.row, 2, scope.$index)"
             >
               稍难
-            </el-button>
-            <!-- <el-button
+            </el-button> -->
+            <el-button
               type="danger"
               v-if="scope.row.difficulty != 3"
               size="small"
               @click="putDifficulty(scope.row, 3, scope.$index)"
             >
-              稍难
-            </el-button> -->
+              太难
+            </el-button>
             <!-- <el-button
               v-if="scope.row.difficulty != -10000"
               size="small"
@@ -531,13 +549,13 @@ export default {
             >
               幼稚
             </el-button> -->
-            <!-- <el-button
+            <el-button
               v-if="scope.row.difficulty != -10000 - 1"
               size="small"
               @click="putDifficulty(scope.row, -10000 - 1, scope.$index)"
             >
               幼稚-1
-            </el-button> -->
+            </el-button>
             <!-- <el-button
               v-if="scope.row.difficulty != 10"
               size="small"

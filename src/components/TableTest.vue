@@ -1,5 +1,5 @@
 <template>
-  <el-table :data="tableData">
+  <el-table :data="tableData" class="table1">
     <el-table-column label="可编辑列">
       <template #default="{ row }">
         <el-input
@@ -60,4 +60,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.table1 {
+  width: 1000px;
+}
 </style>

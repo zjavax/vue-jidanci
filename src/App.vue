@@ -1,12 +1,14 @@
 <template>
   <el-config-provider namespace="ep">
-    <!-- <BaseHeader /> -->
+    <BaseHeader />
     <div style="display: flex">
       <!-- <BaseSide /> -->
       <div>
         <!-- <img alt="Vue logo" class="element-plus-logo" src="./assets/logo.png" /> -->
         <!-- <HelloWorld /> -->
-        <Table />
+        <!-- <Table /> -->
+        <!-- <TableTest /> -->
+        <router-view></router-view>
       </div>
     </div>
   </el-config-provider>

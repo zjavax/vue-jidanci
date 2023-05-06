@@ -51,7 +51,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 30, // 1完全通过  0也差不多
+      difficulty: 31, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏

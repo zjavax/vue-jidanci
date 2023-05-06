@@ -1,6 +1,17 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import Axios from 'axios'
+import Table from './components/Table.vue'
+import TableTest from './components/TableTest.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/', component: Table },
+    { path: '/tableTest', component: TableTest },
+  ],
+})
 
 // import "~/styles/element/index.scss";
 
@@ -18,5 +29,6 @@ import 'element-plus/theme-chalk/src/message.scss'
 
 const app = createApp(App)
 // app.use(ElementPlus);
+app.use(router)
 app.config.globalProperties.Axios = Axios //全局配置axios
 app.mount('#app')

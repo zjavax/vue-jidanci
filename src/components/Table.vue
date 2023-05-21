@@ -11,8 +11,8 @@ import { debounce } from "lodash";
 // import Dicts from "./../dicts/Top250AdverbWords.json";
 // import Dicts from "./../dicts/Top500AdjectiveWords.json";
 // import Dicts from "./../dicts/top2000words.json";
-import Dicts from "./../dicts/NCE_1.json";
-// import Dicts from "./../dicts/NCE_2.json";
+// import Dicts from "./../dicts/NCE_1.json";
+import Dicts from "./../dicts/NCE_2.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -51,7 +51,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 31, // 1完全通过  0也差不多
+      difficulty: 40, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -66,7 +66,6 @@ export default {
   computed: {},
   mounted() {
     this.getData(this.difficulty, this.sort);
-    // this.addALL();
   },
   methods: {
     addALL() {
@@ -325,6 +324,8 @@ export default {
       <el-button @click="getData(4, sort)">更简4</el-button>
       <el-button @click="getData(30, sort)">新概念1</el-button>
       <el-button @click="getData(31, sort)">新概念1-2</el-button>
+      <el-button @click="getData(40, sort)">新概念2</el-button>
+      <el-button @click="getData(41, sort)">新概念2-2</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">
@@ -472,6 +473,7 @@ export default {
             >
               认识+1
             </el-button>
+            {{ scope.row.difficulty }}
           </template>
         </el-table-column>
         <el-table-column label="操作2">
@@ -596,6 +598,21 @@ export default {
               @click="putDifficulty(scope.row, 31, scope.$index)"
             >
               新概念1-2
+            </el-button>
+
+            <el-button
+              v-if="scope.row.difficulty != 40 || scope.row.difficulty == 41"
+              size="small"
+              @click="putDifficulty(scope.row, 40, scope.$index)"
+            >
+              新概念2
+            </el-button>
+            <el-button
+              v-if="scope.row.difficulty == 40 || scope.row.difficulty != 41"
+              size="small"
+              @click="putDifficulty(scope.row, 41, scope.$index)"
+            >
+              新概念2-2
             </el-button>
           </template>
         </el-table-column>

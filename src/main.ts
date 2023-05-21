@@ -2,13 +2,15 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import Axios from 'axios'
 import Table from './components/Table.vue'
+import Nce2 from './components/Nce2.vue'
 import TableTest from './components/TableTest.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: Table },
+    // { path: '/', component: Table },
+    { path: '/', component: Nce2 },
     { path: '/tableTest', component: TableTest },
   ],
 })

@@ -209,21 +209,6 @@ export default {
       // this.refreshTable2();
     },
 
-    // editData(row: any, column: any) {
-    //   row[column.property + "isShow"] = true;
-    //   //refreshTable是table数据改动时，刷新table的
-    //   this.refreshTable();
-    // },
-
-    // alterData(row: any, column: any) {
-    //   row[column.property + "isShow"] = false;
-    //   this.refreshTable();
-
-    //   this.putDifficulty(row, row.difficulty, -1);
-    // },
-    // refreshTable() {
-    //   this.randomKey = Math.random();
-    // },
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
     },
@@ -364,6 +349,11 @@ export default {
               placeholder="搜索单词"
               @input="searchData(searchWords)"
             />
+          </template>
+          <template v-slot="{ row }">
+            <el-tooltip :content="row.trans" placement="left">
+              <span>{{ row.name }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
 

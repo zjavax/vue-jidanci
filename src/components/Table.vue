@@ -293,7 +293,7 @@ export default {
 
 <template>
   <!-- 回到顶部按钮 -->
-  <el-backtop :visibility-height="0" :bottom="300" :right="1450"
+  <el-backtop :visibility-height="0" :bottom="300" :right="1600"
     >顶部</el-backtop
   >
 
@@ -301,7 +301,7 @@ export default {
   <el-backtop
     class="scroll-to-bottom"
     :visibility-height="0"
-    :right="1450"
+    :right="1600"
     @click="handleScrollToBottom"
     >底部
   </el-backtop>

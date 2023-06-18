@@ -9,6 +9,8 @@ import { toggleDark } from "~/composables";
       <template #title>Workspace</template>
       <el-menu-item index="2-1">item one</el-menu-item>
       <el-menu-item index="/tableTest">tableTest</el-menu-item>
+      <el-menu-item index="/table">table</el-menu-item>
+      <el-menu-item index="/danci3000">danci3000</el-menu-item>
       <el-menu-item index="2-2">item two</el-menu-item>
       <el-menu-item index="2-3">item three</el-menu-item>
       <el-sub-menu index="2-4">

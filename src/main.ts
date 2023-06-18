@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import Axios from 'axios'
 import Table from './components/Table.vue'
+import Danci3000 from './components/Danci3000.vue'
 import Nce2 from './components/Nce2.vue'
 import TableTest from './components/TableTest.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -12,6 +13,8 @@ const router = createRouter({
     // { path: '/', component: Table },
     { path: '/', component: Nce2 },
     { path: '/tableTest', component: TableTest },
+    { path: '/table', component: Table },
+    { path: '/danci3000', component: Danci3000 },
   ],
 })
 

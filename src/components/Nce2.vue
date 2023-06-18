@@ -306,6 +306,10 @@ export default {
       <el-button @click="getData(51, sort)">复杂51</el-button>
       <el-button type="danger" @click="getData(52, sort)">52</el-button>
     </el-form-item>
+    <el-form-item>
+      <el-button @click="getData(71, sort)">重要71</el-button>
+      <el-button type="danger" @click="getData(72, sort)">72</el-button>
+    </el-form-item>
 
     <el-form-item>
       总数：{{ totalData.length }} 困难度：{{ difficulty }}
@@ -313,8 +317,6 @@ export default {
 
     <el-form-item>
       <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
-      <el-button @click="getData(difficulty, 'desc')">熟悉度降序21</el-button>
-      <el-button @click="getData(difficulty, 'asc')"> 熟悉度升序12</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
@@ -452,6 +454,26 @@ export default {
             </el-button>
           </template>
         </el-table-column>
+        <el-table-column label="重要">
+          <template #default="scope">
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 71"
+              size="small"
+              @click="putDifficulty(scope.row, 71, scope.$index)"
+            >
+              71
+            </el-button>
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 72"
+              size="small"
+              @click="putDifficulty(scope.row, 72, scope.$index)"
+            >
+              72
+            </el-button>
+          </template>
+        </el-table-column>
         <!-- <el-table-column label="操作" v-if="isColumnVisible">
           <template #default="scope">
             <el-button
@@ -513,7 +535,7 @@ interface Danci {
 
 <style scoped>
 .table1 {
-  width: 1000px;
+  width: 1300px;
 }
 
 .scroll-to-bottom {

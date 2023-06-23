@@ -12,6 +12,7 @@ const router = createRouter({
   routes: [
     // { path: '/', component: Table },
     { path: '/', component: Nce2 },
+    { path: '/nce2', component: Nce2 },
     { path: '/tableTest', component: TableTest },
     { path: '/table', component: Table },
     { path: '/danci3000', component: Danci3000 },

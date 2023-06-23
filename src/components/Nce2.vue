@@ -50,7 +50,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 1, // 1完全通过  0也差不多
+      difficulty: 0, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -310,6 +310,10 @@ export default {
       <el-button @click="getData(71, sort)">重要71</el-button>
       <el-button type="danger" @click="getData(72, sort)">72</el-button>
     </el-form-item>
+    <el-form-item>
+      <el-button @click="getData(81, sort)">艾达81</el-button>
+      <el-button type="danger" @click="getData(82, sort)">82</el-button>
+    </el-form-item>
 
     <el-form-item>
       总数：{{ totalData.length }} 困难度：{{ difficulty }}
@@ -474,6 +478,27 @@ export default {
             </el-button>
           </template>
         </el-table-column>
+        <el-table-column label="艾达">
+          <template #default="scope">
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 81"
+              size="small"
+              @click="putDifficulty(scope.row, 81, scope.$index)"
+            >
+              81
+            </el-button>
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 82"
+              size="small"
+              @click="putDifficulty(scope.row, 82, scope.$index)"
+            >
+              82
+            </el-button>
+          </template>
+        </el-table-column>
+
         <!-- <el-table-column label="操作" v-if="isColumnVisible">
           <template #default="scope">
             <el-button

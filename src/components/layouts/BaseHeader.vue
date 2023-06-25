@@ -10,7 +10,7 @@ import { toggleDark } from "~/composables";
       <el-menu-item index="/nce2">nce2</el-menu-item>
       <el-menu-item index="/table">table</el-menu-item>
       <el-menu-item index="/danci3000">danci3000</el-menu-item>
-
+      <el-menu-item index="/adaArticle">adaArticle</el-menu-item>
       <el-menu-item index="/tableTest">tableTest</el-menu-item>
       <el-sub-menu index="2-4">
         <template #title>item four</template>

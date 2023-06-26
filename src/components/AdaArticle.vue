@@ -314,6 +314,11 @@ export default {
       <el-button @click="getData(81, sort)">艾达81</el-button>
       <el-button type="danger" @click="getData(82, sort)">82</el-button>
       <el-button type="" @click="getData(83, sort)">83</el-button>
+      <el-button type="danger" @click="getData(84, sort)">84</el-button>
+    </el-form-item>
+
+    <el-form-item>
+      <el-divider content-position="left">文章</el-divider>
     </el-form-item>
 
     <el-form-item>
@@ -321,6 +326,7 @@ export default {
     </el-form-item>
     <el-form-item>
       <el-button @click="getData(1010, sort)">1010</el-button>
+      <el-button @click="getData(1011, sort)" type="danger">1011</el-button>
     </el-form-item>
     <el-form-item>
       <el-button type="danger" @click="getData(difficulty - 1, sort)"
@@ -530,6 +536,14 @@ export default {
               @click="putDifficulty(scope.row, 83, scope.$index)"
             >
               83
+            </el-button>
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 84"
+              size="small"
+              @click="putDifficulty(scope.row, 84, scope.$index)"
+            >
+              84
             </el-button>
           </template>
         </el-table-column>

@@ -10,3 +10,5 @@ mysql sql命令
 USE danci;
 
 UPDATE ada_article SET difficulty=1010 WHERE difficulty=11;
+
+将表 ada_article 中的数据添加到表 ada_article3_1and2 中

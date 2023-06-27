@@ -302,12 +302,12 @@ export default {
       <el-button type="danger" @click="getData(4, sort)">4</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button @click="getData(51, sort)">复杂51</el-button>
-      <el-button type="danger" @click="getData(52, sort)">52</el-button>
-    </el-form-item>
-    <el-form-item>
       <el-button @click="getData(71, sort)">重要71</el-button>
       <el-button type="danger" @click="getData(72, sort)">72</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button @click="getData(51, sort)">复杂51</el-button>
+      <el-button type="danger" @click="getData(52, sort)">52</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -315,11 +315,22 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-button type="danger" @click="getData(1000, sort)">11月1000</el-button>
+      <el-button type="danger" @click="getData(1000, sort)">11月</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button @click="getData(1010, sort)">12月1010</el-button>
+      <el-button @click="getData(1010, sort)">12月</el-button>
     </el-form-item>
+
+    <el-form-item>
+      <el-divider content-position="left">中学</el-divider>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="danger" @click="getData(2010, sort)">1月</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="danger" @click="getData(2020, sort)">2月</el-button>
+    </el-form-item>
+
     <el-form-item>
       <el-button type="danger" @click="getData(difficulty - 1, sort)"
         >复杂性-1</el-button
@@ -349,20 +360,6 @@ export default {
         layout="prev, pager, next"
         :total="total"
       />
-
-      <el-link
-        v-if="difficulty == 1010"
-        href="https://www.essentialcardano.io/article/what-is-cardano-cardano-101"
-        target="_blank"
-        >what-is-cardano-cardano-101
-      </el-link>
-
-      <el-link
-        v-if="difficulty == 1000"
-        href="https://www.essentialcardano.io/article/your-cardano-onboarding-guide"
-        target="_blank"
-        >your-cardano-onboarding-guide
-      </el-link>
     </el-form-item>
     <el-form-item>
       <el-table
@@ -402,6 +399,7 @@ export default {
 
         <el-table-column label="幼稚">
           <template #default="scope">
+            {{ scope.row.difficulty }}
             <el-button
               type="danger"
               v-if="scope.row.difficulty != -1"
@@ -412,6 +410,26 @@ export default {
             </el-button>
           </template>
         </el-table-column>
+
+        <el-table-column label="复杂性">
+          <template #default="scope">
+            <el-button
+              type=""
+              size="small"
+              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+            >
+              +1
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+            >
+              -1
+            </el-button>
+          </template>
+        </el-table-column>
+
         <el-table-column label="简单">
           <template #default="scope">
             <el-button
@@ -455,26 +473,7 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="复杂">
-          <template #default="scope">
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 51"
-              size="small"
-              @click="putDifficulty(scope.row, 51, scope.$index)"
-            >
-              51
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 52"
-              size="small"
-              @click="putDifficulty(scope.row, 52, scope.$index)"
-            >
-              52
-            </el-button>
-          </template>
-        </el-table-column>
+
         <el-table-column label="重要">
           <template #default="scope">
             <el-button
@@ -496,21 +495,23 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="复杂性">
+        <el-table-column label="复杂">
           <template #default="scope">
             <el-button
-              type=""
+              type="danger"
+              v-if="scope.row.difficulty != 51"
               size="small"
-              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+              @click="putDifficulty(scope.row, 51, scope.$index)"
             >
-              +1
+              51
             </el-button>
             <el-button
               type="danger"
+              v-if="scope.row.difficulty != 52"
               size="small"
-              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+              @click="putDifficulty(scope.row, 52, scope.$index)"
             >
-              -1
+              52
             </el-button>
           </template>
         </el-table-column>

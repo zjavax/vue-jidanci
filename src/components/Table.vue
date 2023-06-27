@@ -51,7 +51,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 40, // 1完全通过  0也差不多
+      difficulty: ref(10), // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -61,6 +61,7 @@ export default {
       currentPage: 1,
       pageSize: 100,
       totalData: [],
+      
     };
   },
   computed: {},
@@ -369,6 +370,18 @@ export default {
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
+    </el-form-item>
+
+    <el-form-item>
+      <el-input-number
+        v-model="difficulty"
+        @change="getData(difficulty, sort)"
+      />
+
+      <el-button type="danger" @click="getData(difficulty - 1, sort)"
+        >复杂性-1</el-button
+      >
+      <el-button @click="getData(difficulty + 1, sort)">复杂性+1</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -705,6 +718,8 @@ export default {
 <script lang="ts" setup>
 // 记录当前滚动位置
 const scrollTop = ref(0);
+
+
 
 // 监听窗口滚动事件，更新scrollTop变量
 window.addEventListener("scroll", () => {

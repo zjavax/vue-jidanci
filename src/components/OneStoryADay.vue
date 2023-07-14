@@ -50,7 +50,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 0, // 1完全通过  0也差不多
+      difficulty: 73, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -304,6 +304,7 @@ export default {
     <el-form-item>
       <el-button @click="getData(71, sort)">重要71</el-button>
       <el-button type="danger" @click="getData(72, sort)">72</el-button>
+      <el-button type="" @click="getData(73, sort)">73</el-button>
     </el-form-item>
     <el-form-item>
       <el-button @click="getData(51, sort)">复杂51</el-button>
@@ -316,8 +317,6 @@ export default {
 
     <el-form-item>
       <el-button type="danger" @click="getData(1000, sort)">11月</el-button>
-    </el-form-item>
-    <el-form-item>
       <el-button @click="getData(1010, sort)">12月</el-button>
     </el-form-item>
 
@@ -326,9 +325,25 @@ export default {
     </el-form-item>
     <el-form-item>
       <el-button type="danger" @click="getData(2010, sort)">1月</el-button>
+      <el-button type="" @click="getData(2020, sort)">2月</el-button>
+      <el-button type="danger" @click="getData(2030, sort)">3月</el-button>
+      <el-button type="" @click="getData(2040, sort)">4月</el-button>
+      <el-button type="danger" @click="getData(2050, sort)">5月</el-button>
+      <el-button type="" @click="getData(2060, sort)">6月</el-button>
+      <el-button type="danger" @click="getData(2070, sort)">7月</el-button>
+      <el-button type="" @click="getData(2080, sort)">8月</el-button>
+      <el-button type="danger" @click="getData(2090, sort)">9月</el-button>
+      <el-button type="" @click="getData(2100, sort)">10月</el-button>
+      <el-button type="danger" @click="getData(2110, sort)">11月</el-button>
+      <el-button type="" @click="getData(2120, sort)">12月</el-button>
+    </el-form-item>
+
+    <el-form-item> </el-form-item>
+    <el-form-item>
+      <el-divider content-position="left">推文</el-divider>
     </el-form-item>
     <el-form-item>
-      <el-button type="danger" @click="getData(2020, sort)">2月</el-button>
+      <el-button type="danger" @click="getData(500, sort)">500</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -538,6 +553,18 @@ export default {
       />
     </el-form-item>
 
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="onSubmit2(difficulty)"
         >添加词组</el-button

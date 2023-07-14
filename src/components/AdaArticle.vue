@@ -316,6 +316,12 @@ export default {
       <el-button type="" @click="getData(83, sort)">83</el-button>
       <el-button type="danger" @click="getData(84, sort)">84</el-button>
     </el-form-item>
+    <el-form-item>
+      <el-divider content-position="left">推文</el-divider>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="danger" @click="getData(500, sort)">500</el-button>
+    </el-form-item>
 
     <el-form-item>
       <el-divider content-position="left">文章</el-divider>

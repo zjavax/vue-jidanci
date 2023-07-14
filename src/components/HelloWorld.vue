@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
   <el-button type="primary" @click="addDataToDB">添加数据到数据库</el-button>
   <el-button type="primary" @click="clearDataToDB">清除数据库</el-button>
   <el-table :data="tableData" border style="width: 100%">
@@ -101,4 +101,4 @@ export default defineComponent({
     };
   },
 });
-</script> -->
+</script>

@@ -139,14 +139,54 @@ export default {
         .then((res) => {
           //请求成功的回调函数
           this.totalData = res.data;
-          this.danciList = res.data.slice(0, 100);
-          this.total = res.data.length;
+          this.total = this.totalData.length;
+
+          // this.danciList = res.data.slice(0, 100);
+          this.handleCurrentChange(this.currentPage);
           this.randomKey = Math.random();
         })
         .catch((err) => {
           //请求失败的回调函数
           console.log(err);
         });
+    },
+
+    sortReversedWords() {
+      this.totalData = this.processData(this.totalData);
+
+      this.handleCurrentChange(this.currentPage);
+      // this.danciList = this.totalData.slice(this.currentPage, 100);
+    },
+
+    // chatgpt
+    // vue3 typescript 编写程序
+    // 给你一个数组 res.data ，数组元素 是一个对象，对象有一个字段 name
+    // 这个name 是英语单词
+    // 我需要先把单词反转：例如 word 转为 drow
+    // 然后将这个字段进行 字典排序
+    // 排序结束之后 再把单词恢复原样
+    // 最后输出res.data
+    processData(data: any) {
+      // 1. 反转单词
+      const reversedWords = data.map((item: any) => {
+        const reversedName = item.name.split("").reverse().join("");
+        return { ...item, name: reversedName };
+      });
+
+      // 2. 对name字段进行字典排序
+      const sortedWords = reversedWords.sort((a: any, b: any) =>
+        a.name.localeCompare(b.name)
+      );
+
+      // 3. 恢复单词原样
+      const restoredWords = sortedWords.map((item: any) => {
+        const originalName = item.name.split("").reverse().join("");
+        return { ...item, name: originalName };
+      });
+
+      // 4. 输出res.data
+      console.log(restoredWords);
+      return restoredWords;
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
@@ -359,6 +399,7 @@ export default {
 
     <el-form-item>
       <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
+      <el-button @click="sortReversedWords()" type="danger">看后缀</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>

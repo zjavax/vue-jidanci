@@ -12,6 +12,7 @@ import { debounce } from "lodash";
 // import Dicts from "./../dicts/top2000words.json";
 // import Dicts from "./../dicts/NCE_1.json";
 import Dicts from "../dicts/NCE_2.json";
+// import Dicts from "../dicts/test.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -50,7 +51,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: 0, // 1完全通过  0也差不多
+      difficulty: 1, // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -60,6 +61,9 @@ export default {
       currentPage: 1,
       pageSize: 100,
       totalData: [],
+      userName: "张翔",
+      // userName: "游客",
+      categoryId: 2,
     };
   },
   computed: {},
@@ -126,6 +130,33 @@ export default {
       this.randomKey = Math.random();
     },
 
+    getData(difficulty: number, sort: String) {
+      this.difficulty = difficulty;
+      //2.使用axios 进行get请求
+      axios
+        .get(
+          "http://localhost:8080/getDanci?userName=" +
+            this.userName +
+            "&categoryId=" +
+            this.categoryId +
+            "&difficulty=" +
+            difficulty
+        )
+        .then((res) => {
+          //请求成功的回调函数
+          this.totalData = res.data;
+          this.total = this.totalData.length;
+
+          // this.danciList = res.data.slice(0, 100);
+          this.handleCurrentChange(this.currentPage);
+          this.randomKey = Math.random();
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    },
+
     getData2(difficulty: number, sort: String) {
       this.difficulty = difficulty;
       //2.使用axios 进行get请求
@@ -139,8 +170,10 @@ export default {
         .then((res) => {
           //请求成功的回调函数
           this.totalData = res.data;
-          this.danciList = res.data.slice(0, 100);
-          this.total = res.data.length;
+          this.total = this.totalData.length;
+
+          // this.danciList = res.data.slice(0, 100);
+          this.handleCurrentChange(this.currentPage);
           this.randomKey = Math.random();
         })
         .catch((err) => {
@@ -149,33 +182,61 @@ export default {
         });
     },
 
-    getData(difficulty: number, sort: String) {
-      var username = "张三";
-      this.difficulty = difficulty;
-      //2.使用axios 进行get请求
-      axios
-        .get(
-          "http://localhost:8080/getDanci?difficulty=" +
-            5 +
-            "&categoryId=" +
-            1 +
-            "&username=" +
-            username
-        )
-        .then((res) => {
-          //请求成功的回调函数
-          this.totalData = res.data;
-          this.danciList = res.data.slice(0, 100);
-          this.total = res.data.length;
-          this.randomKey = Math.random();
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
+    sortReversedWords() {
+      this.totalData = this.processData(this.totalData);
+
+      this.handleCurrentChange(this.currentPage);
+      // this.danciList = this.totalData.slice(this.currentPage, 100);
+    },
+
+    // chatgpt
+    // vue3 typescript 编写程序
+    // 给你一个数组 res.data ，数组元素 是一个对象，对象有一个字段 name
+    // 这个name 是英语单词
+    // 我需要先把单词反转：例如 word 转为 drow
+    // 然后将这个字段进行 字典排序
+    // 排序结束之后 再把单词恢复原样
+    // 最后输出res.data
+    processData(data: any) {
+      // 1. 反转单词
+      const reversedWords = data.map((item: any) => {
+        const reversedName = item.name.split("").reverse().join("");
+        return { ...item, name: reversedName };
+      });
+
+      // 2. 对name字段进行字典排序
+      const sortedWords = reversedWords.sort((a: any, b: any) =>
+        a.name.localeCompare(b.name)
+      );
+
+      // 3. 恢复单词原样
+      const restoredWords = sortedWords.map((item: any) => {
+        const originalName = item.name.split("").reverse().join("");
+        return { ...item, name: originalName };
+      });
+
+      // 4. 输出res.data
+      console.log(restoredWords);
+      return restoredWords;
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
+      var api = "http://localhost:8080/danci";
+
+      row.difficulty = difficulty;
+
+      //2.使用axios 进行get请求
+      axios
+        .put(api + "?userName=" + this.userName, row)
+        .then(function (response) {});
+
+      if (index != -1) {
+        // this.deleteTableRow(index);
+        this.danciList.splice(index, this.danciList.length - index);
+      }
+    },
+
+    putDifficulty2(row: Danci, difficulty: number, index: number) {
       var api = "http://localhost:8080/danci/";
 
       row.difficulty = difficulty;
@@ -318,34 +379,47 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button @click="getData(-1, sort)">幼稚-1</el-button>
-      <el-button type="danger" @click="getData(-2, sort)">-2</el-button>
+      <el-button type="info" @click="getData(-1, sort)">幼稚-1</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button @click="getData(0, sort)">简单0</el-button>
-      <el-button type="warning" @click="getData(1, sort)">1</el-button>
-      <el-button type="danger" @click="getData(2, sort)">2</el-button>
-      <el-button type="danger" @click="getData(3, sort)">3</el-button>
-      <el-button type="danger" @click="getData(4, sort)">4</el-button>
+      <el-button type="primary" @click="getData(0, sort)">简单0</el-button>
+      <el-button type="primary" @click="getData(1, sort)">1</el-button>
+      <el-button type="primary" @click="getData(2, sort)">2</el-button>
+      <el-button type="primary" @click="getData(3, sort)">3</el-button>
+      <el-button type="primary" @click="getData(4, sort)">4</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button @click="getData(51, sort)">复杂51</el-button>
-      <el-button type="danger" @click="getData(52, sort)">52</el-button>
+      <el-button type="warning" @click="getData(51, sort)">重要51</el-button>
+      <el-button type="warning" @click="getData(52, sort)">52</el-button>
+      <el-button type="warning" @click="getData(53, sort)">53</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button @click="getData(71, sort)">重要71</el-button>
-      <el-button type="danger" @click="getData(72, sort)">72</el-button>
-    </el-form-item>
-
-    <el-form-item>
-      总数：{{ totalData.length }} 困难度：{{ difficulty }}
+      <el-button type="danger" @click="getData(91, sort)">复杂91</el-button>
+      <el-button type="danger" @click="getData(92, sort)">92</el-button>
     </el-form-item>
 
     <el-form-item>
-      <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
-      <el-button @click="toggleColumn">
+      &nbsp;&nbsp;&nbsp;总数：{{ totalData.length }} 困难度：{{ difficulty }}
+    </el-form-item>
+
+    <el-form-item>
+      <!-- <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
+      <el-button @click="sortReversedWords()" type="danger">看后缀</el-button> -->
+      <el-button @click="toggleColumn" type="">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
+
+      <!-- <el-button type="primary" @click="addALL">添加数据</el-button> -->
+      <!-- <el-button type="" @click="getData(difficulty - 1, sort)"
+        >困难度-1</el-button
+      >
+      <el-button @click="getData(difficulty + 1, sort)">困难度+1</el-button> -->
+
+      &nbsp;&nbsp;&nbsp;
+      <el-input-number
+        v-model="difficulty"
+        @change="getData(difficulty, sort)"
+      />
     </el-form-item>
 
     <el-form-item>
@@ -360,7 +434,6 @@ export default {
         :total="total"
       />
     </el-form-item>
-
     <el-form-item>
       <el-table
         class="table1"
@@ -397,27 +470,124 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="幼稚">
+        <el-table-column label="困难度+-" width="150px">
+          <template #default="scope">
+            <!-- {{ scope.row.difficulty }} -->
+            <el-button
+              type=""
+              size="small"
+              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+            >
+              +1
+            </el-button>
+            <el-button
+              type=""
+              size="small"
+              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+            >
+              -1
+            </el-button>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="困难度" width="550px">
           <template #default="scope">
             <el-button
-              type="danger"
+              type="info"
               v-if="scope.row.difficulty != -1"
               size="small"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
-              -1
+              幼-1
+            </el-button>
+
+            <el-button
+              type="primary"
+              v-if="scope.row.difficulty != 0"
+              size="small"
+              @click="putDifficulty(scope.row, 0, scope.$index)"
+            >
+              简0
+            </el-button>
+
+            <el-button
+              v-if="scope.row.difficulty != 1"
+              type="primary"
+              size="small"
+              @click="putDifficulty(scope.row, 1, scope.$index)"
+            >
+              1
+            </el-button>
+            <el-button
+              type="primary"
+              v-if="scope.row.difficulty != 2"
+              size="small"
+              @click="putDifficulty(scope.row, 2, scope.$index)"
+            >
+              2
+            </el-button>
+            <el-button
+              type="primary"
+              v-if="scope.row.difficulty != 3"
+              size="small"
+              @click="putDifficulty(scope.row, 3, scope.$index)"
+            >
+              3
+            </el-button>
+            <el-button
+              type="primary"
+              v-if="scope.row.difficulty != 4"
+              size="small"
+              @click="putDifficulty(scope.row, 4, scope.$index)"
+            >
+              4
+            </el-button>
+
+            <el-button
+              type="warning"
+              v-if="scope.row.difficulty != 51"
+              size="small"
+              @click="putDifficulty(scope.row, 51, scope.$index)"
+            >
+              重51
+            </el-button>
+            <el-button
+              type="warning"
+              v-if="scope.row.difficulty != 52"
+              size="small"
+              @click="putDifficulty(scope.row, 52, scope.$index)"
+            >
+              52
+            </el-button>
+            <el-button
+              type="warning"
+              v-if="scope.row.difficulty != 53"
+              size="small"
+              @click="putDifficulty(scope.row, 53, scope.$index)"
+            >
+              53
+            </el-button>
+
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 91"
+              size="small"
+              @click="putDifficulty(scope.row, 91, scope.$index)"
+            >
+              复91
             </el-button>
             <el-button
               type="danger"
-              v-if="scope.row.difficulty != -2"
+              v-if="scope.row.difficulty != 92"
               size="small"
-              @click="putDifficulty(scope.row, -2, scope.$index)"
+              @click="putDifficulty(scope.row, 92, scope.$index)"
             >
-              -2
+              92
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="简单">
+
+        <!-- <el-table-column label="简单">
           <template #default="scope">
             <el-button
               v-if="scope.row.difficulty != 0"
@@ -459,8 +629,9 @@ export default {
               4
             </el-button>
           </template>
-        </el-table-column>
-        <el-table-column label="复杂">
+        </el-table-column> -->
+
+        <!-- <el-table-column label="重要">
           <template #default="scope">
             <el-button
               type="danger"
@@ -478,28 +649,37 @@ export default {
             >
               52
             </el-button>
+            <el-button
+              type=""
+              v-if="scope.row.difficulty != 53"
+              size="small"
+              @click="putDifficulty(scope.row, 53, scope.$index)"
+            >
+              53
+            </el-button>
           </template>
-        </el-table-column>
-        <el-table-column label="重要">
+        </el-table-column> -->
+
+        <!-- <el-table-column label="复杂">
           <template #default="scope">
             <el-button
               type="danger"
-              v-if="scope.row.difficulty != 71"
+              v-if="scope.row.difficulty != 91"
               size="small"
-              @click="putDifficulty(scope.row, 71, scope.$index)"
+              @click="putDifficulty(scope.row, 91, scope.$index)"
             >
-              71
+              91
             </el-button>
             <el-button
               type="danger"
-              v-if="scope.row.difficulty != 72"
+              v-if="scope.row.difficulty != 92"
               size="small"
-              @click="putDifficulty(scope.row, 72, scope.$index)"
+              @click="putDifficulty(scope.row, 92, scope.$index)"
             >
-              72
+              92
             </el-button>
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
         <!-- <el-table-column label="操作" v-if="isColumnVisible">
           <template #default="scope">
@@ -529,6 +709,18 @@ export default {
       >
       <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
   </el-form>
 </template>
 
@@ -552,9 +744,12 @@ interface Danci {
   id: number;
   name: string;
   trans: string;
-  know: number;
   difficulty: number;
+
   notes: string;
+  know: number;
+
+  userId: number; // 为了测试显示用的
 }
 
 // ============

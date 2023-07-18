@@ -13,8 +13,9 @@ declare module '@vue/runtime-core' {
     Article: typeof import('./components/Article.vue')['default']
     BaseHeader: typeof import('./components/layouts/BaseHeader.vue')['default']
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
+    Basic: typeof import('./components/Basic.vue')['default']
     Blank: typeof import('./components/blank.vue')['default']
-    copy: typeof import('./components/Nce2 copy.vue')['default']
+    copy: typeof import('./components/Table copy.vue')['default']
     Danci3000: typeof import('./components/Danci3000.vue')['default']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -39,6 +40,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Table: typeof import('./components/Table.vue')['default']
+    'Table copy': typeof import('./components/Table copy.vue')['default']
     TableTest: typeof import('./components/TableTest.vue')['default']
   }
 }

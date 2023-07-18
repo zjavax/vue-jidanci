@@ -6,6 +6,7 @@ import Danci3000 from './components/Danci3000.vue'
 import Nce2 from './components/Nce2.vue'
 import AdaArticle from './components/AdaArticle.vue'
 import OneStoryADay from './components/OneStoryADay.vue'
+import Basic from './components/Basic.vue'
 import TableTest from './components/TableTest.vue'
 import HelloWorld from './components/HelloWorld.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -14,7 +15,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     // { path: '/', component: Table },
-    { path: '/', component: Nce2 },
+    { path: '/', component: Basic },
     { path: '/nce2', component: Nce2 },
     { path: '/adaArticle', component: AdaArticle },
     { path: '/tableTest', component: TableTest },

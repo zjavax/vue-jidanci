@@ -61,13 +61,16 @@ export default {
       currentPage: 1,
       pageSize: 100,
       totalData: [],
-      userName: "张翔",
-      // userName: "游客",
+      options: [] as any[],
+      // userName: "张翔",
+      userName: "游客",
       categoryId: 2,
+      categoryName: "新概念2",
     };
   },
   computed: {},
   mounted() {
+    this.getAllCategories();
     this.getData(this.difficulty, this.sort);
   },
   methods: {
@@ -157,24 +160,12 @@ export default {
         });
     },
 
-    getData2(difficulty: number, sort: String) {
-      this.difficulty = difficulty;
-      //2.使用axios 进行get请求
+    getAllCategories() {
       axios
-        .get(
-          "http://localhost:8080/getDanci?difficulty=" +
-            difficulty +
-            "&sort=" +
-            sort
-        )
+        .get("http://localhost:8080/categories/")
         .then((res) => {
           //请求成功的回调函数
-          this.totalData = res.data;
-          this.total = this.totalData.length;
-
-          // this.danciList = res.data.slice(0, 100);
-          this.handleCurrentChange(this.currentPage);
-          this.randomKey = Math.random();
+          this.options = res.data;
         })
         .catch((err) => {
           //请求失败的回调函数
@@ -220,6 +211,11 @@ export default {
       return restoredWords;
     },
 
+    handleSelectChange(option: any) {
+      this.categoryId = option.categoryId;
+      this.getData(this.difficulty, "no");
+    },
+
     putDifficulty(row: Danci, difficulty: number, index: number) {
       var api = "http://localhost:8080/danci";
 
@@ -229,20 +225,6 @@ export default {
       axios
         .put(api + "?userName=" + this.userName, row)
         .then(function (response) {});
-
-      if (index != -1) {
-        // this.deleteTableRow(index);
-        this.danciList.splice(index, this.danciList.length - index);
-      }
-    },
-
-    putDifficulty2(row: Danci, difficulty: number, index: number) {
-      var api = "http://localhost:8080/danci/";
-
-      row.difficulty = difficulty;
-
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {});
 
       if (index != -1) {
         // this.deleteTableRow(index);
@@ -399,10 +381,12 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      &nbsp;&nbsp;&nbsp;总数：{{ totalData.length }} 困难度：{{ difficulty }}
+      <!-- 困难度：{{ difficulty }} -->
     </el-form-item>
 
     <el-form-item>
+      总数：{{ totalData.length }} &nbsp;&nbsp;&nbsp;
+
       <!-- <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
       <el-button @click="sortReversedWords()" type="danger">看后缀</el-button> -->
       <el-button @click="toggleColumn" type="">
@@ -420,6 +404,28 @@ export default {
         v-model="difficulty"
         @change="getData(difficulty, sort)"
       />
+
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 用户名：
+      <el-input
+        class="w-60 m-2"
+        v-model="userName"
+        placeholder="请输入用户名，游客记录不保存"
+      />
+
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 词库：
+      <el-select
+        v-model="categoryName"
+        value-key="categoryId"
+        placeholder="Select"
+        @change="handleSelectChange"
+      >
+        <el-option
+          v-for="item in options"
+          :key="item.categoryId"
+          :label="item.categoryName"
+          :value="item"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item>

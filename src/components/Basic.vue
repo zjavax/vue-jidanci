@@ -15,6 +15,7 @@ import Dicts from "../dicts/NCE_2.json";
 // import Dicts from "../dicts/test.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
+import { stringify } from "querystring";
 
 // ================
 var baseUrl = "http://localhost:8080/";
@@ -70,8 +71,24 @@ export default {
   },
   computed: {},
   mounted() {
+    if (localStorage.getItem("categoryId") !== null) {
+      this.categoryId = Number(localStorage.getItem("categoryId"));
+    }
+
+    if (localStorage.getItem("categoryName") !== null) {
+      this.categoryName = String(localStorage.getItem("categoryName"));
+    }
+
+    if (localStorage.getItem("difficulty") !== null) {
+      this.difficulty = Number(localStorage.getItem("difficulty"));
+    }
+
+    if (localStorage.getItem("userName") !== null) {
+      this.userName = String(localStorage.getItem("userName"));
+    }
+
     this.getAllCategories();
-    this.getData(this.difficulty, this.sort);
+    this.getData(this.difficulty);
   },
   methods: {
     addALL() {
@@ -117,12 +134,10 @@ export default {
       }
     }, 200),
 
-    // searchData: debounce(function (this: any, search: string) {
-    //   this.danciList = this.danciList.filter(
-    //     (data: any) =>
-    //       !search || data.danci.toLowerCase().includes(search.toLowerCase())
-    //   );
-    // }, 200),
+    inputUserName() {
+      localStorage.setItem("userName", this.userName);
+      this.getData(this.difficulty);
+    },
 
     handleCurrentChange(page: number) {
       this.currentPage = page;
@@ -133,8 +148,10 @@ export default {
       this.randomKey = Math.random();
     },
 
-    getData(difficulty: number, sort: String) {
+    getData(difficulty: number) {
       this.difficulty = difficulty;
+
+      localStorage.setItem("difficulty", String(difficulty));
       //2.使用axios 进行get请求
       axios
         .get(
@@ -213,7 +230,10 @@ export default {
 
     handleSelectChange(option: any) {
       this.categoryId = option.categoryId;
-      this.getData(this.difficulty, "no");
+      localStorage.setItem("categoryId", option.categoryId);
+      localStorage.setItem("categoryName", option.categoryName);
+
+      this.getData(this.difficulty);
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
@@ -297,7 +317,7 @@ export default {
       form1.alldanci = "";
       form1.alldancigroup = "";
       form1.article = "";
-      this.getData(10, "desc");
+      this.getData(10);
     },
 
     onCancel() {
@@ -361,23 +381,23 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
-      <el-button type="info" @click="getData(-1, sort)">幼稚-1</el-button>
+      <el-button type="info" @click="getData(-1)">幼稚-1</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="getData(0, sort)">简单0</el-button>
-      <el-button type="primary" @click="getData(1, sort)">1</el-button>
-      <el-button type="primary" @click="getData(2, sort)">2</el-button>
-      <el-button type="primary" @click="getData(3, sort)">3</el-button>
-      <el-button type="primary" @click="getData(4, sort)">4</el-button>
+      <el-button type="primary" @click="getData(0)">简单0</el-button>
+      <el-button type="primary" @click="getData(1)">1</el-button>
+      <el-button type="primary" @click="getData(2)">2</el-button>
+      <el-button type="primary" @click="getData(3)">3</el-button>
+      <el-button type="primary" @click="getData(4)">4</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="warning" @click="getData(51, sort)">重要51</el-button>
-      <el-button type="warning" @click="getData(52, sort)">52</el-button>
-      <el-button type="warning" @click="getData(53, sort)">53</el-button>
+      <el-button type="warning" @click="getData(51)">重要51</el-button>
+      <el-button type="warning" @click="getData(52)">52</el-button>
+      <el-button type="warning" @click="getData(53)">53</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="danger" @click="getData(91, sort)">复杂91</el-button>
-      <el-button type="danger" @click="getData(92, sort)">92</el-button>
+      <el-button type="danger" @click="getData(91)">复杂91</el-button>
+      <el-button type="danger" @click="getData(92)">92</el-button>
     </el-form-item>
 
     <el-form-item>
@@ -394,22 +414,20 @@ export default {
       </el-button>
 
       <!-- <el-button type="primary" @click="addALL">添加数据</el-button> -->
-      <!-- <el-button type="" @click="getData(difficulty - 1, sort)"
+      <!-- <el-button type="" @click="getData(difficulty - 1)"
         >困难度-1</el-button
       >
-      <el-button @click="getData(difficulty + 1, sort)">困难度+1</el-button> -->
+      <el-button @click="getData(difficulty + 1)">困难度+1</el-button> -->
 
       &nbsp;&nbsp;&nbsp;
-      <el-input-number
-        v-model="difficulty"
-        @change="getData(difficulty, sort)"
-      />
+      <el-input-number v-model="difficulty" @change="getData(difficulty)" />
 
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 用户名：
       <el-input
         class="w-60 m-2"
         v-model="userName"
         placeholder="请输入用户名，游客记录不保存"
+        @blur="inputUserName()"
       />
 
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 词库：
@@ -592,140 +610,7 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-
-        <!-- <el-table-column label="简单">
-          <template #default="scope">
-            <el-button
-              v-if="scope.row.difficulty != 0"
-              size="small"
-              @click="putDifficulty(scope.row, 0, scope.$index)"
-            >
-              0
-            </el-button>
-
-            <el-button
-              v-if="scope.row.difficulty != 1"
-              type="primary"
-              size="small"
-              @click="putDifficulty(scope.row, 1, scope.$index)"
-            >
-              1
-            </el-button>
-            <el-button
-              v-if="scope.row.difficulty != 2"
-              size="small"
-              @click="putDifficulty(scope.row, 2, scope.$index)"
-            >
-              2
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 3"
-              size="small"
-              @click="putDifficulty(scope.row, 3, scope.$index)"
-            >
-              3
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 4"
-              size="small"
-              @click="putDifficulty(scope.row, 4, scope.$index)"
-            >
-              4
-            </el-button>
-          </template>
-        </el-table-column> -->
-
-        <!-- <el-table-column label="重要">
-          <template #default="scope">
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 51"
-              size="small"
-              @click="putDifficulty(scope.row, 51, scope.$index)"
-            >
-              51
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 52"
-              size="small"
-              @click="putDifficulty(scope.row, 52, scope.$index)"
-            >
-              52
-            </el-button>
-            <el-button
-              type=""
-              v-if="scope.row.difficulty != 53"
-              size="small"
-              @click="putDifficulty(scope.row, 53, scope.$index)"
-            >
-              53
-            </el-button>
-          </template>
-        </el-table-column> -->
-
-        <!-- <el-table-column label="复杂">
-          <template #default="scope">
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 91"
-              size="small"
-              @click="putDifficulty(scope.row, 91, scope.$index)"
-            >
-              91
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 92"
-              size="small"
-              @click="putDifficulty(scope.row, 92, scope.$index)"
-            >
-              92
-            </el-button>
-          </template>
-        </el-table-column> -->
-
-        <!-- <el-table-column label="操作" v-if="isColumnVisible">
-          <template #default="scope">
-            <el-button
-              type="danger"
-              size="small"
-              @click="deleteRow(scope.row, scope.$index)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column> -->
       </el-table>
-    </el-form-item>
-
-    <el-form-item label="批量输入单词和中文">
-      <el-input
-        v-model="form1.alldancigroup"
-        type="textarea"
-        placeholder="格式：单词 或者 单词::中文，支持多行"
-      />
-    </el-form-item>
-
-    <el-form-item>
-      <el-button type="primary" @click="onSubmit2(difficulty)"
-        >添加词组</el-button
-      >
-      <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="onSubmit2(difficulty)"
-        >添加词组</el-button
-      >
-      <el-button @click="onCancel">Cancel</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="onSubmit2(difficulty)"
-        >添加词组</el-button
-      >
-      <el-button @click="onCancel">Cancel</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -764,6 +649,7 @@ interface Danci {
 <style scoped>
 .table1 {
   width: 1300px;
+  margin-bottom: 300px;
 }
 
 .scroll-to-bottom {

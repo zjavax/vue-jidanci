@@ -63,7 +63,6 @@ export default {
       currentPage: 1,
       pageSize: 100,
       totalData: [] as any[],
-      totalDataCache: [] as any[],
       options: [] as any[],
       // userName: "张翔",
       userName: "游客",
@@ -118,24 +117,53 @@ export default {
       this.randomKey = Math.random(); // 防止列变宽
     },
 
+    searchDat2: debounce(function (this: any, query: string) {
+      if (query != "") {
+        axios
+          .get("http://localhost:8080/searchWords?searchWords=" + query)
+          .then((res) => {
+            //请求成功的回调函数
+            this.danciList = res.data;
+          })
+          .catch((err) => {
+            //请求失败的回调函数
+            console.log(err);
+          });
+      } else {
+        this.getData(this.difficulty, this.sort);
+      }
+    }, 200),
+
+    search() {
+      axios
+        .get(
+          "http://localhost:8080/searchWords?searchWords=" +
+            this.searchWords +
+            "&userName=" +
+            this.userName +
+            "&categoryId=" +
+            this.categoryId
+        )
+        .then((res) => {
+          //请求成功的回调函数
+          this.totalData = res.data;
+          this.handleCurrentChange(this.currentPage);
+        })
+        .catch((err) => {
+          //请求失败的回调函数
+          console.log(err);
+        });
+    },
+
     searchData() {
-      if (this.searchWords != "") {
+      if (this.searchWords.trim() !== "") {
         clearTimeout(this.delayTimer);
         this.delayTimer = setTimeout(() => {
           this.search();
         }, 200) as any;
       } else {
-        this.totalData = this.totalDataCache;
-        this.handleCurrentChange(1);
+        this.getData(this.difficulty);
       }
-    },
-
-    search() {
-      this.totalData = this.totalDataCache.filter((item) =>
-        item.name.toLowerCase().includes(this.searchWords.toLowerCase())
-      );
-
-      this.handleCurrentChange(1);
     },
 
     inputUserName() {
@@ -172,9 +200,7 @@ export default {
           this.totalData = res.data;
           this.totalDataCache = res.data;
 
-          // this.danciList = res.data.slice(0, 100);
           this.handleCurrentChange(this.currentPage);
-          this.randomKey = Math.random();
         })
         .catch((err) => {
           //请求失败的回调函数
@@ -365,9 +391,6 @@ export default {
   },
 };
 </script>
-
-
-
 
 <template>
   <!-- 回到顶部按钮 -->

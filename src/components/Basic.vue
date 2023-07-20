@@ -57,11 +57,13 @@ export default {
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
       searchWords: "",
+      delayTimer: 0,
       sort: "no",
       total: 0,
       currentPage: 1,
       pageSize: 100,
-      totalData: [],
+      totalData: [] as any[],
+      totalDataCache: [] as any[],
       options: [] as any[],
       // userName: "张翔",
       userName: "游客",
@@ -116,23 +118,25 @@ export default {
       this.randomKey = Math.random(); // 防止列变宽
     },
 
-    // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
-    searchData: debounce(function (this: any, query: string) {
-      if (query != "") {
-        axios
-          .get("http://localhost:8080/searchWords?searchWords=" + query)
-          .then((res) => {
-            //请求成功的回调函数
-            this.danciList = res.data;
-          })
-          .catch((err) => {
-            //请求失败的回调函数
-            console.log(err);
-          });
+    searchData() {
+      if (this.searchWords != "") {
+        clearTimeout(this.delayTimer);
+        this.delayTimer = setTimeout(() => {
+          this.search();
+        }, 200) as any;
       } else {
-        this.getData(this.difficulty, this.sort);
+        this.totalData = this.totalDataCache;
+        this.handleCurrentChange(1);
       }
-    }, 200),
+    },
+
+    search() {
+      this.totalData = this.totalDataCache.filter((item) =>
+        item.name.toLowerCase().includes(this.searchWords.toLowerCase())
+      );
+
+      this.handleCurrentChange(1);
+    },
 
     inputUserName() {
       localStorage.setItem("userName", this.userName);
@@ -141,11 +145,12 @@ export default {
 
     handleCurrentChange(page: number) {
       this.currentPage = page;
+      this.total = this.totalData.length;
       this.danciList = this.totalData.slice(
         (page - 1) * this.pageSize,
         page * this.pageSize
       );
-      this.randomKey = Math.random();
+      // this.randomKey = Math.random();
     },
 
     getData(difficulty: number) {
@@ -165,7 +170,7 @@ export default {
         .then((res) => {
           //请求成功的回调函数
           this.totalData = res.data;
-          this.total = this.totalData.length;
+          this.totalDataCache = res.data;
 
           // this.danciList = res.data.slice(0, 100);
           this.handleCurrentChange(this.currentPage);
@@ -472,7 +477,7 @@ export default {
               v-model="searchWords"
               size="default"
               placeholder="搜索单词"
-              @input="searchData(searchWords)"
+              @input="searchData"
             />
           </template>
           <template v-slot="{ row }">

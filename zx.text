@@ -15,3 +15,9 @@ UPDATE ada_article SET difficulty=1010 WHERE difficulty=11;
 
 
 =====================
+
+delete from  word;
+ALTER TABLE word AUTO_INCREMENT=1;
+
+delete from  category_word;
+ALTER TABLE category_word AUTO_INCREMENT=1;

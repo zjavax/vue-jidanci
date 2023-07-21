@@ -3,21 +3,32 @@ import { ref } from "vue";
 import axios from "axios";
 
 import { reactive } from "vue";
-import { debounce } from "lodash";
 
 // import Dicts from "./../dicts/suffix_word.json";
 // import Dicts from "./../dicts/Top50Prepositions.json";
 // import Dicts from "./../dicts/Top250AdverbWords.json";
 // import Dicts from "./../dicts/Top500AdjectiveWords.json";
 // import Dicts from "./../dicts/top2000words.json";
-// import Dicts from "./../dicts/NCE_1.json";
-import Dicts from "../dicts/NCE_2.json";
 // import Dicts from "../dicts/test.json";
+// import Dicts from "./../dicts2/NCE_1.json";
+// import Dicts from "../dicts2/NCE_2.json";
 
-import type { TableColumnCtx, TableInstance } from "element-plus";
-import { stringify } from "querystring";
+// import Dicts from "../dicts/test2.json";
+// import Dicts from "../dicts2/NCE_3.json";
+// import Dicts from "../dicts2/NCE_4.json";
+
+// import Dicts from "../dicts2/CET4_T.json";
+// import Dicts from "../dicts2/CET6_T.json";
+// import Dicts from "../dicts2/KaoYan_2024.json";
+// import Dicts from "../dicts2/suffix_word.json";
+// import Dicts from "../dicts2/word_roots1.json";
+// import Dicts from "../dicts2/IELTS_3_T.json";
+
+import Dicts from "../dicts2/SAT_3_T.json";
 
 // ================
+// 5 ogden.basic-english.org  850
+
 var baseUrl = "http://localhost:8080/";
 var api = "http://localhost:8080/danci/";
 
@@ -93,8 +104,20 @@ export default {
   },
   methods: {
     addALL() {
+      var dict3 = [];
+      for (var i = 0; i < Dicts.length; i++) {
+        Dicts[i].name = Dicts[i].name.toLocaleLowerCase();
+        Dicts[i].trans = Dicts[i].trans[0];
+        dict3.push(Dicts[i]);
+      }
+
+      console.log(dict3[0]);
+      console.log(dict3[0].trans);
+      console.log(dict3[1]);
+      console.log(dict3[1].trans);
+
       axios
-        .post(baseUrl + "addAll", Dicts)
+        .post(baseUrl + "addAll", dict3)
         .then((res) => {
           //请求成功的回调函数
           console.log(res.data);
@@ -116,23 +139,6 @@ export default {
       // this.refreshTable();  // 防止列变宽
       this.randomKey = Math.random(); // 防止列变宽
     },
-
-    searchDat2: debounce(function (this: any, query: string) {
-      if (query != "") {
-        axios
-          .get("http://localhost:8080/searchWords?searchWords=" + query)
-          .then((res) => {
-            //请求成功的回调函数
-            this.danciList = res.data;
-          })
-          .catch((err) => {
-            //请求失败的回调函数
-            console.log(err);
-          });
-      } else {
-        this.getData(this.difficulty, this.sort);
-      }
-    }, 200),
 
     search() {
       axios
@@ -198,7 +204,6 @@ export default {
         .then((res) => {
           //请求成功的回调函数
           this.totalData = res.data;
-          this.totalDataCache = res.data;
 
           this.handleCurrentChange(this.currentPage);
         })
@@ -278,15 +283,11 @@ export default {
         .then(function (response) {});
 
       if (index != -1) {
-        // this.deleteTableRow(index);
         this.danciList.splice(index, this.danciList.length - index);
       }
     },
 
     deleteTableRow(index: number) {
-      // this.danciList = this.danciList.filter((item) => {
-      //   return item?.id != row.id;
-      // });
       this.danciList.splice(index, 1);
     },
 
@@ -301,32 +302,6 @@ export default {
       });
 
       this.danciList.splice(index, this.danciList.length - index);
-    },
-
-    // 减一  认识
-
-    minusKnow(row: Danci, index: number) {
-      row.know = row.know + 5;
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {
-        console.log();
-      });
-
-      // this.deleteTableRow(index);
-      this.danciList.splice(index, this.danciList.length - index);
-    },
-
-    // 不认识  +1
-    addKnow(row: Danci, index: number) {
-      // var api = "http://localhost:8080/danci/" + row.id;
-
-      row.know--;
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {});
-
-      this.danciList.splice(index, this.danciList.length - index);
-      this.tableData.push(row);
-      // this.refreshTable2();
     },
 
     deleteRowCache(index: number) {
@@ -350,44 +325,6 @@ export default {
       form1.article = "";
       this.getData(10);
     },
-
-    onCancel() {
-      form1.alldanci = "";
-      form1.alldancigroup = "";
-    },
-
-    onSubmit() {
-      axios
-        .post(baseUrl + "alldanci", form1)
-        .then((res) => {
-          //请求成功的回调函数
-          console.log(res.data);
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
-
-      form1.alldanci = "";
-      form1.alldancigroup = "";
-    },
-
-    onSubmit2(difficulty: number) {
-      form1.difficulty = difficulty;
-      axios
-        .post(baseUrl + "alldancigroup", form1)
-        .then((res) => {
-          //请求成功的回调函数
-          console.log(res.data);
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
-
-      form1.alldanci = "";
-      form1.alldancigroup = "";
-    },
   },
 };
 </script>
@@ -408,6 +345,8 @@ export default {
   </el-backtop>
 
   <el-form :model="form1" label-width="120px">
+    <el-button type="primary" @click="addALL">添加词典</el-button>
+
     <el-form-item style="margin-top: 40px">
       <el-button type="info" @click="getData(-1)">幼稚-1</el-button>
     </el-form-item>
@@ -441,7 +380,6 @@ export default {
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
 
-      <!-- <el-button type="primary" @click="addALL">添加数据</el-button> -->
       <!-- <el-button type="" @click="getData(difficulty - 1)"
         >困难度-1</el-button
       >

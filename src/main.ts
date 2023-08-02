@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import Axios from 'axios'
+import AddText from './components/AddText.vue'
 import Table from './components/Table.vue'
 import Danci3000 from './components/Danci3000.vue'
 import Nce2 from './components/Nce2.vue'
@@ -20,6 +21,7 @@ const router = createRouter({
     { path: '/adaArticle', component: AdaArticle },
     { path: '/tableTest', component: TableTest },
     { path: '/table', component: Table },
+    { path: '/addText', component: AddText },
     { path: '/danci3000', component: Danci3000 },
     { path: '/helloWorld', component: HelloWorld },
     { path: '/oneStoryADay', component: OneStoryADay },

@@ -10,6 +10,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AdaArticle: typeof import('./components/AdaArticle.vue')['default']
+    AddText: typeof import('./components/AddText.vue')['default']
     Article: typeof import('./components/Article.vue')['default']
     BaseHeader: typeof import('./components/layouts/BaseHeader.vue')['default']
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
@@ -42,7 +43,6 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Table: typeof import('./components/Table.vue')['default']
-    'Table copy': typeof import('./components/Table copy.vue')['default']
     TableTest: typeof import('./components/TableTest.vue')['default']
   }
 }

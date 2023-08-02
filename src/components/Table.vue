@@ -5,7 +5,14 @@ import axios from "axios";
 import { reactive } from "vue";
 import { nextTick } from "vue";
 import { debounce } from "lodash";
-import Dicts from "./../dicts/NCE_2.json";
+
+// import Dicts from "./../dicts/suffix_word.json";
+// import Dicts from "./../dicts/Top50Prepositions.json";
+// import Dicts from "./../dicts/Top250AdverbWords.json";
+// import Dicts from "./../dicts/Top500AdjectiveWords.json";
+// import Dicts from "./../dicts/top2000words.json";
+// import Dicts from "./../dicts/NCE_1.json";
+// import Dicts from "./../dicts/NCE_2.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -44,7 +51,7 @@ export default {
           difficulty: 0,
         },
       ]),
-      difficulty: ref(10), // 1完全通过  0也差不多
+      difficulty: ref(2042), // 1完全通过  0也差不多
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -103,6 +110,13 @@ export default {
         this.getData(this.difficulty, this.sort);
       }
     }, 200),
+
+    // searchData: debounce(function (this: any, search: string) {
+    //   this.danciList = this.danciList.filter(
+    //     (data: any) =>
+    //       !search || data.danci.toLowerCase().includes(search.toLowerCase())
+    //   );
+    // }, 200),
 
     handleCurrentChange(page: number) {
       this.currentPage = page;
@@ -196,6 +210,21 @@ export default {
       // this.refreshTable2();
     },
 
+    // editData(row: any, column: any) {
+    //   row[column.property + "isShow"] = true;
+    //   //refreshTable是table数据改动时，刷新table的
+    //   this.refreshTable();
+    // },
+
+    // alterData(row: any, column: any) {
+    //   row[column.property + "isShow"] = false;
+    //   this.refreshTable();
+
+    //   this.putDifficulty(row, row.difficulty, -1);
+    // },
+    // refreshTable() {
+    //   this.randomKey = Math.random();
+    // },
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
     },
@@ -279,7 +308,24 @@ export default {
 
   <el-form :model="form1" label-width="120px">
     <el-form-item style="margin-top: 40px">
+      <el-button @click="getData(-20, sort)">-20</el-button>
+      <el-button @click="getData(-2, sort)">-2</el-button>
+      <el-button @click="getData(-10, sort)">-10</el-button>
+      <el-button @click="getData(-1, sort)">-1</el-button>
+      <el-button @click="getData(0, sort)">简单0</el-button>
+      <el-button type="warning" @click="getData(1, sort)">可背1</el-button>
+      <el-button type="warning" @click="getData(11, sort)">可背11</el-button>
+      <el-button type="danger" @click="getData(2, sort)">稍难2</el-button>
+      <el-button type="danger" @click="getData(20, sort)">稍难20</el-button>
+      <el-button type="danger" @click="getData(3, sort)">太难3</el-button>
+      <el-button @click="getData(-10000, sort)">幼稚</el-button>
+      <el-button @click="getData(-10000 - 1, sort)">幼稚-1</el-button>
       <el-button @click="getData(10, sort)">文章</el-button>
+      <el-button @click="getData(4, sort)">更简4</el-button>
+      <el-button @click="getData(30, sort)">新概念1</el-button>
+      <el-button @click="getData(31, sort)">新概念1-2</el-button>
+      <el-button @click="getData(40, sort)">新概念2</el-button>
+      <el-button @click="getData(41, sort)">新概念2-2</el-button>
     </el-form-item>
 
     <el-form-item label="批量输入单词" v-if="difficulty == 0">

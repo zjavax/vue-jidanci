@@ -22,9 +22,9 @@ import { reactive } from "vue";
 // import Dicts from "../dicts2/KaoYan_2024.json";
 // import Dicts from "../dicts2/suffix_word.json";
 // import Dicts from "../dicts2/word_roots1.json";
-// import Dicts from "../dicts2/IELTS_3_T.json";
+import Dicts from "../dicts2/IELTS_3_T.json";
 
-import Dicts from "../dicts2/SAT_3_T.json";
+// import Dicts from "../dicts2/SAT_3_T.json";
 
 // ================
 // 5 ogden.basic-english.org  850
@@ -98,6 +98,12 @@ export default {
     if (localStorage.getItem("userName") !== null) {
       this.userName = String(localStorage.getItem("userName"));
     }
+    if (
+      localStorage.getItem("currentPage") !== null &&
+      localStorage.getItem("currentPage") !== ""
+    ) {
+      this.currentPage = Number(localStorage.getItem("currentPage"));
+    }
 
     this.getAllCategories();
     this.getData(this.difficulty);
@@ -162,6 +168,7 @@ export default {
     },
 
     searchData() {
+      // localStorage.setItem("currentPage", "");
       if (this.searchWords.trim() !== "") {
         clearTimeout(this.delayTimer);
         this.delayTimer = setTimeout(() => {
@@ -178,6 +185,7 @@ export default {
     },
 
     handleCurrentChange(page: number) {
+      localStorage.setItem("currentPage", String(page));
       this.currentPage = page;
       this.total = this.totalData.length;
       this.danciList = this.totalData.slice(
@@ -188,6 +196,7 @@ export default {
     },
 
     getData(difficulty: number) {
+      // localStorage.setItem("currentPage", "");
       this.difficulty = difficulty;
 
       localStorage.setItem("difficulty", String(difficulty));
@@ -203,7 +212,11 @@ export default {
         )
         .then((res) => {
           //请求成功的回调函数
-          this.totalData = res.data;
+          this.totalData = res.data.sort((a: any, b: any) =>
+            a.name.localeCompare(b.name)
+          );
+
+          // this.totalData = res.data;
 
           this.handleCurrentChange(this.currentPage);
         })
@@ -345,10 +358,11 @@ export default {
   </el-backtop>
 
   <el-form :model="form1" label-width="120px">
-    <el-button type="primary" @click="addALL">添加词典</el-button>
+    <!-- <el-button type="primary" @click="addALL">添加词典</el-button> -->
 
     <el-form-item style="margin-top: 40px">
       <el-button type="info" @click="getData(-1)">幼稚-1</el-button>
+      <!-- <el-button type="info" @click="getData(-2)">-2</el-button> -->
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="getData(0)">简单0</el-button>
@@ -361,6 +375,10 @@ export default {
       <el-button type="warning" @click="getData(51)">重要51</el-button>
       <el-button type="warning" @click="getData(52)">52</el-button>
       <el-button type="warning" @click="getData(53)">53</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button @click="getData(81)">艾达81</el-button>
+      <el-button @click="getData(82)">82</el-button>
     </el-form-item>
     <el-form-item>
       <el-button type="danger" @click="getData(91)">复杂91</el-button>
@@ -450,6 +468,7 @@ export default {
 
         <el-table-column label="中文" v-if="isColumnVisible">
           <template #default="{ row }">
+            <!-- <span>{{ row.trans }}</span> -->
             <el-input
               autosize
               type="textarea"
@@ -480,8 +499,17 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="困难度" width="550px">
+        <el-table-column label="困难度" width="600px">
           <template #default="scope">
+            <!-- <el-button
+              type="info"
+              v-if="scope.row.difficulty != -2"
+              size="small"
+              @click="putDifficulty(scope.row, -2, scope.$index)"
+            >
+              -2
+            </el-button> -->
+
             <el-button
               type="info"
               v-if="scope.row.difficulty != -1"
@@ -556,6 +584,15 @@ export default {
               @click="putDifficulty(scope.row, 53, scope.$index)"
             >
               53
+            </el-button>
+
+            <el-button
+              type=""
+              v-if="scope.row.difficulty != 81"
+              size="small"
+              @click="putDifficulty(scope.row, 81, scope.$index)"
+            >
+              艾81
             </el-button>
 
             <el-button

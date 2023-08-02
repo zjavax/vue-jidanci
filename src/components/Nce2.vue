@@ -11,7 +11,7 @@ import { debounce } from "lodash";
 // import Dicts from "./../dicts/Top500AdjectiveWords.json";
 // import Dicts from "./../dicts/top2000words.json";
 // import Dicts from "./../dicts/NCE_1.json";
-import Dicts from "../dicts/NCE_2.json";
+// import Dicts from "../dicts/NCE_2.json";
 
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
@@ -67,18 +67,18 @@ export default {
     this.getData(this.difficulty, this.sort);
   },
   methods: {
-    addALL() {
-      axios
-        .post(baseUrl + "addAll", Dicts)
-        .then((res) => {
-          //请求成功的回调函数
-          console.log(res.data);
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
-    },
+    // addALL() {
+    //   axios
+    //     .post(baseUrl + "addAll", Dicts)
+    //     .then((res) => {
+    //       //请求成功的回调函数
+    //       console.log(res.data);
+    //     })
+    //     .catch((err) => {
+    //       //请求失败的回调函数
+    //       console.log(err);
+    //     });
+    // },
 
     handleMouseEnter(_: any, index: number): void {
       this.hoverRowIndex = index;
@@ -126,7 +126,7 @@ export default {
       this.randomKey = Math.random();
     },
 
-    getData2(difficulty: number, sort: String) {
+    getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
       //2.使用axios 进行get请求
       axios
@@ -149,7 +149,7 @@ export default {
         });
     },
 
-    getData(difficulty: number, sort: String) {
+    getData2(difficulty: number, sort: String) {
       var username = "张三";
       this.difficulty = difficulty;
       //2.使用axios 进行get请求

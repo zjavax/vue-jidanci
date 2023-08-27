@@ -341,12 +341,12 @@ export default {
       <el-button type="" @click="getData(95, sort)">艾达95</el-button>
     </el-form-item>
 
-    <el-form-item>
+    <!-- <el-form-item>
       <el-button type="danger" @click="getData(difficulty - 1, sort)"
         >复杂性-1</el-button
       >
       <el-button @click="getData(difficulty + 1, sort)">复杂性+1</el-button>
-    </el-form-item>
+    </el-form-item> -->
 
     <el-form-item>
       &nbsp;&nbsp;&nbsp;总数：{{ totalData.length }} 困难度：{{ difficulty }}

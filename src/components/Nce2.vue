@@ -367,6 +367,11 @@ export default {
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
+      &nbsp;&nbsp;&nbsp;
+      <el-input-number
+        v-model="difficulty"
+        @change="getData(difficulty, sort)"
+      />
     </el-form-item>
 
     <el-form-item>
@@ -419,6 +424,26 @@ export default {
           </template>
         </el-table-column>
 
+        <el-table-column label="复杂性">
+          <template #default="scope">
+            <el-button
+              type=""
+              size="small"
+              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+            >
+              +1
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+            >
+              -1
+            </el-button>
+            {{ scope.row.difficulty }}
+          </template>
+        </el-table-column>
+
         <el-table-column label="幼稚">
           <template #default="scope">
             <el-button
@@ -429,14 +454,14 @@ export default {
             >
               -1
             </el-button>
-            <!-- <el-button
+            <el-button
               type="danger"
               v-if="scope.row.difficulty != -2"
               size="small"
               @click="putDifficulty(scope.row, -2, scope.$index)"
             >
               -2
-            </el-button> -->
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column label="简单">
@@ -584,7 +609,7 @@ interface Danci {
 
 <style scoped>
 .table1 {
-  width: 1300px;
+  width: 1500px;
 }
 
 .scroll-to-bottom {

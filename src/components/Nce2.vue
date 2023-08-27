@@ -64,6 +64,16 @@ export default {
   },
   computed: {},
   mounted() {
+    if (localStorage.getItem("difficulty") !== null) {
+      this.difficulty = Number(localStorage.getItem("difficulty"));
+    }
+    if (
+      localStorage.getItem("currentPage") !== null &&
+      localStorage.getItem("currentPage") !== ""
+    ) {
+      this.currentPage = Number(localStorage.getItem("currentPage"));
+    }
+
     this.getData(this.difficulty, this.sort);
   },
   methods: {
@@ -99,7 +109,9 @@ export default {
           .get("http://localhost:8080/searchWords?searchWords=" + query)
           .then((res) => {
             //请求成功的回调函数
-            this.danciList = res.data;
+            // this.danciList = res.data;
+            this.totalData = res.data;
+            this.handleCurrentChange(this.currentPage);
           })
           .catch((err) => {
             //请求失败的回调函数
@@ -118,16 +130,19 @@ export default {
     // }, 200),
 
     handleCurrentChange(page: number) {
+      localStorage.setItem("currentPage", String(page));
       this.currentPage = page;
+      this.total = this.totalData.length;
       this.danciList = this.totalData.slice(
         (page - 1) * this.pageSize,
         page * this.pageSize
       );
-      this.randomKey = Math.random();
+      // this.randomKey = Math.random();
     },
 
     getData(difficulty: number, sort: String) {
       this.difficulty = difficulty;
+      localStorage.setItem("difficulty", String(difficulty));
       //2.使用axios 进行get请求
       axios
         .get(
@@ -138,10 +153,16 @@ export default {
         )
         .then((res) => {
           //请求成功的回调函数
+          // this.totalData = res.data;
+          // this.danciList = res.data.slice(0, 100);
+          // this.total = res.data.length;
+          // this.randomKey = Math.random();
+
+          // this.totalData = res.data.sort((a: any, b: any) =>
+          //   a.name.localeCompare(b.name)
+          // );
           this.totalData = res.data;
-          this.danciList = res.data.slice(0, 100);
-          this.total = res.data.length;
-          this.randomKey = Math.random();
+          this.handleCurrentChange(this.currentPage);
         })
         .catch((err) => {
           //请求失败的回调函数
@@ -387,8 +408,9 @@ export default {
 
         <el-table-column label="中文" v-if="isColumnVisible">
           <template #default="{ row }">
+            <!-- autosize -->
             <el-input
-              autosize
+              :rows="4"
               type="textarea"
               placeholder="Please input"
               v-model="row.trans"
@@ -407,14 +429,14 @@ export default {
             >
               -1
             </el-button>
-            <el-button
+            <!-- <el-button
               type="danger"
               v-if="scope.row.difficulty != -2"
               size="small"
               @click="putDifficulty(scope.row, -2, scope.$index)"
             >
               -2
-            </el-button>
+            </el-button> -->
           </template>
         </el-table-column>
         <el-table-column label="简单">

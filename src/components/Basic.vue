@@ -22,7 +22,8 @@ import { reactive } from "vue";
 // import Dicts from "../dicts2/KaoYan_2024.json";
 // import Dicts from "../dicts2/suffix_word.json";
 // import Dicts from "../dicts2/word_roots1.json";
-import Dicts from "../dicts2/IELTS_3_T.json";
+// import Dicts from "../dicts2/IELTS_3_T.json";
+import Dicts from "../dicts2/Macmillan7000.json";
 
 // import Dicts from "../dicts2/SAT_3_T.json";
 
@@ -196,7 +197,6 @@ export default {
     },
 
     getData(difficulty: number) {
-      // localStorage.setItem("currentPage", "");
       this.difficulty = difficulty;
 
       localStorage.setItem("difficulty", String(difficulty));

@@ -25,3 +25,7 @@ ALTER TABLE word AUTO_INCREMENT=1;
 
 delete from  category_word;
 ALTER TABLE category_word AUTO_INCREMENT=1;
+
+UPDATE coca_60000_10000
+SET difficulty = 53
+WHERE id >= 5000;

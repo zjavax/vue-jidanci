@@ -74,7 +74,7 @@ export default {
       this.currentPage = Number(localStorage.getItem("currentPage"));
     }
 
-    this.getData(this.difficulty, this.sort);
+    this.getData(this.difficulty, "1");
   },
   methods: {
     // addALL() {
@@ -205,8 +205,8 @@ export default {
       axios.put(api, row).then(function (response) {});
 
       if (index != -1) {
-        // this.deleteTableRow(index);
-        this.danciList.splice(index, this.danciList.length - index);
+        this.deleteTableRow(index);
+        // this.danciList.splice(index, this.danciList.length - index);
       }
     },
 
@@ -364,6 +364,7 @@ export default {
 
     <el-form-item>
       <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
+      <el-button @click="getData(difficulty, '1')">COCA单词频率倒序</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
@@ -395,7 +396,7 @@ export default {
         :data="danciList"
         :key="randomKey"
       >
-        <el-table-column prop="name" label="单词">
+        <el-table-column prop="name" label="单词" width="200">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -411,9 +412,10 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="中文" v-if="isColumnVisible">
+        <!-- autosize -->
+        <!-- <el-table-column label="中文" v-if="isColumnVisible">
           <template #default="{ row }">
-            <!-- autosize -->
+
             <el-input
               :rows="4"
               type="textarea"
@@ -422,9 +424,9 @@ export default {
               @blur="putDifficulty(row, row.difficulty, -1)"
             ></el-input>
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
-        <el-table-column label="复杂性">
+        <el-table-column label="复杂性" width="150">
           <template #default="scope">
             <el-button
               type=""
@@ -444,16 +446,8 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="幼稚">
+        <el-table-column label="简单">
           <template #default="scope">
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != -1"
-              size="small"
-              @click="putDifficulty(scope.row, -1, scope.$index)"
-            >
-              -1
-            </el-button>
             <el-button
               type="danger"
               v-if="scope.row.difficulty != -2"
@@ -462,10 +456,16 @@ export default {
             >
               -2
             </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="简单">
-          <template #default="scope">
+
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != -1"
+              size="small"
+              @click="putDifficulty(scope.row, -1, scope.$index)"
+            >
+              -1
+            </el-button>
+
             <el-button
               v-if="scope.row.difficulty != 0"
               size="small"
@@ -507,7 +507,12 @@ export default {
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="复杂">
+        <!-- <el-table-column label="复杂">
+          <template #default="scope">
+
+          </template>
+        </el-table-column> -->
+        <el-table-column label="重要">
           <template #default="scope">
             <el-button
               type="danger"
@@ -525,10 +530,7 @@ export default {
             >
               52
             </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="重要">
-          <template #default="scope">
+
             <el-button
               type="danger"
               v-if="scope.row.difficulty != 71"

@@ -51,6 +51,7 @@ export default {
         },
       ]),
       difficulty: 0, // 1完全通过  0也差不多
+      know: 0,
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -74,7 +75,7 @@ export default {
       this.currentPage = Number(localStorage.getItem("currentPage"));
     }
 
-    this.getData(this.difficulty, "1");
+    this.getData(this.difficulty, "asc");
   },
   methods: {
     // addALL() {
@@ -205,9 +206,20 @@ export default {
       axios.put(api, row).then(function (response) {});
 
       if (index != -1) {
-        this.deleteTableRow(index);
-        // this.danciList.splice(index, this.danciList.length - index);
+        // this.deleteTableRow(index);
+        this.danciList.splice(index, this.danciList.length - index);
       }
+    },
+
+    putKnow(row: Danci, know: number, index: number) {
+      row.know = know;
+      //2.使用axios 进行get请求
+      axios.put(api, row).then(function (response) {
+        console.log();
+      });
+
+      // this.deleteTableRow(index);
+      this.danciList.splice(index, this.danciList.length - index);
     },
 
     deleteTableRow(index: number) {
@@ -230,31 +242,30 @@ export default {
       this.danciList.splice(index, this.danciList.length - index);
     },
 
-    // 减一  认识
+    // // 减一  认识
+    // minusKnow(row: Danci, index: number) {
+    //   row.know = row.know + 5;
+    //   //2.使用axios 进行get请求
+    //   axios.put(api, row).then(function (response) {
+    //     console.log();
+    //   });
 
-    minusKnow(row: Danci, index: number) {
-      row.know = row.know + 5;
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {
-        console.log();
-      });
+    //   // this.deleteTableRow(index);
+    //   this.danciList.splice(index, this.danciList.length - index);
+    // },
 
-      // this.deleteTableRow(index);
-      this.danciList.splice(index, this.danciList.length - index);
-    },
+    // // 不认识  +1
+    // addKnow(row: Danci, index: number) {
+    //   // var api = "http://localhost:8080/danci/" + row.id;
 
-    // 不认识  +1
-    addKnow(row: Danci, index: number) {
-      // var api = "http://localhost:8080/danci/" + row.id;
+    //   row.know--;
+    //   //2.使用axios 进行get请求
+    //   axios.put(api, row).then(function (response) {});
 
-      row.know--;
-      //2.使用axios 进行get请求
-      axios.put(api, row).then(function (response) {});
-
-      this.danciList.splice(index, this.danciList.length - index);
-      this.tableData.push(row);
-      // this.refreshTable2();
-    },
+    //   this.danciList.splice(index, this.danciList.length - index);
+    //   this.tableData.push(row);
+    //   // this.refreshTable2();
+    // },
 
     deleteRowCache(index: number) {
       this.tableData.splice(index, 1);
@@ -363,7 +374,7 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-button @click="getData(difficulty, 'no')">单词字典序</el-button>
+      <el-button @click="getData(difficulty, 'asc')">单词字典序</el-button>
       <el-button @click="getData(difficulty, '1')">COCA单词频率倒序</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
@@ -405,26 +416,46 @@ export default {
               @input="searchData(searchWords)"
             />
           </template>
-          <template v-slot="{ row }">
-            <el-tooltip :content="row.trans" placement="left">
-              <span>{{ row.name }}</span>
+          <template v-slot="scope">
+            <el-button
+              type="danger"
+              size="small"
+              @click="putKnow(scope.row, 0, scope.$index)"
+            >
+              0
+            </el-button>
+            <el-button
+              type="primary"
+              size="small"
+              @click="
+                putKnow(
+                  scope.row,
+                  (scope.row.know = scope.row.know + 1),
+                  scope.$index
+                )
+              "
+            >
+              {{ scope.row.know }}
+            </el-button>
+
+            <el-tooltip :content="scope.row.trans" placement="left">
+              <span>&nbsp;&nbsp; {{ scope.row.name }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
 
         <!-- autosize -->
-        <!-- <el-table-column label="中文" v-if="isColumnVisible">
-          <template #default="{ row }">
-
+        <el-table-column label="中文" v-if="isColumnVisible">
+          <template #default="scope">
             <el-input
               :rows="4"
               type="textarea"
               placeholder="Please input"
-              v-model="row.trans"
-              @blur="putDifficulty(row, row.difficulty, -1)"
+              v-model="scope.row.trans"
+              @blur="putDifficulty(scope.row, scope.row.difficulty, -1)"
             ></el-input>
           </template>
-        </el-table-column> -->
+        </el-table-column>
 
         <el-table-column label="复杂性" width="150">
           <template #default="scope">
@@ -433,16 +464,15 @@ export default {
               size="small"
               @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
             >
-              +1
+              {{ scope.row.difficulty }}
             </el-button>
             <el-button
               type="danger"
               size="small"
               @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
             >
-              -1
+              减1
             </el-button>
-            {{ scope.row.difficulty }}
           </template>
         </el-table-column>
 

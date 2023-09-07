@@ -16,7 +16,6 @@ declare module '@vue/runtime-core' {
     BaseSide: typeof import('./components/layouts/BaseSide.vue')['default']
     Basic: typeof import('./components/Basic.vue')['default']
     Blank: typeof import('./components/blank.vue')['default']
-    copy: typeof import('./components/Table copy.vue')['default']
     Danci3000: typeof import('./components/Danci3000.vue')['default']
     ElBacktop: typeof import('element-plus/es')['ElBacktop']
     ElButton: typeof import('element-plus/es')['ElButton']

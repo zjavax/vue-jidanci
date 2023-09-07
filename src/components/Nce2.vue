@@ -211,6 +211,17 @@ export default {
       }
     },
 
+    sortByKnow() {
+      this.totalData = this.processData(this.totalData);
+
+      this.handleCurrentChange(this.currentPage);
+    },
+
+    processData(data: any) {
+      const sortedWords = data.sort((a: any, b: any) => a.know - b.know);
+      return sortedWords;
+    },
+
     putKnow(row: Danci, know: number, index: number) {
       row.know = know;
       //2.使用axios 进行get请求
@@ -374,8 +385,10 @@ export default {
     </el-form-item>
 
     <el-form-item>
+      <el-button @click="getData(difficulty, 'asc')">刷新</el-button>
       <el-button @click="getData(difficulty, 'asc')">单词字典序</el-button>
       <el-button @click="getData(difficulty, '1')">COCA单词频率倒序</el-button>
+      <el-button @click="sortByKnow()">熟悉度排序</el-button>
       <el-button @click="toggleColumn">
         {{ isColumnVisible ? "列隐藏" : "列显示" }}
       </el-button>
@@ -417,10 +430,24 @@ export default {
             />
           </template>
           <template v-slot="scope">
+            <el-tooltip :content="scope.row.trans" placement="left">
+              <span>&nbsp;&nbsp; {{ scope.row.name }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="熟悉度/复杂性" width="250">
+          <template #default="scope">
             <el-button
               type="danger"
               size="small"
-              @click="putKnow(scope.row, 0, scope.$index)"
+              @click="
+                putKnow(
+                  scope.row,
+                  (scope.row.know = scope.row.know - 1),
+                  scope.$index
+                )
+              "
             >
               0
             </el-button>
@@ -437,10 +464,21 @@ export default {
             >
               {{ scope.row.know }}
             </el-button>
-
-            <el-tooltip :content="scope.row.trans" placement="left">
-              <span>&nbsp;&nbsp; {{ scope.row.name }}</span>
-            </el-tooltip>
+            &nbsp;&nbsp;&nbsp;
+            <el-button
+              type=""
+              size="small"
+              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+            >
+              {{ scope.row.difficulty }}
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+            >
+              -1
+            </el-button>
           </template>
         </el-table-column>
 
@@ -454,25 +492,6 @@ export default {
               v-model="scope.row.trans"
               @blur="putDifficulty(scope.row, scope.row.difficulty, -1)"
             ></el-input>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="复杂性" width="150">
-          <template #default="scope">
-            <el-button
-              type=""
-              size="small"
-              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
-            >
-              {{ scope.row.difficulty }}
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
-            >
-              减1
-            </el-button>
           </template>
         </el-table-column>
 

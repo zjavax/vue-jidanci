@@ -1,3 +1,5 @@
+java -jar D:\java_code\jidanci\zjavax-jidanci\target\zjavax-jidanci-0.0.1-SNAPSHOT.jar
+
 npm run dev
 
 

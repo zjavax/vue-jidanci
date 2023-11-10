@@ -1,4 +1,4 @@
-# element-plus-vite-starter
+# vue-jidanci
 
 > A starter kit for Element Plus with Vite
 

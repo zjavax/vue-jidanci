@@ -52,6 +52,7 @@ export default {
       ]),
       difficulty: 0, // 1完全通过  0也差不多
       know: 0,
+      sortAscOrDesc: 2,
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
@@ -206,20 +207,9 @@ export default {
       axios.put(api, row).then(function (response) {});
 
       if (index != -1) {
-        // this.deleteTableRow(index);
-        this.danciList.splice(index, this.danciList.length - index);
+        this.deleteTableRow(index);
+        // this.danciList.splice(index, this.danciList.length - index);
       }
-    },
-
-    sortByKnow() {
-      this.totalData = this.processData(this.totalData);
-
-      this.handleCurrentChange(this.currentPage);
-    },
-
-    processData(data: any) {
-      const sortedWords = data.sort((a: any, b: any) => a.know - b.know);
-      return sortedWords;
     },
 
     putKnow(row: Danci, know: number, index: number) {
@@ -231,6 +221,25 @@ export default {
 
       // this.deleteTableRow(index);
       this.danciList.splice(index, this.danciList.length - index);
+    },
+
+    sortByKnow() {
+      this.totalData = this.processData(this.totalData);
+
+      this.handleCurrentChange(this.currentPage);
+    },
+
+    processData(data: any) {
+      var sortedWords;
+      if (this.sortAscOrDesc / 2 == 1) {
+        sortedWords = data.sort((a: any, b: any) => a.know - b.know);
+        this.sortAscOrDesc++;
+      } else {
+        sortedWords = data.sort((a: any, b: any) => b.know - a.know);
+        this.sortAscOrDesc--;
+      }
+
+      return sortedWords;
     },
 
     deleteTableRow(index: number) {
@@ -436,11 +445,24 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="熟悉度/复杂性" width="250">
+        <!-- autosize -->
+        <el-table-column label="中文" v-if="isColumnVisible" width="350">
+          <template #default="scope">
+            <el-input
+              :rows="4"
+              type="textarea"
+              placeholder="Please input"
+              v-model="scope.row.trans"
+              @blur="putDifficulty(scope.row, scope.row.difficulty, -1)"
+            ></el-input>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="熟悉度/复杂性" width="350">
           <template #default="scope">
             <el-button
               type="danger"
-              size="small"
+              size="large"
               @click="
                 putKnow(
                   scope.row,
@@ -449,11 +471,11 @@ export default {
                 )
               "
             >
-              0
+              -1
             </el-button>
             <el-button
               type="primary"
-              size="small"
+              size="large"
               @click="
                 putKnow(
                   scope.row,
@@ -467,31 +489,27 @@ export default {
             &nbsp;&nbsp;&nbsp;
             <el-button
               type=""
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
             >
               {{ scope.row.difficulty }}
             </el-button>
             <el-button
               type="danger"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
             >
               -1
             </el-button>
-          </template>
-        </el-table-column>
 
-        <!-- autosize -->
-        <el-table-column label="中文" v-if="isColumnVisible">
-          <template #default="scope">
-            <el-input
-              :rows="4"
-              type="textarea"
-              placeholder="Please input"
-              v-model="scope.row.trans"
-              @blur="putDifficulty(scope.row, scope.row.difficulty, -1)"
-            ></el-input>
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != -2"
+              size="large"
+              @click="putDifficulty(scope.row, -2, scope.$index)"
+            >
+              -2
+            </el-button>
           </template>
         </el-table-column>
 
@@ -499,17 +517,8 @@ export default {
           <template #default="scope">
             <el-button
               type="danger"
-              v-if="scope.row.difficulty != -2"
-              size="small"
-              @click="putDifficulty(scope.row, -2, scope.$index)"
-            >
-              -2
-            </el-button>
-
-            <el-button
-              type="danger"
               v-if="scope.row.difficulty != -1"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
               -1
@@ -517,7 +526,7 @@ export default {
 
             <el-button
               v-if="scope.row.difficulty != 0"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, 0, scope.$index)"
             >
               0
@@ -526,33 +535,67 @@ export default {
             <el-button
               v-if="scope.row.difficulty != 1"
               type="primary"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, 1, scope.$index)"
             >
               1
             </el-button>
             <el-button
               v-if="scope.row.difficulty != 2"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, 2, scope.$index)"
             >
               2
             </el-button>
-            <el-button
+            <!-- <el-button
               type="danger"
               v-if="scope.row.difficulty != 3"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, 3, scope.$index)"
             >
               3
-            </el-button>
+            </el-button> -->
             <el-button
               type="danger"
               v-if="scope.row.difficulty != 4"
-              size="small"
+              size="large"
               @click="putDifficulty(scope.row, 4, scope.$index)"
             >
               4
+            </el-button>
+
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 51"
+              size="large"
+              @click="putDifficulty(scope.row, 51, scope.$index)"
+            >
+              51
+            </el-button>
+            <!-- <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 52"
+              size="large"
+              @click="putDifficulty(scope.row, 52, scope.$index)"
+            >
+              52
+            </el-button> -->
+
+            <!-- <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 71"
+              size="large"
+              @click="putDifficulty(scope.row, 71, scope.$index)"
+            >
+              71
+            </el-button> -->
+            <el-button
+              type="danger"
+              v-if="scope.row.difficulty != 72"
+              size="large"
+              @click="putDifficulty(scope.row, 72, scope.$index)"
+            >
+              72
             </el-button>
           </template>
         </el-table-column>
@@ -561,49 +604,17 @@ export default {
 
           </template>
         </el-table-column> -->
-        <el-table-column label="重要">
+        <!-- <el-table-column label="重要">
           <template #default="scope">
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 51"
-              size="small"
-              @click="putDifficulty(scope.row, 51, scope.$index)"
-            >
-              51
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 52"
-              size="small"
-              @click="putDifficulty(scope.row, 52, scope.$index)"
-            >
-              52
-            </el-button>
-
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 71"
-              size="small"
-              @click="putDifficulty(scope.row, 71, scope.$index)"
-            >
-              71
-            </el-button>
-            <el-button
-              type="danger"
-              v-if="scope.row.difficulty != 72"
-              size="small"
-              @click="putDifficulty(scope.row, 72, scope.$index)"
-            >
-              72
-            </el-button>
+            
           </template>
-        </el-table-column>
+        </el-table-column> -->
 
         <!-- <el-table-column label="操作" v-if="isColumnVisible">
           <template #default="scope">
             <el-button
               type="danger"
-              size="small"
+              size="large"
               @click="deleteRow(scope.row, scope.$index)"
             >
               删除
@@ -621,6 +632,30 @@ export default {
       />
     </el-form-item>
 
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onSubmit2(difficulty)"
+        >添加词组</el-button
+      >
+      <el-button @click="onCancel">Cancel</el-button>
+    </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="onSubmit2(difficulty)"
         >添加词组</el-button

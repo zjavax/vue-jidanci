@@ -16,8 +16,8 @@ import { debounce } from "lodash";
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
-var baseUrl = "http://localhost:8080/";
-var api = "http://localhost:8080/danci/";
+var baseUrl = "http://117.50.196.55:8080/";
+var api = "http://117.50.196.55:8080/danci/";
 
 // do not use same name with ref
 const form1 = reactive({
@@ -108,7 +108,7 @@ export default {
     searchData: debounce(function (this: any, query: string) {
       if (query != "") {
         axios
-          .get("http://localhost:8080/searchWords?searchWords=" + query)
+          .get("http://117.50.196.55:8080/searchWords?searchWords=" + query)
           .then((res) => {
             //请求成功的回调函数
             // this.danciList = res.data;
@@ -148,7 +148,7 @@ export default {
       //2.使用axios 进行get请求
       axios
         .get(
-          "http://localhost:8080/getDanci?difficulty=" +
+          "http://117.50.196.55:8080/getDanci?difficulty=" +
             difficulty +
             "&sort=" +
             sort
@@ -178,7 +178,7 @@ export default {
       //2.使用axios 进行get请求
       axios
         .get(
-          "http://localhost:8080/getDanci?difficulty=" +
+          "http://117.50.196.55:8080/getDanci?difficulty=" +
             5 +
             "&categoryId=" +
             1 +
@@ -199,7 +199,7 @@ export default {
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
-      var api = "http://localhost:8080/danci/";
+      var api = "http://117.50.196.55:8080/danci/";
 
       row.difficulty = difficulty;
 
@@ -250,7 +250,7 @@ export default {
     },
 
     deleteRow(row: Danci, index: number) {
-      var api = "http://localhost:8080/danci/deleteById/" + row.id;
+      var api = "http://117.50.196.55:8080/danci/deleteById/" + row.id;
 
       //2.使用axios 进行get请求
       axios.delete(api).then(function (response) {});
@@ -276,7 +276,7 @@ export default {
 
     // // 不认识  +1
     // addKnow(row: Danci, index: number) {
-    //   // var api = "http://localhost:8080/danci/" + row.id;
+    //   // var api = "http://117.50.196.55:8080/danci/" + row.id;
 
     //   row.know--;
     //   //2.使用axios 进行get请求

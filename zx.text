@@ -2,6 +2,8 @@ java -jar D:\java_code\jidanci\zjavax-jidanci\target\zjavax-jidanci-0.0.1-SNAPSH
 
 npm run dev
 
+npm run dev  --no-hmr
+
 
 
 mysql sql命令

@@ -38,7 +38,7 @@ const router = createRouter({
 // or use cdn, uncomment cdn link in `index.html`
 
 // import '~/styles/index.scss'
-// import 'uno.css'
+import 'uno.css'
 
 // If you want to use ElMessage, import it.
 // import 'element-plus/theme-chalk/src/message.scss'

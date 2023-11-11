@@ -23,7 +23,7 @@ import { reactive } from "vue";
 // import Dicts from "../dicts2/suffix_word.json";
 // import Dicts from "../dicts2/word_roots1.json";
 // import Dicts from "../dicts2/IELTS_3_T.json";
-import Dicts from "../dicts2/Macmillan7000.json";
+// import Dicts from "../dicts2/Macmillan7000.json";
 
 // import Dicts from "../dicts2/SAT_3_T.json";
 
@@ -110,30 +110,30 @@ export default {
     this.getData(this.difficulty);
   },
   methods: {
-    addALL() {
-      var dict3 = [];
-      for (var i = 0; i < Dicts.length; i++) {
-        Dicts[i].name = Dicts[i].name.toLocaleLowerCase();
-        Dicts[i].trans = Dicts[i].trans[0];
-        dict3.push(Dicts[i]);
-      }
+    // addALL() {
+    //   var dict3 = [];
+    //   for (var i = 0; i < Dicts.length; i++) {
+    //     Dicts[i].name = Dicts[i].name.toLocaleLowerCase();
+    //     Dicts[i].trans = Dicts[i].trans[0];
+    //     dict3.push(Dicts[i]);
+    //   }
 
-      console.log(dict3[0]);
-      console.log(dict3[0].trans);
-      console.log(dict3[1]);
-      console.log(dict3[1].trans);
+    //   console.log(dict3[0]);
+    //   console.log(dict3[0].trans);
+    //   console.log(dict3[1]);
+    //   console.log(dict3[1].trans);
 
-      axios
-        .post(baseUrl + "addAll", dict3)
-        .then((res) => {
-          //请求成功的回调函数
-          console.log(res.data);
-        })
-        .catch((err) => {
-          //请求失败的回调函数
-          console.log(err);
-        });
-    },
+    //   axios
+    //     .post(baseUrl + "addAll", dict3)
+    //     .then((res) => {
+    //       //请求成功的回调函数
+    //       console.log(res.data);
+    //     })
+    //     .catch((err) => {
+    //       //请求失败的回调函数
+    //       console.log(err);
+    //     });
+    // },
 
     handleMouseEnter(_: any, index: number): void {
       this.hoverRowIndex = index;

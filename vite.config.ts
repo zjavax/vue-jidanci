@@ -18,7 +18,7 @@ const pathSrc = path.resolve(__dirname, 'src')
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: { host: '127.0.0.1', port: 3001 },
+  server: { host: '0.0.0.0', port: 3001 },
 
   resolve: {
     alias: {

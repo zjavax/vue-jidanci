@@ -33,11 +33,11 @@ export default defineComponent({
       const request = indexedDB.open(DB_NAME, 1);
 
       request.onerror = (event) => {
-        console.log("打开数据库出错！", event.target.error);
+        console.log("打开数据库出错！", (event.target as any).error);
       };
 
       request.onupgradeneeded = (event) => {
-        const db = event.target.result;
+        const db = (event.target as any).result;
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("id", "id", { unique: true });
       };
@@ -76,7 +76,7 @@ export default defineComponent({
       };
 
       transaction.onerror = (event) => {
-        console.log("添加数据到数据库出错！", event.target.error);
+        console.log("添加数据到数据库出错！", (event.target as any).error);
       };
     }
 
@@ -86,11 +86,11 @@ export default defineComponent({
       const request = store.getAll();
 
       request.onsuccess = (event) => {
-        tableData.value = event.target.result;
+        tableData.value = (event.target as any).result;
       };
 
       request.onerror = (event) => {
-        console.log("从数据库获取数据出错！", event.target.error);
+        console.log("从数据库获取数据出错！", (event.target as any).error);
       };
     }
 

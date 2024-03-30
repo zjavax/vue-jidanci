@@ -16,8 +16,11 @@ import { debounce } from "lodash";
 import type { TableColumnCtx, TableInstance } from "element-plus";
 
 // ================
-var baseUrl = "http://117.50.196.55:8080/";
-var api = "http://117.50.196.55:8080/danci/";
+
+// var baseUrl = "http://117.50.196.55:8080/";
+// var api = "http://117.50.196.55:8080/danci/";
+const baseUrl = "http://" + import.meta.env.VITE_SERVER_IP + ":8080/";
+var api = baseUrl + "danci/";
 
 // do not use same name with ref
 const form1 = reactive({
@@ -108,7 +111,7 @@ export default {
     searchData: debounce(function (this: any, query: string) {
       if (query != "") {
         axios
-          .get("http://117.50.196.55:8080/searchWords?searchWords=" + query)
+          .get(baseUrl + "searchWords?searchWords=" + query)
           .then((res) => {
             //请求成功的回调函数
             // this.danciList = res.data;
@@ -147,12 +150,7 @@ export default {
       localStorage.setItem("difficulty", String(difficulty));
       //2.使用axios 进行get请求
       axios
-        .get(
-          "http://117.50.196.55:8080/getDanci?difficulty=" +
-            difficulty +
-            "&sort=" +
-            sort
-        )
+        .get(baseUrl + "getDanci?difficulty=" + difficulty + "&sort=" + sort)
         .then((res) => {
           //请求成功的回调函数
           // this.totalData = res.data;
@@ -178,7 +176,8 @@ export default {
       //2.使用axios 进行get请求
       axios
         .get(
-          "http://117.50.196.55:8080/getDanci?difficulty=" +
+          baseUrl +
+            "getDanci?difficulty=" +
             5 +
             "&categoryId=" +
             1 +
@@ -199,7 +198,7 @@ export default {
     },
 
     putDifficulty(row: Danci, difficulty: number, index: number) {
-      var api = "http://117.50.196.55:8080/danci/";
+      var api = baseUrl + "danci/";
 
       row.difficulty = difficulty;
 
@@ -250,7 +249,7 @@ export default {
     },
 
     deleteRow(row: Danci, index: number) {
-      var api = "http://117.50.196.55:8080/danci/deleteById/" + row.id;
+      var api = baseUrl + "danci/deleteById/" + row.id;
 
       //2.使用axios 进行get请求
       axios.delete(api).then(function (response) {});
@@ -276,7 +275,7 @@ export default {
 
     // // 不认识  +1
     // addKnow(row: Danci, index: number) {
-    //   // var api = "http://117.50.196.55:8080/danci/" + row.id;
+    //   // var api = baseUrl+"danci/" + row.id;
 
     //   row.know--;
     //   //2.使用axios 进行get请求

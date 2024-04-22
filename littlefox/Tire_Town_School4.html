@@ -17,11 +17,73 @@
   }
 </style>
 
+<script>
+
+
+  const lines = []
+  let currentIndex = 0
+
+  let currentAudio = null
+
+  function playAudio (text) {
+    if (currentAudio) {
+      currentAudio.pause() // 暂停当前音频
+    }
+
+    const audio = new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`)
+    audio.play()
+    currentAudio = audio // 更新当前音频
+  }
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const divContent = document.querySelector('.myclass')?.innerHTML
+    if (divContent) {
+      // lines.push(...divContent.split('<br>').filter(line => line.trim() !== ''))
+      lines.push(...divContent.split('<br>').map(line => line.replace(/\n/g, '').trim()).filter(line => line !== ''))
+      lines.shift()
+      // document.getElementById('line').innerText = lines[currentIndex]
+
+      const linesContainer = document.getElementById('lines-container')
+      lines.forEach((lineText, index) => {
+        const lineDiv = document.createElement('div')
+        const lineTextElement = document.createElement('p')
+        lineTextElement.innerText = lineText
+        const playButton = createButton(lineText)
+        lineDiv.appendChild(lineTextElement)
+        lineDiv.appendChild(playButton)
+        linesContainer.appendChild(lineDiv)
+      })
+
+    }
+  })
+
+  function createButton (text) {
+    const button = document.createElement('button')
+    button.textContent = '播放'
+    button.style.fontSize = '50px' // 设置字体大小
+    button.style.padding = '8px 12px' // 设置内边距
+    button.addEventListener('click', function () {
+      playAudio(text)
+    })
+    return button
+  }
+
+
+
+
+
+
+
+</script>
+
 
 
 <body>
 
   <div class="myclass">
+    <div id="lines-container"></div>
 
 
 

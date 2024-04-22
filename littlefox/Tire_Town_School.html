@@ -19,9 +19,79 @@
 
 
 
+
+<script>
+
+
+  const lines = []
+  let currentIndex = 0
+
+  let currentAudio = null
+
+  function playAudio (text) {
+    if (currentAudio) {
+      currentAudio.pause() // 暂停当前音频
+    }
+
+    const audio = new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`)
+    audio.play()
+    currentAudio = audio // 更新当前音频
+  }
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const divContent = document.querySelector('.myclass')?.innerHTML
+    if (divContent) {
+      // lines.push(...divContent.split('<br>').filter(line => line.trim() !== ''))
+      lines.push(...divContent.split('<br>').map(line => line.replace(/\n/g, '').trim()).filter(line => line !== ''))
+      lines.shift()
+      // document.getElementById('line').innerText = lines[currentIndex]
+
+      const linesContainer = document.getElementById('lines-container')
+      lines.forEach((lineText, index) => {
+        const lineDiv = document.createElement('div')
+        const lineTextElement = document.createElement('p')
+        lineTextElement.innerText = lineText
+        const playButton = createButton(lineText)
+        lineDiv.appendChild(lineTextElement)
+        lineDiv.appendChild(playButton)
+        linesContainer.appendChild(lineDiv)
+      })
+
+    }
+  })
+
+  function createButton (text) {
+    const button = document.createElement('button')
+    button.textContent = '播放'
+    button.style.fontSize = '50px' // 设置字体大小
+    button.style.padding = '8px 12px' // 设置内边距
+    button.addEventListener('click', function () {
+      playAudio(text)
+    })
+    return button
+  }
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
 <body>
 
+  <!-- https://www.littlefox.com/hk/readers/contents_list_v2/FS0084 -->
   <div class="myclass">
+    <div id="lines-container"></div>
+
+
     Tire Town School 5: Field Trip<br />
     Eddy saw his friends at school.<br />
     “Hi, Eddy!” called Poppy.<br />
@@ -38,7 +108,7 @@
     “Ready for our field trip?”<br />
     “Yes!” said Poppy.<br />
     “Where are we going?” asked Zippy.<br />
-    “It’s a surprise,” said Mr. Grill.<br />
+    “It's a surprise,” said Mr. Grill.<br />
     “Everyone, follow me!”<br />
     “Yay!” the students cheered.<br />
     Honk! Honk! Vroom!<br />
@@ -47,7 +117,7 @@
     The building was noisy.<br />
     A sign said Car Wash.<br />
     Mr. Grill smiled.<br />
-    “It’s bath time!”<br />
+    “It's bath time!”<br />
     <br />
     Tire Town School 6: The Car Wash<br />
     “The car wash stinks!” said Jeb.<br />
@@ -61,7 +131,7 @@
     “Dirt feels good,” said Eddy.<br />
     Mr. Grill smiled.<br />
     “I know you like dirt.<br />
-    But it’s time to get clean.”<br />
+    But it's time to get clean.”<br />
     “I like to be clean,” said Zippy.<br />
     “It helps me go fast!”<br />
     Mr. Grill looked at the students.<br />
@@ -71,7 +141,7 @@
     He saw lots of dirt.<br />
     Eddy wanted to be fast.<br />
     He looked at Mr. Grill.<br />
-    “I’ll go first,” said Eddy.<br />
+    “I'll go first,” said Eddy.<br />
     <br />
     Tire Town School 7: Eddy in the Car Wash<br />
     Eddy drove into the car wash.<br />
@@ -82,7 +152,7 @@
     Bubbles were everywhere.<br />
     Big brushes spun.<br />
     They cleaned his sides.<br />
-    The brushes cleaned Eddy’s top.<br />
+    The brushes cleaned Eddy's top.<br />
     They cleaned his tires.<br />
     Eddy laughed. “That tickles!”<br />
     More water sprayed.<br />
@@ -94,27 +164,27 @@
     Everyone got clean.<br />
     Even Jeb sparkled.<br />
     “I love the car wash!” he said.<br />
-    Finally it was Poppy’s turn.<br />
+    Finally it was Poppy's turn.<br />
     Poppy frowned.<br />
     “I am not going in there!”<br />
     <br />
     Tire Town School 8: Poppy Is Scared<br />
     Poppy looked at the noisy building.<br />
-    “I’m not going in,” she said.<br />
+    “I'm not going in,” she said.<br />
     “The car wash is scary!”<br />
-    “It’s not scary,” said Mr. Grill.<br />
+    “It's not scary,” said Mr. Grill.<br />
     “It makes strange sounds,” said Poppy.<br />
     “Ha-ha!” said Zippy.<br />
     “Poppy is afraid!”<br />
     Poppy frowned.<br />
     “The car wash is fun,” said Jeb.<br />
     “It has big brushes.”<br />
-    “Brushes aren’t fun,” said Poppy.<br />
+    “Brushes aren't fun,” said Poppy.<br />
     “It sprays you with water,” said Dipper.<br />
     “Hmm,” said Poppy.<br />
     “Water is kind of fun.”<br />
     “There are bubbles,” said Eddy.<br />
-    Poppy’s eyes got wide.<br />
+    Poppy's eyes got wide.<br />
     “Bubbles?” she said.<br />
     “I love bubbles!”<br />
     Honk! Honk!<br />
@@ -129,30 +199,30 @@
     Vroom! Vroom!<br />
     Eddy zoomed around.<br />
     “Way to go, Eddy!” said Jeb.<br />
-    “You’re fast!” said Dipper.<br />
+    “You're fast!” said Dipper.<br />
     Honk! Honk!<br />
     Poppy tooted her horn.<br />
     Eddy grinned.<br />
-    “Someday I’ll be a race car!” he said.<br />
-    “No, you won’t,” said Zippy.<br />
-    “You’re too slow!”<br />
+    “Someday I'll be a race car!” he said.<br />
+    “No, you won't,” said Zippy.<br />
+    “You're too slow!”<br />
     Eddy frowned.<br />
     Ms. Fender came outside.<br />
     “Good morning!” said the teacher.<br />
-    “It’s time for safety class.”<br />
+    “It's time for safety class.”<br />
     “Safety class?” said Zippy.<br />
-    “That’s boring!”<br />
+    “That's boring!”<br />
     “Safety is important,” said Ms. Fender.<br />
     She led everyone to a track.<br />
     Eddy saw cones.<br />
     He saw stop signs.<br />
     He saw traffic lights.<br />
-    “We’ll practice here,” said Ms. Fender.<br />
+    “We'll practice here,” said Ms. Fender.<br />
     “Everyone will drive on the track.<br />
-    Don’t go too fast.”<br />
+    Don't go too fast.”<br />
     Zippy laughed.<br />
     “This will be easy for Eddy.<br />
-    He’s slow!”<br />
+    He's slow!”<br />
     <br />
     Tire Town School 10: Safety Class<br />
     Jeb drove between the cones.<br />
@@ -167,26 +237,26 @@
     The light turned red.<br />
     Jeb stopped.<br />
     Zippy whispered to Eddy.<br />
-    “You’re good at slowing down.<br />
-    Because you’re slow!”<br />
-    “I’m not slow,” said Eddy.<br />
+    “You're good at slowing down.<br />
+    Because you're slow!”<br />
+    “I'm not slow,” said Eddy.<br />
     The light turned green.<br />
     Jeb drove some more.<br />
     Soon he was done.<br />
     “Good job,” said Ms. Fender.<br />
-    “It’s Zippy’s turn now.”<br />
+    “It's Zippy's turn now.”<br />
     Zippy drove to the track.<br />
     Zippy smiled. “This will be easy!”<br />
-    “I’m the best at everything!”<br />
+    “I'm the best at everything!”<br />
     <br />
     Tire Town School 11: Not Too Fast<br />
     Zippy drove very fast.<br />
-    But he didn’t hit the cones.<br />
+    But he didn't hit the cones.<br />
     And he stopped at the sign.<br />
     “Good job, Zippy,” said Ms. Fender.<br />
     “But next time go slow.”<br />
     “Sorry,” said Zippy.<br />
-    “I’m just too fast!”<br />
+    “I'm just too fast!”<br />
     Eddy frowned.<br />
     Poppy went next.<br />
     Honk! Honk!<br />
@@ -196,14 +266,14 @@
     “Sorry!” said Poppy.<br />
     “La, la, la, la!” Poppy sang.<br />
     She drove past the stop sign.<br />
-    “You didn’t stop!” cried Ms. Fender.<br />
+    “You didn't stop!” cried Ms. Fender.<br />
     “Sorry!” said Poppy.<br />
-    Then it was Eddy’s turn.<br />
+    Then it was Eddy's turn.<br />
     “Remember, Eddy,” said Ms. Fender.<br />
-    “Don’t go too fast.”<br />
-    Zippy laughed. “Don’t worry, Ms. Fender.<br />
-    Eddy won’t go too fast!”<br />
-    Eddy’s engine roared.<br />
+    “Don't go too fast.”<br />
+    Zippy laughed. “Don't worry, Ms. Fender.<br />
+    Eddy won't go too fast!”<br />
+    Eddy's engine roared.<br />
     <br />
     Tire Town School 12: Eddy Is Not Safe<br />
     Eddy drove onto the track.<br />
@@ -215,14 +285,14 @@
     “You are really slow!” Zippy laughed.<br />
     Eddy felt hot.<br />
     His dumper shook.<br />
-    “I’m not slow!” Eddy yelled.<br />
+    “I'm not slow!” Eddy yelled.<br />
     Vroom!<br />
     Eddy went fast—too fast!<br />
     “Slow down!” cried Ms. Fender.<br />
     Eddy flew past a red light.<br />
     He crashed into cones.<br />
     “That was not safe!” said Ms. Fender.<br />
-    Eddy sighed. “I’m sorry.”<br />
+    Eddy sighed. “I'm sorry.”<br />
     “Zippy,” said Ms. Fender.<br />
     “You must stop being a bully.”<br />
     “Fine,” Zippy said.<br />
@@ -244,11 +314,11 @@
     Eddy saw lots of trees.<br />
     “Hmm,” he thought.<br />
     “Where are we going?”<br />
-    “We’re here!” said Mr. Grill.<br />
+    “We're here!” said Mr. Grill.<br />
     Eddy saw a wide path.<br />
     It led into the woods.<br />
     Mr. Grill smiled.<br />
-    “We’re going off-road!”<br />
+    “We're going off-road!”<br />
     Eddy smiled.<br />
     “Wow!” he said.<br />
     “Cool!” said Jeb.<br />
@@ -267,8 +337,8 @@
     Honk! Honk!<br />
     “Ugh,” said Zippy.<br />
     “I have to drive slowly.<br />
-    And I’ll get dirty.”<br />
-    “You’ll be fine, Zippy,” said Mr. Grill.<br />
+    And I'll get dirty.”<br />
+    “You'll be fine, Zippy,” said Mr. Grill.<br />
     Everyone drove into the woods.<br />
     The path had lots of rocks.<br />
     Jeb rolled over the rocks.<br />
@@ -312,16 +382,16 @@
     But the mud was deep.<br />
     His tires went deeper.<br />
     “Oh no!” cried Zippy.<br />
-    “I’m stuck in the mud!”<br />
+    “I'm stuck in the mud!”<br />
     <br />
     Tire Town School 16: Deep Mud<br />
     Zippy spun his tires.<br />
     He spun them very fast.<br />
     Mud sprayed everywhere.<br />
-    But Zippy didn’t move.<br />
+    But Zippy didn't move.<br />
     Zippy sank deeper.<br />
     “Help!” he cried.<br />
-    “I’ll help you,” said Mr. Grill.<br />
+    “I'll help you,” said Mr. Grill.<br />
     The teacher pushed.<br />
     Zippy moved a little bit.<br />
     But then Mr. Grill sank too.<br />
@@ -330,23 +400,24 @@
     Poppy gulped.<br />
     Eddy looked at Jeb.<br />
     Jeb looked at Eddy.<br />
-    “Let’s clear that mud,” said Eddy.<br />
+    “Let's clear that mud,” said Eddy.<br />
     The two friends moved fast.<br />
     Shloomp!<br />
     Jeb scooped the mud.<br />
-    He put it in Eddy’s dumper.<br />
+    He put it in Eddy's dumper.<br />
     Soon everyone was free!<br />
     “Thank you,” said Mr. Grill.<br />
-    “You’re welcome,” said Eddy and Jeb.<br />
+    “You're welcome,” said Eddy and Jeb.<br />
     Eddy zoomed along the path.<br />
     “I love driving off-road!”<br />
-    Zippy groaned. “I don’t!”<br />
-    <br />
+    Zippy groaned. “I don't!”<br />
 
   </div>
 
 
 
 </body>
+
+
 
 </html>

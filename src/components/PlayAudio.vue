@@ -27,11 +27,9 @@
       <el-button @click="cancelArticle">清空文章</el-button>
       <el-button @click="cancel">清空分割段落</el-button>
     </el-form-item>
-
-    <el-form-item>
-      <div id="lines-container"></div>
-    </el-form-item>
   </el-form>
+
+  <div id="lines-container"></div>
 </template>
 
 <script lang="ts" setup>
@@ -71,7 +69,6 @@ const onSubmit = () => {
   // 使用正则表达式根据用户输入的分割字符对文章进行分割
   const regex = new RegExp("[" + form.zifu + "]", "g");
   form.paragraphs = form.article.split(regex);
-  // form.paragraphs.shift();
   form.paragraphs.pop();
 
   const linesContainer = document.getElementById("lines-container");

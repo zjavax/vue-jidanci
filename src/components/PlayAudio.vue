@@ -58,17 +58,19 @@ const cancel = () => {
   }
 };
 
+window.onload = function () {
+  onSubmit();
+};
+
 const onSubmit = () => {
   cancel();
-
-  // form.article = form.article.replace(/\n/g, " ");
 
   localStorage.setItem("zifu", form.zifu);
   localStorage.setItem("article", form.article);
 
   // 使用正则表达式根据用户输入的分割字符对文章进行分割
   const regex = new RegExp("[" + form.zifu + "]", "g");
-  form.paragraphs = form.article.split(regex);
+  form.paragraphs = form.article.split(regex); // split
   form.paragraphs.pop();
 
   const linesContainer = document.getElementById("lines-container");
@@ -76,6 +78,8 @@ const onSubmit = () => {
     const lineDiv = document.createElement("div");
     const lineTextElement = document.createElement("p");
     lineText = lineText.replace(/\n/g, " ");
+    lineText = lineText.replace(/” /g, " ");
+    lineText = lineText.replace(/“/g, " ");
     lineTextElement.innerText = lineText;
     const playButton = createButton(lineText);
     lineDiv.appendChild(lineTextElement);

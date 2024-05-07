@@ -10,6 +10,10 @@
 
 <template>
   <el-form :model="form" label-width="auto" style="max-width: 1500px">
+    <el-form-item label="分割文章(\d是匹配数字)">
+      <el-input v-model="form.splitArticle" />
+    </el-form-item>
+
     <el-form-item label="分割字符(英文: ?!. )">
       <el-input v-model="form.zifu" />
     </el-form-item>
@@ -19,7 +23,7 @@
         v-model="form.article"
         type="textarea"
         style="width: 15000px"
-        :autosize="{ minRows: 20, maxRows: 50 }"
+        :autosize="{ minRows: 10, maxRows: 20 }"
       />
     </el-form-item>
     <el-form-item>
@@ -36,11 +40,13 @@
 import { reactive } from "vue";
 
 const form = reactive({
+  splitArticle: "",
   zifu: "", // 分割字符
   article: "",
   paragraphs: [] as string[], // 存放分割后的段落数组
 });
 
+form.splitArticle = String(localStorage.getItem("splitArticle"));
 form.zifu = String(localStorage.getItem("zifu"));
 form.article = String(localStorage.getItem("article"));
 
@@ -49,7 +55,6 @@ const cancelArticle = () => {
 };
 
 const cancel = () => {
-  // form.article = "";
   form.paragraphs = [];
 
   const linesContainer = document.getElementById("lines-container");
@@ -64,13 +69,28 @@ window.onload = function () {
 
 const onSubmit = () => {
   cancel();
-
+  localStorage.setItem("splitArticle", form.splitArticle);
   localStorage.setItem("zifu", form.zifu);
   localStorage.setItem("article", form.article);
 
+  // 使用正则表达式查找第一个数字的索引位置
+  const regex2 = new RegExp(form.splitArticle);
+  const match = form.article.match(regex2);
+
+  // 如果找到了数字，则进行分割
+  let result: any;
+  if (match) {
+    const index = match.index;
+    // 分割字符串，并获取分割后的前半部分
+    result = form.article.slice(0, index);
+    console.log(result);
+  } else {
+    console.log("未找到数字");
+  }
+
   // 使用正则表达式根据用户输入的分割字符对文章进行分割
   const regex = new RegExp("[" + form.zifu + "]", "g");
-  form.paragraphs = form.article.split(regex); // split
+  form.paragraphs = result.split(regex); // split
   form.paragraphs.pop();
 
   const linesContainer = document.getElementById("lines-container");
@@ -80,6 +100,7 @@ const onSubmit = () => {
     lineText = lineText.replace(/\n/g, " ");
     lineText = lineText.replace(/” /g, " ");
     lineText = lineText.replace(/“/g, " ");
+    lineText = lineText.replace(/’/g, "'");
     lineTextElement.innerText = lineText;
     const playButton = createButton(lineText);
     lineDiv.appendChild(lineTextElement);

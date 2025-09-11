@@ -59,6 +59,9 @@ export default {
       randomKey: Math.random(),
       hoverRowIndex: -1,
       isColumnVisible: true, // 列显示或者隐藏
+      isKnowColumnVisible: true,
+      isDifficultyColumnVisible: true,
+      isDifficultySelectColumnVisible: true,
       searchWords: "",
       sort: "no",
       total: 0,
@@ -101,10 +104,28 @@ export default {
     handleMouseLeave(): void {
       this.hoverRowIndex = -1;
     },
-    toggleColumn() {
-      this.isColumnVisible = !this.isColumnVisible;
-      // this.refreshTable();  // 防止列变宽
-      this.randomKey = Math.random(); // 防止列变宽
+    toggleColumn(columnName: string) {
+      if (columnName == "中文") {
+        this.isColumnVisible = !this.isColumnVisible;
+        // this.refreshTable();  // 防止列变宽
+        this.randomKey = Math.random(); // 防止列变宽
+      }
+      if (columnName == "熟悉度加减") {
+        this.isKnowColumnVisible = !this.isKnowColumnVisible;
+        // this.refreshTable();  // 防止列变宽
+        this.randomKey = Math.random(); // 防止列变宽
+      }
+      if (columnName == "困难度加减") {
+        this.isDifficultyColumnVisible = !this.isDifficultyColumnVisible;
+        // this.refreshTable();  // 防止列变宽
+        this.randomKey = Math.random(); // 防止列变宽
+      }
+      if (columnName == "困难度选择") {
+        this.isDifficultySelectColumnVisible =
+          !this.isDifficultySelectColumnVisible;
+        // this.refreshTable();  // 防止列变宽
+        this.randomKey = Math.random(); // 防止列变宽
+      }
     },
 
     // 一定是这种使用方式才有效，不要使用箭头函数，不然内部获取不到 this
@@ -398,14 +419,28 @@ export default {
       <el-button @click="getData(difficulty, 'asc')">单词字典序</el-button>
       <el-button @click="getData(difficulty, '1')">COCA单词频率倒序</el-button>
       <el-button @click="sortByKnow()">熟悉度排序</el-button>
-      <el-button @click="toggleColumn">
-        {{ isColumnVisible ? "列隐藏" : "列显示" }}
-      </el-button>
       &nbsp;&nbsp;&nbsp;
       <el-input-number
         v-model="difficulty"
         @change="getData(difficulty, sort)"
       />
+    </el-form-item>
+
+    <el-form-item>
+      <el-button @click="toggleColumn('中文')">
+        {{ isColumnVisible ? "中文隐藏" : "中文显示" }}
+      </el-button>
+      <el-button @click="toggleColumn('熟悉度加减')">
+        {{ isKnowColumnVisible ? "熟悉度加减隐藏" : "熟悉度加减显示" }}
+      </el-button>
+      <el-button @click="toggleColumn('困难度加减')">
+        {{ isDifficultyColumnVisible ? "困难度加减隐藏" : "困难度加减显示" }}
+      </el-button>
+      <el-button @click="toggleColumn('困难度选择')">
+        {{
+          isDifficultySelectColumnVisible ? "困难度选择隐藏" : "困难度选择显示"
+        }}
+      </el-button>
     </el-form-item>
 
     <el-form-item>
@@ -429,7 +464,7 @@ export default {
         :data="danciList"
         :key="randomKey"
       >
-        <el-table-column prop="name" label="单词" width="200">
+        <el-table-column prop="name" label="单词" width="140%">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -446,7 +481,7 @@ export default {
         </el-table-column>
 
         <!-- autosize -->
-        <el-table-column label="中文" v-if="isColumnVisible" width="350">
+        <el-table-column label="中文" v-if="isColumnVisible">
           <template #default="scope">
             <el-input
               :rows="4"
@@ -458,7 +493,7 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="熟悉度/困难度" width="350">
+        <el-table-column label="熟悉度加减" v-if="isKnowColumnVisible">
           <template #default="scope">
             <el-tooltip
               class="box-item"
@@ -481,6 +516,9 @@ export default {
               </el-button>
             </el-tooltip>
 
+            &nbsp;
+            {{ scope.row.know }}
+
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -498,12 +536,23 @@ export default {
                   )
                 "
               >
-                {{ scope.row.know }}
+                +
               </el-button>
             </el-tooltip>
 
-            &nbsp;&nbsp;&nbsp;
+            <!-- <el-button
+              type="danger"
+              v-if="scope.row.difficulty != -2"
+              size="large"
+              @click="putDifficulty(scope.row, -2, scope.$index)"
+            >
+              -2
+            </el-button> -->
+          </template>
+        </el-table-column>
 
+        <el-table-column label="困难度加减" v-if="isDifficultyColumnVisible">
+          <template #default="scope">
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -519,6 +568,9 @@ export default {
               </el-button>
             </el-tooltip>
 
+            &nbsp;
+            {{ scope.row.difficulty }}
+
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -530,22 +582,17 @@ export default {
                 size="large"
                 @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
               >
-                {{ scope.row.difficulty }}
+                +
               </el-button>
             </el-tooltip>
-
-            <!-- <el-button
-              type="danger"
-              v-if="scope.row.difficulty != -2"
-              size="large"
-              @click="putDifficulty(scope.row, -2, scope.$index)"
-            >
-              -2
-            </el-button> -->
           </template>
         </el-table-column>
 
-        <el-table-column label="简单">
+        <el-table-column
+          label="困难度选择"
+          min-width="150px"
+          v-if="isDifficultySelectColumnVisible"
+        >
           <template #default="scope">
             <el-button
               circle

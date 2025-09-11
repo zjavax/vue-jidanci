@@ -146,6 +146,7 @@ export default {
     },
 
     getData(difficulty: number, sort: String) {
+      this.searchWords = "";
       this.difficulty = difficulty;
       localStorage.setItem("difficulty", String(difficulty));
       //2.使用axios 进行get请求
@@ -205,10 +206,7 @@ export default {
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      if (index != -1) {
-        this.deleteTableRow(index);
-        // this.danciList.splice(index, this.danciList.length - index);
-      }
+      this.deleteTableRow(index);
     },
 
     putKnow(row: Danci, know: number, index: number) {
@@ -217,6 +215,8 @@ export default {
       axios.put(api, row).then(function (response) {
         console.log();
       });
+
+      this.deleteTableRow(index);
     },
 
     sortByKnow() {
@@ -242,7 +242,11 @@ export default {
       // this.danciList = this.danciList.filter((item) => {
       //   return item?.id != row.id;
       // });
-      this.danciList.splice(index, 1);
+
+      if (index != -1) {
+        this.danciList.splice(index, 1);
+        // this.danciList.splice(index, this.danciList.length - index);
+      }
     },
 
     deleteRow(row: Danci, index: number) {
@@ -454,67 +458,100 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="熟悉度/复杂性" width="350">
+        <el-table-column label="熟悉度/困难度" width="350">
           <template #default="scope">
-            <el-button
-              type="danger"
-              size="large"
-              @click="
-                putKnow(
-                  scope.row,
-                  (scope.row.know = scope.row.know - 1),
-                  scope.$index
-                )
-              "
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="点击之后熟悉度-1"
             >
-              -1
-            </el-button>
-            <el-button
-              type="primary"
-              size="large"
-              @click="
-                putKnow(
-                  scope.row,
-                  (scope.row.know = scope.row.know + 1),
-                  scope.$index
-                )
-              "
-            >
-              {{ scope.row.know }}
-            </el-button>
-            &nbsp;&nbsp;&nbsp;
-            <el-button
-              type=""
-              size="large"
-              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
-            >
-              {{ scope.row.difficulty }}
-            </el-button>
-            <el-button
-              type="danger"
-              size="large"
-              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
-            >
-              -1
-            </el-button>
+              <el-button
+                circle
+                type="info"
+                size="large"
+                @click="
+                  putKnow(
+                    scope.row,
+                    (scope.row.know = scope.row.know - 1),
+                    scope.$index
+                  )
+                "
+              >
+                -
+              </el-button>
+            </el-tooltip>
 
-            <el-button
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="显示的是熟悉度, 点击之后熟悉度+1"
+            >
+              <el-button
+                circle
+                type="info"
+                size="large"
+                @click="
+                  putKnow(
+                    scope.row,
+                    (scope.row.know = scope.row.know + 1),
+                    scope.$index
+                  )
+                "
+              >
+                {{ scope.row.know }}
+              </el-button>
+            </el-tooltip>
+
+            &nbsp;&nbsp;&nbsp;
+
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="点击之后困难度-1"
+            >
+              <el-button
+                type="danger"
+                circle
+                size="large"
+                @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+              >
+                -
+              </el-button>
+            </el-tooltip>
+
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="显示的是困难度,点击之后困难度+1"
+            >
+              <el-button
+                type="danger"
+                circle
+                size="large"
+                @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+              >
+                {{ scope.row.difficulty }}
+              </el-button>
+            </el-tooltip>
+
+            <!-- <el-button
               type="danger"
               v-if="scope.row.difficulty != -2"
               size="large"
               @click="putDifficulty(scope.row, -2, scope.$index)"
             >
               -2
-            </el-button>
+            </el-button> -->
           </template>
         </el-table-column>
 
         <el-table-column label="简单">
           <template #default="scope">
             <el-button
+              circle
               type="danger"
-              v-if="scope.row.difficulty != -1"
               size="large"
+              v-if="scope.row.difficulty != -1"
               @click="putDifficulty(scope.row, -1, scope.$index)"
             >
               -1

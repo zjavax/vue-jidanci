@@ -217,9 +217,6 @@ export default {
       axios.put(api, row).then(function (response) {
         console.log();
       });
-
-      // this.deleteTableRow(index);
-      this.danciList.splice(index, this.danciList.length - index);
     },
 
     sortByKnow() {

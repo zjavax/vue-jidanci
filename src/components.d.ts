@@ -48,6 +48,7 @@ declare module '@vue/runtime-core' {
     Nce2: typeof import('./components/Nce2.vue')['default']
     OneStoryADay: typeof import('./components/OneStoryADay.vue')['default']
     PlayAudio: typeof import('./components/PlayAudio.vue')['default']
+    PlayAudio2: typeof import('./components/PlayAudio2.vue')['default']
     README: typeof import('./components/node_modules/vue-router/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

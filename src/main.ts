@@ -3,6 +3,7 @@ import App from './App.vue'
 import Axios from 'axios'
 import AddText from './components/AddText.vue'
 import PlayAudio from './components/PlayAudio.vue'
+import PlayAudio2 from './components/PlayAudio2.vue'
 import Table from './components/Table.vue'
 import Danci3000 from './components/Danci3000.vue'
 import Nce2 from './components/Nce2.vue'
@@ -25,6 +26,7 @@ const router = createRouter({
     { path: '/table', component: Table },
     { path: '/addText', component: AddText },
     { path: '/playAudio', component: PlayAudio },
+    { path: '/playAudio2', component: PlayAudio2 },
     { path: '/danci3000', component: Danci3000 },
     { path: '/helloWorld', component: HelloWorld },
     { path: '/oneStoryADay', component: OneStoryADay },

@@ -464,7 +464,7 @@ export default {
         :data="danciList"
         :key="randomKey"
       >
-        <el-table-column prop="name" label="单词" width="140%">
+        <el-table-column prop="name" label="单词" width="200px">
           <template #header>
             <el-input
               v-model="searchWords"

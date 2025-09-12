@@ -67,6 +67,7 @@ export default {
       total: 0,
       currentPage: 1,
       pageSize: 100,
+      currentAudio: new Audio(),
       totalData: [],
     };
   },
@@ -83,6 +84,8 @@ export default {
     }
 
     this.getData(this.difficulty, "asc");
+
+    this.toggleColumn("全部隐藏");
   },
   methods: {
     // addALL() {
@@ -112,18 +115,21 @@ export default {
       }
       if (columnName == "熟悉度加减") {
         this.isKnowColumnVisible = !this.isKnowColumnVisible;
-        // this.refreshTable();  // 防止列变宽
         this.randomKey = Math.random(); // 防止列变宽
       }
       if (columnName == "困难度加减") {
         this.isDifficultyColumnVisible = !this.isDifficultyColumnVisible;
-        // this.refreshTable();  // 防止列变宽
         this.randomKey = Math.random(); // 防止列变宽
       }
       if (columnName == "困难度选择") {
         this.isDifficultySelectColumnVisible =
           !this.isDifficultySelectColumnVisible;
-        // this.refreshTable();  // 防止列变宽
+        this.randomKey = Math.random(); // 防止列变宽
+      }
+      if (columnName == "全部隐藏") {
+        this.isDifficultyColumnVisible = false;
+        this.isDifficultySelectColumnVisible = false;
+
         this.randomKey = Math.random(); // 防止列变宽
       }
     },
@@ -237,7 +243,18 @@ export default {
         console.log();
       });
 
+      this.playAudio(row.name);
+
       this.deleteTableRow(index);
+    },
+
+    playAudio(text: string) {
+      const audio = new Audio(
+        `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(
+          text
+        )}&type=2`
+      );
+      audio.play();
     },
 
     sortByKnow() {
@@ -441,6 +458,7 @@ export default {
           isDifficultySelectColumnVisible ? "困难度选择隐藏" : "困难度选择显示"
         }}
       </el-button>
+      <el-button @click="toggleColumn('全部隐藏')"> 全部隐藏 </el-button>
     </el-form-item>
 
     <el-form-item>
@@ -464,7 +482,7 @@ export default {
         :data="danciList"
         :key="randomKey"
       >
-        <el-table-column prop="name" label="单词" width="200px">
+        <el-table-column prop="name" label="单词" width="220px">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -474,9 +492,19 @@ export default {
             />
           </template>
           <template v-slot="scope">
-            <el-tooltip :content="scope.row.trans" placement="left">
-              <span>&nbsp;&nbsp; {{ scope.row.name }}</span>
+            <el-tooltip :content="scope.row.trans" placement="top-start">
+              <span @mouseenter="playAudio(scope.row.name)"
+                >&nbsp;&nbsp; {{ scope.row.name }}
+              </span>
             </el-tooltip>
+            <el-button
+              @click="playAudio(scope.row.name)"
+              circle
+              size="small"
+              type="info"
+              style="float: right"
+              >v</el-button
+            >
           </template>
         </el-table-column>
 
@@ -496,7 +524,7 @@ export default {
         <el-table-column label="熟悉度加减" v-if="isKnowColumnVisible">
           <template #default="scope">
             <el-button
-              circle
+              style="width: 80px; height: 70px"
               type="info"
               size="large"
               @click="
@@ -507,14 +535,16 @@ export default {
                 )
               "
             >
-              -
+              -----<br />
+              -----<br />
+              -----<br />
             </el-button>
 
             &nbsp;
             {{ scope.row.know }}
 
             <el-button
-              circle
+              style="width: 80px; height: 70px"
               type="info"
               size="large"
               @click="
@@ -525,7 +555,9 @@ export default {
                 )
               "
             >
-              +
+              +++++<br />
+              +++++<br />
+              +++++<br />
             </el-button>
           </template>
         </el-table-column>
@@ -533,24 +565,28 @@ export default {
         <el-table-column label="困难度加减" v-if="isDifficultyColumnVisible">
           <template #default="scope">
             <el-button
+              style="width: 80px; height: 70px"
               type="danger"
-              circle
               size="large"
               @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
             >
-              -
+              -----<br />
+              -----<br />
+              -----<br />
             </el-button>
 
             &nbsp;
             {{ scope.row.difficulty }}
 
             <el-button
+              style="width: 80px; height: 70px"
               type="danger"
-              circle
               size="large"
               @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
             >
-              +
+              +++++<br />
+              +++++<br />
+              +++++<br />
             </el-button>
           </template>
         </el-table-column>

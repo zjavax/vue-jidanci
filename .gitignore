@@ -13,3 +13,4 @@ pnpm-lock.yaml
 
 *.log
 connect_server.sh
+server_jidanci.sh

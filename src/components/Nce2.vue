@@ -69,6 +69,7 @@ export default {
       pageSize: 100,
       currentAudio: new Audio(),
       totalData: [],
+      currentRowIndex: -1,
     };
   },
   computed: {},
@@ -249,6 +250,11 @@ export default {
     },
 
     handleRowClick(row: any) {
+      this.currentRowIndex = this.danciList.findIndex(
+        (item) => item.name === row.name
+      );
+      this.$refs.tableRef.setCurrentRow(row);
+      // 行点击事件，调用 playAudio
       this.playAudio(row.name);
     },
 
@@ -258,7 +264,28 @@ export default {
           text
         )}&type=2`
       );
+
       audio.play();
+    },
+
+    handleKeydown(event: any) {
+      if (!this.$refs.tableRef) return;
+      const totalRows = this.danciList.length;
+      if (event.key === "ArrowDown") {
+        if (this.currentRowIndex < totalRows - 1) {
+          this.currentRowIndex += 1;
+          const nextRow = this.danciList[this.currentRowIndex];
+          this.$refs.tableRef.setCurrentRow(nextRow);
+          this.playAudio(nextRow.name);
+        }
+      } else if (event.key === "ArrowUp") {
+        if (this.currentRowIndex > 0) {
+          this.currentRowIndex -= 1;
+          const prevRow = this.danciList[this.currentRowIndex];
+          this.$refs.tableRef.setCurrentRow(prevRow);
+          this.playAudio(prevRow.name);
+        }
+      }
     },
 
     sortByKnow() {
@@ -485,7 +512,11 @@ export default {
         resizable
         :data="danciList"
         :key="randomKey"
-	@row-click="handleRowClick"
+        @row-click="handleRowClick"
+        ref="tableRef"
+        highlight-current-row
+        tabindex="0"
+        @keydown="handleKeydown"
       >
         <el-table-column prop="name" label="单词" width="200px">
           <template #header>

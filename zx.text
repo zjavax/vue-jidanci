@@ -2,6 +2,8 @@ java -jar D:\java_code\jidanci\zjavax-jidanci\target\zjavax-jidanci-0.0.1-SNAPSH
 
 连接远程服务器
 
+./server_jidanci.sh
+
 npm run dev
 
 npm run dev  --no-hmr

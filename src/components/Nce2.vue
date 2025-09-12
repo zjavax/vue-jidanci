@@ -248,6 +248,10 @@ export default {
       this.deleteTableRow(index);
     },
 
+    handleRowClick(row: any) {
+      this.playAudio(row.name);
+    },
+
     playAudio(text: string) {
       const audio = new Audio(
         `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(
@@ -481,8 +485,9 @@ export default {
         resizable
         :data="danciList"
         :key="randomKey"
+	@row-click="handleRowClick"
       >
-        <el-table-column prop="name" label="单词" width="220px">
+        <el-table-column prop="name" label="单词" width="200px">
           <template #header>
             <el-input
               v-model="searchWords"
@@ -497,14 +502,6 @@ export default {
                 >&nbsp;&nbsp; {{ scope.row.name }}
               </span>
             </el-tooltip>
-            <el-button
-              @click="playAudio(scope.row.name)"
-              circle
-              size="small"
-              type="info"
-              style="float: right"
-              >v</el-button
-            >
           </template>
         </el-table-column>
 

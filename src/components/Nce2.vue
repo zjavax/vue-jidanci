@@ -530,7 +530,7 @@ export default {
           </template>
         </el-table-column>
 
-        <el-table-column label="困难度加减" v-if="isDifficultyColumnVisible">
+        <el-table-column label="困难度加减1" v-if="isDifficultyColumnVisible">
           <template #default="scope">
             <el-button
               type="danger"

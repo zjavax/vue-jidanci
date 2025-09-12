@@ -495,96 +495,63 @@ export default {
 
         <el-table-column label="熟悉度加减" v-if="isKnowColumnVisible">
           <template #default="scope">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="点击之后熟悉度-1"
+            <el-button
+              circle
+              type="info"
+              size="large"
+              @click="
+                putKnow(
+                  scope.row,
+                  (scope.row.know = scope.row.know - 1),
+                  scope.$index
+                )
+              "
             >
-              <el-button
-                circle
-                type="info"
-                size="large"
-                @click="
-                  putKnow(
-                    scope.row,
-                    (scope.row.know = scope.row.know - 1),
-                    scope.$index
-                  )
-                "
-              >
-                -
-              </el-button>
-            </el-tooltip>
+              -
+            </el-button>
 
             &nbsp;
             {{ scope.row.know }}
 
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="显示的是熟悉度, 点击之后熟悉度+1"
-            >
-              <el-button
-                circle
-                type="info"
-                size="large"
-                @click="
-                  putKnow(
-                    scope.row,
-                    (scope.row.know = scope.row.know + 1),
-                    scope.$index
-                  )
-                "
-              >
-                +
-              </el-button>
-            </el-tooltip>
-
-            <!-- <el-button
-              type="danger"
-              v-if="scope.row.difficulty != -2"
+            <el-button
+              circle
+              type="info"
               size="large"
-              @click="putDifficulty(scope.row, -2, scope.$index)"
+              @click="
+                putKnow(
+                  scope.row,
+                  (scope.row.know = scope.row.know + 1),
+                  scope.$index
+                )
+              "
             >
-              -2
-            </el-button> -->
+              +
+            </el-button>
           </template>
         </el-table-column>
 
         <el-table-column label="困难度加减" v-if="isDifficultyColumnVisible">
           <template #default="scope">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="点击之后困难度-1"
+            <el-button
+              type="danger"
+              circle
+              size="large"
+              @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
             >
-              <el-button
-                type="danger"
-                circle
-                size="large"
-                @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
-              >
-                -
-              </el-button>
-            </el-tooltip>
+              -
+            </el-button>
 
             &nbsp;
             {{ scope.row.difficulty }}
 
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="显示的是困难度,点击之后困难度+1"
+            <el-button
+              type="danger"
+              circle
+              size="large"
+              @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
             >
-              <el-button
-                type="danger"
-                circle
-                size="large"
-                @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
-              >
-                +
-              </el-button>
-            </el-tooltip>
+              +
+            </el-button>
           </template>
         </el-table-column>
 

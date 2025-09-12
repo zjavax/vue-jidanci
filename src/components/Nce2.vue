@@ -3,6 +3,7 @@ import { ref } from "vue";
 import axios from "axios";
 
 import { reactive } from "vue";
+// @ts-ignore
 import { debounce } from "lodash";
 
 // import Dicts from "./../dicts/suffix_word.json";
@@ -253,7 +254,7 @@ export default {
       this.currentRowIndex = this.danciList.findIndex(
         (item) => item.name === row.name
       );
-      this.$refs.tableRef.setCurrentRow(row);
+      (this.$refs.tableRef as any).setCurrentRow(row);
       // 行点击事件，调用 playAudio
       this.playAudio(row.name);
     },
@@ -275,14 +276,14 @@ export default {
         if (this.currentRowIndex < totalRows - 1) {
           this.currentRowIndex += 1;
           const nextRow = this.danciList[this.currentRowIndex];
-          this.$refs.tableRef.setCurrentRow(nextRow);
+          (this.$refs.tableRef as any).setCurrentRow(nextRow);
           this.playAudio(nextRow.name);
         }
       } else if (event.key === "ArrowUp") {
         if (this.currentRowIndex > 0) {
           this.currentRowIndex -= 1;
           const prevRow = this.danciList[this.currentRowIndex];
-          this.$refs.tableRef.setCurrentRow(prevRow);
+          (this.$refs.tableRef as any).setCurrentRow(prevRow);
           this.playAudio(prevRow.name);
         }
       }

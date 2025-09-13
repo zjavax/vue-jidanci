@@ -287,7 +287,7 @@ export default {
       if (!this.$refs.tableRef) return;
       const totalRows = this.danciList.length;
       if (event.key === "ArrowDown") {
-        if (this.currentRowIndex < totalRows - 1) {
+        if (this.currentRowIndex < totalRows) {
           const nextRow = this.danciList[this.currentRowIndex];
           (this.$refs.tableRef as any).setCurrentRow(nextRow);
           this.playAudio(nextRow.name);

@@ -76,6 +76,7 @@ export default {
       audioPlay: true,
       totalData: [],
       currentRowIndex: -1,
+      isPaused: false, // 控制暂停/继续状态
     };
   },
   computed: {},
@@ -180,6 +181,7 @@ export default {
     },
 
     getData(difficulty: number, sort: String) {
+      this.pausePlaying();
       this.searchWords = "";
       this.difficulty = difficulty;
       localStorage.setItem("difficulty", String(difficulty));
@@ -295,14 +297,36 @@ export default {
       }
     },
 
+    startPlaying() {
+      this.isPaused = false;
+      this.currentRowIndex = 0;
+      this.scrollPlay(this.currentRowIndex);
+    },
+    // 暂停播放
+    pausePlaying() {
+      this.isPaused = true;
+    },
+    // 继续播放
+    resumePlaying() {
+      this.isPaused = false;
+      this.scrollPlay(this.currentRowIndex);
+    },
+
     scrollPlay(rowIndex: number) {
+      if (this.isPaused) {
+        this.currentRowIndex = rowIndex; // 保存当前索引以便继续播放
+        return;
+      }
+      if (rowIndex >= this.danciList.length) {
+        return; // 防止越界
+      }
       const row = this.danciList[rowIndex];
       this.playAudio(row.name)
         .then(() => {
           return new Promise((resolve) => setTimeout(resolve, 1500));
         })
         .then(() => {
-          this.playAudio(row.name);
+          return this.playAudio(row.name);
         })
         .then(() => {
           return new Promise((resolve) => setTimeout(resolve, 1500));
@@ -310,11 +334,12 @@ export default {
         .then(() => {
           this.$nextTick(() => {
             if (rowIndex < this.danciList.length) {
-              if (this.danciList.length == 1) {
+              if (this.danciList.length === 1) {
                 this.getData(this.difficulty, "asc");
               } else {
                 this.deleteTableRow(rowIndex);
-                this.scrollPlay(0);
+                this.currentRowIndex = 0; // 重置为 0
+                this.scrollPlay(this.currentRowIndex);
               }
             }
           });
@@ -537,13 +562,18 @@ export default {
       <el-form-item>
         <el-button @click="getData(difficulty, 'asc')">刷新</el-button>
         <el-button
-          class="scroll-to-play"
           @click="
             scrollToTableTop();
-            scrollPlay(0);
+            startPlaying();
           "
-          >播放
-        </el-button>
+          >开始播放</el-button
+        >
+        <el-button @click="pausePlaying" :disabled="isPaused"
+          >暂停播放</el-button
+        >
+        <el-button @click="resumePlaying" :disabled="!isPaused"
+          >继续播放</el-button
+        >
         <el-pagination
           style="margin-left: 20px"
           background

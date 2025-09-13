@@ -310,8 +310,12 @@ export default {
         .then(() => {
           this.$nextTick(() => {
             if (rowIndex < this.danciList.length) {
-              this.deleteTableRow(rowIndex);
-              this.scrollPlay(0);
+              if (this.danciList.length == 1) {
+                this.getData(this.difficulty, "asc");
+              } else {
+                this.deleteTableRow(rowIndex);
+                this.scrollPlay(0);
+              }
             }
           });
         });
@@ -464,14 +468,6 @@ export default {
     @click="scrollToTableTop()"
     >表格
   </el-backtop>
-  <el-button
-    class="scroll-to-play"
-    @click="scrollPlay(0)"
-    circle
-    type="primary"
-    size="large"
-    >播放
-  </el-button>
 
   <!-- 回到底部按钮 -->
   <el-backtop
@@ -487,6 +483,7 @@ export default {
       <el-button @click="getData(-1, sort)">幼稚-1</el-button>
       <el-button type="danger" @click="getData(-2, sort)">-2</el-button>
     </el-form-item>
+
     <el-form-item>
       <el-button @click="getData(0, sort)">简单0</el-button>
       <el-button type="warning" @click="getData(1, sort)">1</el-button>
@@ -508,7 +505,6 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-button @click="getData(difficulty, 'asc')">刷新</el-button>
       <el-button @click="getData(difficulty, 'asc')">单词字典序</el-button>
       <el-button @click="getData(difficulty, '1')">COCA单词频率倒序</el-button>
       <el-button @click="sortByKnow()">熟悉度排序</el-button>
@@ -537,21 +533,31 @@ export default {
       <el-button @click="toggleColumn('全部隐藏')"> 全部隐藏 </el-button>
     </el-form-item>
 
-    <el-form-item>
-      <el-pagination
-        background
-        @current-change="handleCurrentChange"
-        :current-page="currentPage"
-        :page-size="100"
-        :page-sizes="[50, 100, 200]"
-        :pager-count="11"
-        layout="prev, pager, next"
-        :total="total"
-      />
-    </el-form-item>
+    <div ref="tableWrapperRef">
+      <el-form-item>
+        <el-button @click="getData(difficulty, 'asc')">刷新</el-button>
+        <el-button
+          class="scroll-to-play"
+          @click="
+            scrollToTableTop();
+            scrollPlay(0);
+          "
+          >播放
+        </el-button>
+        <el-pagination
+          style="margin-left: 20px"
+          background
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-size="100"
+          :page-sizes="[50, 100, 200]"
+          :pager-count="11"
+          layout="prev, pager, next"
+          :total="total"
+        />
+      </el-form-item>
 
-    <el-form-item>
-      <div ref="tableWrapperRef">
+      <el-form-item>
         <el-table
           class="table1"
           border
@@ -779,10 +785,10 @@ export default {
           </template>
         </el-table-column> -->
         </el-table>
-      </div>
-    </el-form-item>
+      </el-form-item>
+    </div>
 
-    <el-form-item label="批量输入单词和中文">
+    <el-form-item label="批量输入单词和中文" style="margin-top: 1000px">
       <el-input
         v-model="form1.alldancigroup"
         type="textarea"
@@ -944,10 +950,5 @@ interface Danci {
 .scroll-to-table {
   position: fixed;
   top: 300px;
-}
-.scroll-to-play {
-  position: fixed;
-  top: 360px;
-  left: 50px;
 }
 </style>

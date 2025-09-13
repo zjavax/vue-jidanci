@@ -14,7 +14,11 @@ import { debounce } from "lodash";
 // import Dicts from "./../dicts/NCE_1.json";
 // import Dicts from "../dicts/NCE_2.json";
 
-import type { TableColumnCtx, TableInstance } from "element-plus";
+import {
+  selectProps,
+  type TableColumnCtx,
+  type TableInstance,
+} from "element-plus";
 
 // ================
 
@@ -69,6 +73,7 @@ export default {
       currentPage: 1,
       pageSize: 100,
       currentAudio: new Audio(),
+      audioPlay: true,
       totalData: [],
       currentRowIndex: -1,
     };
@@ -236,6 +241,7 @@ export default {
       axios.put(api, row).then(function (response) {});
 
       this.deleteTableRow(index);
+      this.audioPlay = false;
     },
 
     putKnow(row: Danci, know: number, index: number) {
@@ -245,28 +251,34 @@ export default {
         console.log();
       });
 
-      this.playAudio(row.name);
+      // this.playAudio(row.name);
 
       this.deleteTableRow(index);
+      this.audioPlay = false;
     },
 
     handleRowClick(row: any) {
-      this.currentRowIndex = this.danciList.findIndex(
-        (item) => item.name === row.name
-      );
-      (this.$refs.tableRef as any).setCurrentRow(row);
-      // 行点击事件，调用 playAudio
-      this.playAudio(row.name);
+      if (this.audioPlay) {
+        this.currentRowIndex = this.danciList.findIndex(
+          (item) => item.name === row.name
+        );
+        (this.$refs.tableRef as any).setCurrentRow(row);
+        // 行点击事件，调用 playAudio
+        this.playAudio(row.name);
+      }
+      this.audioPlay = true;
     },
 
     playAudio(text: string) {
+      this.currentAudio.pause(); // 暂停当前音频
+
       const audio = new Audio(
         `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(
           text
         )}&type=2`
       );
-
       audio.play();
+      this.currentAudio = audio; // 更新当前音频
     },
 
     handleKeydown(event: any) {

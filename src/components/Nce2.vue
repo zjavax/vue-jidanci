@@ -284,16 +284,25 @@ export default {
     },
 
     handleKeydown(event: any) {
-      event.preventDefault(); // 禁用 browser scroll
-      this.deleteTableRow(this.currentRowIndex);
       if (!this.$refs.tableRef) return;
       const totalRows = this.danciList.length;
       if (event.key === "ArrowDown") {
+        event.preventDefault(); // 禁用 browser scroll
+        this.deleteTableRow(this.currentRowIndex);
         if (this.currentRowIndex < totalRows) {
           const nextRow = this.danciList[this.currentRowIndex];
           (this.$refs.tableRef as any).setCurrentRow(nextRow);
           this.playAudio(nextRow.name);
         }
+      } else if (event.key === "ArrowRight") {
+        const row = this.danciList[this.currentRowIndex];
+        this.playAudio(row.name)
+          .then(() => {
+            return new Promise((resolve) => setTimeout(resolve, 1500));
+          })
+          .then(() => {
+            return this.playAudio(row.name);
+          });
       }
     },
 

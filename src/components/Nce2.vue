@@ -282,21 +282,15 @@ export default {
     },
 
     handleKeydown(event: any) {
+      event.preventDefault(); // 禁用 browser scroll
+      this.deleteTableRow(this.currentRowIndex);
       if (!this.$refs.tableRef) return;
       const totalRows = this.danciList.length;
       if (event.key === "ArrowDown") {
         if (this.currentRowIndex < totalRows - 1) {
-          this.currentRowIndex += 1;
           const nextRow = this.danciList[this.currentRowIndex];
           (this.$refs.tableRef as any).setCurrentRow(nextRow);
           this.playAudio(nextRow.name);
-        }
-      } else if (event.key === "ArrowUp") {
-        if (this.currentRowIndex > 0) {
-          this.currentRowIndex -= 1;
-          const prevRow = this.danciList[this.currentRowIndex];
-          (this.$refs.tableRef as any).setCurrentRow(prevRow);
-          this.playAudio(prevRow.name);
         }
       }
     },

@@ -242,7 +242,7 @@ export default {
       //2.使用axios 进行get请求
       axios.put(api, row).then(function (response) {});
 
-      this.deleteTableRow(index);
+      // this.deleteTableRow(index);
       this.audioPlay = false;
     },
 
@@ -255,7 +255,7 @@ export default {
 
       // this.playAudio(row.name);
 
-      this.deleteTableRow(index);
+      // this.deleteTableRow(index);
       this.audioPlay = false;
     },
 
@@ -284,16 +284,15 @@ export default {
     },
 
     handleKeydown(event: any) {
-      if (!this.$refs.tableRef) return;
-      const totalRows = this.danciList.length;
+      if (this.danciList.length === 0) return;
+
       if (event.key === "ArrowDown") {
         event.preventDefault(); // 禁用 browser scroll
         this.deleteTableRow(this.currentRowIndex);
-        if (this.currentRowIndex < totalRows) {
-          const nextRow = this.danciList[this.currentRowIndex];
-          (this.$refs.tableRef as any).setCurrentRow(nextRow);
-          this.playAudio(nextRow.name);
-        }
+        this.currentRowIndex = 0;
+        const nextRow = this.danciList[0];
+        (this.$refs.tableRef as any).setCurrentRow(nextRow);
+        this.playAudio(nextRow.name);
       } else if (event.key === "ArrowRight") {
         const row = this.danciList[this.currentRowIndex];
         this.playAudio(row.name)
@@ -381,6 +380,7 @@ export default {
 
       if (index != -1) {
         this.danciList.splice(index, 1);
+        this.danciList.splice(0, index);
         // this.danciList.splice(index, this.danciList.length - index);
       }
     },
@@ -687,7 +687,13 @@ export default {
                 style="width: 80px; height: 70px"
                 type="danger"
                 size="large"
-                @click="putDifficulty(scope.row, difficulty - 1, scope.$index)"
+                @click="
+                  putDifficulty(
+                    scope.row,
+                    scope.row.difficulty - 1,
+                    scope.$index
+                  )
+                "
               >
                 -----<br />
                 -----<br />
@@ -701,7 +707,13 @@ export default {
                 style="width: 80px; height: 70px"
                 type="danger"
                 size="large"
-                @click="putDifficulty(scope.row, difficulty + 1, scope.$index)"
+                @click="
+                  putDifficulty(
+                    scope.row,
+                    scope.row.difficulty + 1,
+                    scope.$index
+                  )
+                "
               >
                 +++++<br />
                 +++++<br />

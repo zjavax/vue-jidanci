@@ -49,6 +49,15 @@ export default {
           difficulty: 0,
         },
       ]),
+      tempdanciList: ref([
+        {
+          id: 1,
+          name: "============================",
+          trans: "单词",
+          know: 1,
+          difficulty: 0,
+        },
+      ]),
       tableData: ref([
         {
           id: 1,
@@ -77,6 +86,7 @@ export default {
       totalData: [],
       currentRowIndex: -1,
       isPaused: false, // 控制暂停/继续状态
+      danciVisible: false,
     };
   },
   computed: {},
@@ -182,6 +192,9 @@ export default {
 
     getData(difficulty: number, sort: String) {
       this.pausePlaying();
+      this.danciVisible = false;
+      this.isColumnVisible = true;
+
       this.searchWords = "";
       this.difficulty = difficulty;
       localStorage.setItem("difficulty", String(difficulty));
@@ -308,7 +321,11 @@ export default {
     startPlaying() {
       this.isPaused = false;
       this.currentRowIndex = 0;
+      this.tempdanciList = [...this.danciList];
       this.scrollPlay(this.currentRowIndex);
+
+      this.danciVisible = true;
+      this.isColumnVisible = false;
     },
     // 暂停播放
     pausePlaying() {
@@ -325,10 +342,14 @@ export default {
         this.currentRowIndex = rowIndex; // 保存当前索引以便继续播放
         return;
       }
-      if (rowIndex >= this.danciList.length) {
+      if (rowIndex >= this.tempdanciList.length) {
         return; // 防止越界
       }
-      const row = this.danciList[rowIndex];
+
+      const row = this.tempdanciList[rowIndex];
+      this.danciList.length = 0;
+      this.danciList[0] = row;
+
       this.playAudio(row.name)
         .then(() => {
           return new Promise((resolve) => setTimeout(resolve, 1500));
@@ -341,11 +362,12 @@ export default {
         })
         .then(() => {
           this.$nextTick(() => {
-            if (rowIndex < this.danciList.length) {
-              if (this.danciList.length === 1) {
+            if (rowIndex < this.tempdanciList.length) {
+              if (this.tempdanciList.length === 1) {
                 this.getData(this.difficulty, "asc");
               } else {
                 this.deleteTableRow(rowIndex);
+                this.tempdanciList.splice(0, 1);
                 this.currentRowIndex = 0; // 重置为 0
                 this.scrollPlay(this.currentRowIndex);
               }
@@ -619,7 +641,11 @@ export default {
               />
             </template>
             <template v-slot="scope">
-              <el-tooltip :content="scope.row.trans" placement="top-start">
+              <el-tooltip
+                :content="scope.row.trans"
+                placement="top-start"
+                :visible="danciVisible"
+              >
                 <span @mouseenter="playAudio(scope.row.name)"
                   >&nbsp;&nbsp; {{ scope.row.name }}
                 </span>

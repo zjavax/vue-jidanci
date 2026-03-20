@@ -24,8 +24,8 @@ import {
 
 // var baseUrl = "http://117.50.196.55:8080/";
 // var api = "http://117.50.196.55:8080/danci/";
-const baseUrl = "http://" + import.meta.env.VITE_SERVER_IP + ":8080/";
-// const baseUrl = "/api/";
+// const baseUrl = "http://" + import.meta.env.VITE_SERVER_IP + ":8080/";
+const baseUrl = "/api/";
 var api = baseUrl + "danci/";
 
 // do not use same name with ref

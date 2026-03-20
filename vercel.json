@@ -2,10 +2,10 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://jsonplaceholder.typicode.com/:path*"
+      "destination": "http://117.50.196.55:8080/:path*"
     },
     {
-      "source": "/test-rewrite",
+      "source": "/test-rewrite2",
       "destination": "https://jsonplaceholder.typicode.com/todos/1"
     }
   ]

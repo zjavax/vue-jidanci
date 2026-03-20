@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://jsonplaceholder.typicode.com/:path*"
+    },
+    {
+      "source": "/test-rewrite",
+      "destination": "https://jsonplaceholder.typicode.com/todos/1"
+    }
+  ]
+}

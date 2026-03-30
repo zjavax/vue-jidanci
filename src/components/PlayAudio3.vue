@@ -10,10 +10,6 @@
 
 <template>
   <el-form :model="form" label-width="auto" style="max-width: 1500px">
-    <el-form-item label="分割文章(\d是匹配数字)">
-      <el-input v-model="form.splitArticle" />
-    </el-form-item>
-
     <el-form-item label="分割字符(英文: ?!. )">
       <el-input v-model="form.zifu" />
     </el-form-item>
@@ -46,7 +42,6 @@ const form = reactive({
   paragraphs: [] as string[], // 存放分割后的段落数组
 });
 
-form.splitArticle = String(localStorage.getItem("splitArticle"));
 form.zifu = String(localStorage.getItem("zifu"));
 form.article = String(localStorage.getItem("article"));
 
@@ -63,30 +58,14 @@ const cancel = () => {
   }
 };
 
-window.onload = function () {
-  onSubmit();
-};
-
 const onSubmit = () => {
   cancel();
-  localStorage.setItem("splitArticle", form.splitArticle);
   localStorage.setItem("zifu", form.zifu);
   localStorage.setItem("article", form.article);
 
-  // 使用正则表达式查找第一个数字的索引位置
-  const regex2 = new RegExp(form.splitArticle);
-  const match = form.article.match(regex2);
-
   // 如果找到了数字，则进行分割
   let result: any;
-  if (match) {
-    const index = match.index;
-    // 分割字符串，并获取分割后的前半部分
-    result = form.article.slice(0, index);
-    console.log(result);
-  } else {
-    console.log("未找到数字");
-  }
+  result = form.article;
 
   // 使用正则表达式根据用户输入的分割字符对文章进行分割
   const regex = new RegExp("[" + form.zifu + "]", "g");
@@ -109,70 +88,6 @@ const onSubmit = () => {
   });
 };
 
-let currentAudio: any;
-
-// 有道长难句报错，以前是可以的，废弃
-function playAudio2(text: string) {
-  if (currentAudio) {
-    currentAudio.pause(); // 暂停当前音频
-  }
-
-  const audio = new Audio(
-    `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=2`
-  );
-  audio.play();
-  currentAudio = audio; // 更新当前音频
-}
-
-let currentUtterance: SpeechSynthesisUtterance | null = null;
-
-function playAudio(text: string) {
-  // 如果有正在播放的，先取消
-  if (currentUtterance) {
-    window.speechSynthesis.cancel();
-  }
-
-  if (!text || !text.trim()) return;
-
-  const utterance = new SpeechSynthesisUtterance(text.trim());
-
-  // ==================== 推荐设置（Edge 下效果最好） ====================
-  utterance.lang = "en-US"; // 英文美式（可改成 'en-GB' 等）
-  utterance.rate = 0.7; // 语速：0.5 ~ 2.0（1.0 为正常）
-  utterance.pitch = 1.0; // 音调：0.5 ~ 2.0
-  utterance.volume = 1.0; // 音量：0 ~ 1
-
-  // 优先选择高质量的 Microsoft Neural 声音（Edge 中常见）
-  const voices = window.speechSynthesis.getVoices();
-  const preferredVoice = voices.find(
-    (voice) =>
-      voice.name.includes("Guy") ||
-      voice.name.includes("Jenny") ||
-      voice.name.includes("Aria") ||
-      voice.name.includes("Emma") ||
-      (voice.lang === "en-US" && voice.name.toLowerCase().includes("microsoft"))
-  );
-
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
-  }
-
-  // 播放
-  window.speechSynthesis.speak(utterance);
-  currentUtterance = utterance;
-
-  // 可选：监听结束事件
-  utterance.onend = () => {
-    currentUtterance = null;
-    console.log("播放结束");
-  };
-
-  utterance.onerror = (event) => {
-    console.error("TTS 播放出错:", event);
-    currentUtterance = null;
-  };
-}
-
 function createButton(text: string) {
   const button = document.createElement("button");
   button.textContent = "播放";
@@ -183,4 +98,97 @@ function createButton(text: string) {
   });
   return button;
 }
+
+let currentUtterance: SpeechSynthesisUtterance | null = null;
+
+// 全局加载一次声音列表（建议在页面初始化时调用）
+function initSpeechSynthesis() {
+  if (window.speechSynthesis.onvoiceschanged === null) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      console.log(
+        "Edge/浏览器声音列表加载完成，共",
+        window.speechSynthesis.getVoices().length,
+        "个声音"
+      );
+    };
+  }
+}
+
+function playAudio(text: string) {
+  if (currentUtterance) {
+    window.speechSynthesis.cancel();
+  }
+
+  if (!text || !text.trim()) return;
+
+  const utterance = new SpeechSynthesisUtterance(text.trim());
+
+  utterance.lang = "en-US";
+  utterance.rate = 0.75; // 你设的慢速，适合学习
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+
+  // 关键修复：延迟获取 voices + 使用 onvoiceschanged 确保加载
+  const getPreferredVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    return voices.find(
+      (voice) =>
+        voice.name.includes("Guy") ||
+        voice.name.includes("Jenny") ||
+        voice.name.includes("Aria") ||
+        voice.name.includes("Emma") ||
+        (voice.lang === "en-US" &&
+          voice.name.toLowerCase().includes("microsoft"))
+    );
+  };
+
+  // 先尝试立即获取（有时候已经加载好）
+  let preferredVoice = getPreferredVoice();
+
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+  } else {
+    // 如果还没加载，监听一次 voiceschanged
+    const voiceChangeHandler = () => {
+      preferredVoice = getPreferredVoice();
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      window.speechSynthesis.onvoiceschanged = null; // 只监听一次
+    };
+    window.speechSynthesis.onvoiceschanged = voiceChangeHandler;
+  }
+
+  // 播放
+  window.speechSynthesis.speak(utterance);
+  currentUtterance = utterance;
+
+  utterance.onend = () => {
+    currentUtterance = null;
+    console.log("播放结束");
+  };
+
+  utterance.onerror = (event) => {
+    console.error("TTS 播放出错（Edge 常见）:", event);
+    currentUtterance = null;
+
+    // 出错时尝试不指定 voice 再播一次（兼容方案）
+    if (event.error === "voice-unavailable" || event.error === "network") {
+      console.log("尝试不指定声音重新播放...");
+      const fallbackUtterance = new SpeechSynthesisUtterance(text.trim());
+      fallbackUtterance.lang = "en-US";
+      fallbackUtterance.rate = 0.7;
+      window.speechSynthesis.speak(fallbackUtterance);
+    }
+  };
+}
+
+// ==================== 初始化 ====================
+// 在你的组件加载时（useEffect / window.onload 等）调用一次
+initSpeechSynthesis();
+
+// 页面脚本最后加上这句
+setTimeout(() => {
+  onSubmit();
+}, 100);
 </script>

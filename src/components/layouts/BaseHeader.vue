@@ -13,6 +13,7 @@ import { toggleDark } from "~/composables";
       <el-menu-item index="/adaArticle">adaArticle</el-menu-item>
       <el-menu-item index="/addText">addText</el-menu-item>
       <el-menu-item index="/playAudio">playAudio</el-menu-item>
+      <el-menu-item index="/playAudio3">playAudio3</el-menu-item>
       <el-menu-item index="/tableTest">tableTest</el-menu-item>
       <el-menu-item index="/helloWorld">helloWorld</el-menu-item>
 

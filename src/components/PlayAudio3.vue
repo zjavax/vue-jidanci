@@ -74,6 +74,9 @@ const onSubmit = () => {
 
   const linesContainer = document.getElementById("lines-container");
   form.paragraphs.forEach((lineText, index) => {
+    if (lineText === "" || lineText === "\n\n") {
+      return;
+    }
     const lineDiv = document.createElement("div");
     const lineTextElement = document.createElement("p");
     lineText = lineText.replace(/\n/g, " ");

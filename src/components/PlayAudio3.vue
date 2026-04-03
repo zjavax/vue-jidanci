@@ -63,14 +63,25 @@ const onSubmit = () => {
   localStorage.setItem("zifu", form.zifu);
   localStorage.setItem("article", form.article);
 
-  // 如果找到了数字，则进行分割
-  let result: any;
-  result = form.article;
+  const text = (form.article || "").trim();
 
-  // 使用正则表达式根据用户输入的分割字符对文章进行分割
-  const regex = new RegExp("[" + form.zifu + "]", "g");
-  form.paragraphs = result.split(regex); // split
-  form.paragraphs.pop();
+  // form.zifu = "?!,.,A:,B:,C:,D:"
+
+  const rawDelimiters = form.zifu
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  const escaped = rawDelimiters
+    .map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .sort((a, b) => b.length - a.length); // 重要：长的放前面
+
+  const regex = new RegExp(escaped.join("|"), "g");
+
+  form.paragraphs = text
+    .split(regex)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
 
   const linesContainer = document.getElementById("lines-container");
   form.paragraphs.forEach((lineText, index) => {

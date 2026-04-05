@@ -45,6 +45,8 @@ const form = reactive({
 form.zifu = String(localStorage.getItem("zifu"));
 form.article = String(localStorage.getItem("article"));
 
+let noPlayButton = true;
+
 const cancelArticle = () => {
   form.article = "";
 };
@@ -60,6 +62,7 @@ const cancel = () => {
 
 const onSubmit = () => {
   cancel();
+  noPlayButton = !noPlayButton;
   localStorage.setItem("zifu", form.zifu);
   localStorage.setItem("article", form.article);
 
@@ -95,9 +98,14 @@ const onSubmit = () => {
     lineText = lineText.replace(/“/g, " ");
     lineText = lineText.replace(/’/g, "'");
     lineTextElement.innerText = lineText;
-    const playButton = createButton(lineText);
+
     lineDiv.appendChild(lineTextElement);
-    lineDiv.appendChild(playButton);
+
+    if (noPlayButton) {
+      const playButton = createButton(lineText);
+      lineDiv.appendChild(playButton);
+    }
+
     linesContainer?.appendChild(lineDiv);
   });
 };

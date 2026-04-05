@@ -19,7 +19,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     // { path: '/', component: Table },
-    { path: '/', component: Nce2 },
+    { path: '/', component: PlayAudio3 },
     { path: '/', component: Basic },
     { path: '/nce2', component: Nce2 },
     { path: '/adaArticle', component: AdaArticle },

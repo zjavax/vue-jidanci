@@ -18,6 +18,9 @@ import { toggleDark } from "~/composables";
       <el-menu-item index="/helloWorld">helloWorld</el-menu-item>
 
       <el-menu-item index="/oneStoryADay">oneStoryADay</el-menu-item>
+
+      <el-menu-item index="/EventList">polymarket</el-menu-item>
+      <el-menu-item index="/UserPositions">我的仓位</el-menu-item>
       <!-- <el-sub-menu index="2-4">
         <template #title>item four</template>
         <el-menu-item index="2-4-1">item one</el-menu-item>

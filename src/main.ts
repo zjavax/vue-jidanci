@@ -13,13 +13,16 @@ import OneStoryADay from './components/OneStoryADay.vue'
 import Basic from './components/Basic.vue'
 import TableTest from './components/TableTest.vue'
 import HelloWorld from './components/HelloWorld.vue'
+
+import EventList from './components/polymarket/EventList.vue'
+import UserPositions from './components/polymarket/UserPositions.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     // { path: '/', component: Table },
-    { path: '/', component: PlayAudio3 },
+    { path: '/', component: UserPositions },
     { path: '/', component: Basic },
     { path: '/nce2', component: Nce2 },
     { path: '/adaArticle', component: AdaArticle },
@@ -32,6 +35,8 @@ const router = createRouter({
     { path: '/danci3000', component: Danci3000 },
     { path: '/helloWorld', component: HelloWorld },
     { path: '/oneStoryADay', component: OneStoryADay },
+    { path: '/EventList', component: EventList },
+    { path: '/UserPositions', component: UserPositions },
   ],
 })
 

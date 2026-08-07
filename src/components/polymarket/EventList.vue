@@ -1,60 +1,99 @@
 <template>
   <div class="event-list">
-    <div v-for="event in events" :key="event.slug" class="event-item">
-      <span class="event-title">
-        <a
-          :href="`https://polymarket.com/zh/event/${event.slug}`"
-          target="_blank"
-          class="title-link"
+    <!-- 活跃事件 -->
+    <div v-for="event in events" :key="event.slug" class="event-card">
+      <a
+        :href="`https://polymarket.com/zh/event/${event.slug}`"
+        target="_blank"
+        class="event-title"
+      >
+        {{ event.title }}
+      </a>
+      <div class="action-group">
+        <el-button
+          type="info"
+          plain
+          size="small"
+          @click="hideEvent(event, '隐藏')"
         >
-          {{ event.title }}
-        </a>
-      </span>
-      <el-button @click="hideEvent(event, '隐藏')" class="hide-button">
-        隐藏
-      </el-button>
-
-      <el-button @click="hideEvent(event, '收藏')" class="hide-button">
-        收藏
-      </el-button>
+          隐藏
+        </el-button>
+        <el-button
+          type="warning"
+          plain
+          size="small"
+          @click="hideEvent(event, '收藏')"
+        >
+          收藏
+        </el-button>
+      </div>
     </div>
 
-    <!-- 显示隐藏数据的区域 -->
-    <div v-if="hiddenEvents.length > 0">
-      <h3>已隐藏的事件</h3>
-      <div v-for="event in hiddenEvents" :key="event.slug" class="event-item">
-        <div v-if="event.updateStatus === '隐藏'">
-          <span class="event.updateS">
-            <a
-              :href="`https://polymarket.com/zh/event/${event.slug}`"
-              target="_blank"
-              class="title-link"
-            >
-              {{ event.title }}
-            </a></span
-          >
-          <el-button @click="restoreEvent(event.slug)" class="restore-button">
-            恢复
-          </el-button>
+    <!-- 管理区域 -->
+    <div v-if="hiddenEvents.length > 0" class="managed-section">
+      <el-divider content-position="left">已管理事件</el-divider>
+
+      <!-- 已隐藏 -->
+      <div class="sub-group">
+        <div class="group-header">
+          <el-tag type="info" effect="dark" size="small">已隐藏</el-tag>
         </div>
+
+        <!-- 使用 template 包裹 v-for，解决优先级问题 -->
+        <template v-for="event in hiddenEvents" :key="event.slug">
+          <div v-if="event.updateStatus === '隐藏'" class="event-card managed">
+            <div class="card-inner">
+              <a
+                :href="`https://polymarket.com/zh/event/${event.slug}`"
+                target="_blank"
+                class="event-title muted"
+              >
+                {{ event.title }}
+              </a>
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click="restoreEvent(event.slug)"
+              >
+                恢复
+              </el-button>
+            </div>
+          </div>
+        </template>
       </div>
 
-      <h3>已收藏的事件</h3>
-      <div v-for="event in hiddenEvents" :key="event.slug" class="event-item">
-        <div v-if="event.updateStatus === '收藏'">
-          <span class="event.updateS">
-            <a
-              :href="`https://polymarket.com/zh/event/${event.slug}`"
-              target="_blank"
-              class="title-link"
-            >
-              {{ event.title }}
-            </a></span
-          >
-          <el-button @click="restoreEvent(event.slug)" class="restore-button">
-            恢复
-          </el-button>
+      <!-- 已收藏 -->
+      <div class="sub-group">
+        <div class="group-header">
+          <el-tag type="warning" effect="dark" size="small">已收藏</el-tag>
         </div>
+
+        <!-- 使用 template 包裹 v-for，解决优先级问题 -->
+        <template v-for="event in hiddenEvents" :key="event.slug">
+          <div
+            v-if="event.updateStatus === '收藏'"
+            class="event-card managed favorite"
+          >
+            <div class="card-inner">
+              <a
+                :href="`https://polymarket.com/zh/event/${event.slug}`"
+                target="_blank"
+                class="event-title"
+              >
+                {{ event.title }}
+              </a>
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click="restoreEvent(event.slug)"
+              >
+                恢复
+              </el-button>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -77,7 +116,7 @@ const loadHiddenEvents = () => {
   const hidden: MarketEvent[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key) {
+    if (key && key !== "vueuse-color-scheme") {
       try {
         const event = getLocalStorage(key);
         if (event) {
@@ -130,6 +169,7 @@ const hideEvent = (event: MarketEvent, status: string) => {
   // 保存到 localStorage
   event.updateStatus = status;
   saveLocalStorage(event.slug, event);
+  loadHiddenEvents();
 };
 
 // 存储字符串数组
@@ -180,4 +220,84 @@ loadHiddenEvents();
 </script>
 
 <style scoped>
+.event-list {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 卡片样式 */
+.event-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.event-card:hover {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 标题链接 */
+.event-title {
+  flex: 1;
+  text-decoration: none;
+  color: #303133;
+  font-weight: 500;
+  margin-right: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-title:hover {
+  color: #409eff;
+}
+
+.event-title.muted {
+  color: #909399;
+}
+
+/* 按钮组 */
+.action-group {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 管理区域样式 */
+.managed-section {
+  margin-top: 30px;
+}
+
+.sub-group {
+  margin-bottom: 20px;
+}
+
+.group-header {
+  margin-bottom: 10px;
+}
+
+/* 已管理卡片特殊样式 */
+.event-card.managed {
+  background-color: #f5f7fa;
+  border-style: dashed;
+}
+
+.event-card.favorite {
+  border-left: 3px solid #e6a23c;
+}
+
+.card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
 </style>

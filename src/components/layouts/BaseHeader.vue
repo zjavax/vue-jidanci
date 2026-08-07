@@ -38,5 +38,10 @@ import { toggleDark } from "~/composables";
         <i inline-flex i="dark:ep-moon ep-sunny" />
       </button>
     </el-menu-item>
+    <el-menu-item
+      ><a :href="`https://github.com/zjavax/vue-jidanci`" target="_blank">
+        github
+      </a></el-menu-item
+    >
   </el-menu>
 </template>

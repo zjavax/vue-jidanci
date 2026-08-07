@@ -16,10 +16,10 @@ import HelloWorld from './components/HelloWorld.vue'
 
 import EventList from './components/polymarket/EventList.vue'
 import UserPositions from './components/polymarket/UserPositions.vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     // { path: '/', component: Table },
     { path: '/', component: UserPositions },

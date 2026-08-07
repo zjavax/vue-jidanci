@@ -1,7 +1,8 @@
-interface MarketEvent {
+export interface MarketEvent {
   id: string
   slug: string
   title: string
+  updateStatus: string
 }
 
 interface ApiResponse {

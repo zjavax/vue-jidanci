@@ -10,25 +10,51 @@
           {{ event.title }}
         </a>
       </span>
-      <button @click="hideEvent(event)" class="hide-button">隐藏</button>
+      <el-button @click="hideEvent(event, '隐藏')" class="hide-button">
+        隐藏
+      </el-button>
+
+      <el-button @click="hideEvent(event, '收藏')" class="hide-button">
+        收藏
+      </el-button>
     </div>
 
     <!-- 显示隐藏数据的区域 -->
     <div v-if="hiddenEvents.length > 0">
       <h3>已隐藏的事件</h3>
       <div v-for="event in hiddenEvents" :key="event.slug" class="event-item">
-        <span class="event-title">
-          <a
-            :href="`https://polymarket.com/zh/event/${event.slug}`"
-            target="_blank"
-            class="title-link"
+        <div v-if="event.updateStatus === '隐藏'">
+          <span class="event.updateS">
+            <a
+              :href="`https://polymarket.com/zh/event/${event.slug}`"
+              target="_blank"
+              class="title-link"
+            >
+              {{ event.title }}
+            </a></span
           >
-            {{ event.title }}
-          </a></span
-        >
-        <button @click="restoreEvent(event.slug)" class="restore-button">
-          恢复
-        </button>
+          <el-button @click="restoreEvent(event.slug)" class="restore-button">
+            恢复
+          </el-button>
+        </div>
+      </div>
+
+      <h3>已收藏的事件</h3>
+      <div v-for="event in hiddenEvents" :key="event.slug" class="event-item">
+        <div v-if="event.updateStatus === '收藏'">
+          <span class="event.updateS">
+            <a
+              :href="`https://polymarket.com/zh/event/${event.slug}`"
+              target="_blank"
+              class="title-link"
+            >
+              {{ event.title }}
+            </a></span
+          >
+          <el-button @click="restoreEvent(event.slug)" class="restore-button">
+            恢复
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -36,12 +62,12 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { fetchPolymarketEvents } from "./polymarket";
+import { fetchPolymarketEvents, MarketEvent } from "./polymarket";
 
-interface MarketEvent {
-  slug: string;
-  title: string;
-}
+// interface MarketEvent {
+//   slug: string;
+//   title: string;
+// }
 
 const events = ref<MarketEvent[]>([]);
 const hiddenEvents = ref<MarketEvent[]>([]);
@@ -53,9 +79,14 @@ const loadHiddenEvents = () => {
     const key = localStorage.key(i);
     if (key) {
       try {
-        const title = localStorage.getItem(key);
-        if (title) {
-          hidden.push({ slug: key, title: title });
+        const event = getLocalStorage(key);
+        if (event) {
+          hidden.push({
+            id: event.id,
+            slug: event.slug,
+            title: event.title,
+            updateStatus: event.updateStatus,
+          });
         }
       } catch (error) {
         console.error("读取隐藏事件数据失败:", error);
@@ -79,8 +110,10 @@ const loadEvents = async () => {
   const eventData = await fetchPolymarketEvents();
   events.value = eventData
     .map((event) => ({
+      id: event.id,
       slug: event.slug,
       title: event.title,
+      updateStatus: "默认",
     }))
     .filter((event) => {
       // Check if the event slug exists in localStorage
@@ -91,19 +124,32 @@ const loadEvents = async () => {
 };
 
 // 隐藏事件
-const hideEvent = (event: MarketEvent) => {
+const hideEvent = (event: MarketEvent, status: string) => {
   events.value = events.value.filter((e) => e.slug !== event.slug);
 
   // 保存到 localStorage
-  saveLocalStorage(event.slug, event.title);
+  event.updateStatus = status;
+  saveLocalStorage(event.slug, event);
 };
 
 // 存储字符串数组
-function saveLocalStorage(key: string, value: string): void {
+function saveLocalStorage(key: string, value: MarketEvent): void {
   try {
-    localStorage.setItem(key, value);
+    localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
     console.error("保存数据失败:", error);
+  }
+}
+
+// 获取函数
+function getLocalStorage(key: string): MarketEvent | null {
+  try {
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    return JSON.parse(data) as MarketEvent;
+  } catch (error) {
+    console.error("读取数据失败:", error);
+    return null;
   }
 }
 
@@ -134,46 +180,4 @@ loadHiddenEvents();
 </script>
 
 <style scoped>
-.event-list {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.event-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.event-title {
-  flex: 1;
-  font-size: 16px;
-  color: #333;
-}
-
-.hide-button {
-  background-color: #ff4757;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.restore-button {
-  background-color: #030bf9;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.hide-button:hover {
-  background-color: #ff2e43;
-}
 </style>

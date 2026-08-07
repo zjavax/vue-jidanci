@@ -51,12 +51,20 @@
                 {{ event.title }}
               </a>
               <el-button
+                type="warning"
+                plain
+                size="small"
+                @click="hideEvent(event, '收藏')"
+              >
+                收藏
+              </el-button>
+              <el-button
                 type="primary"
                 link
                 size="small"
                 @click="restoreEvent(event.slug)"
               >
-                恢复
+                删除
               </el-button>
             </div>
           </div>
@@ -84,12 +92,20 @@
                 {{ event.title }}
               </a>
               <el-button
+                type="info"
+                plain
+                size="small"
+                @click="hideEvent(event, '隐藏')"
+              >
+                隐藏
+              </el-button>
+              <el-button
                 type="primary"
                 link
                 size="small"
                 @click="restoreEvent(event.slug)"
               >
-                恢复
+                删除
               </el-button>
             </div>
           </div>

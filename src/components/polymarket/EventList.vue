@@ -33,44 +33,6 @@
     <div v-if="hiddenEvents.length > 0" class="managed-section">
       <el-divider content-position="left">已管理事件</el-divider>
 
-      <!-- 已隐藏 -->
-      <div class="sub-group">
-        <div class="group-header">
-          <el-tag type="info" effect="dark" size="small">已隐藏</el-tag>
-        </div>
-
-        <!-- 使用 template 包裹 v-for，解决优先级问题 -->
-        <template v-for="event in hiddenEvents" :key="event.slug">
-          <div v-if="event.updateStatus === '隐藏'" class="event-card managed">
-            <div class="card-inner">
-              <a
-                :href="`https://polymarket.com/zh/event/${event.slug}`"
-                target="_blank"
-                class="event-title muted"
-              >
-                {{ event.title }}
-              </a>
-              <el-button
-                type="warning"
-                plain
-                size="small"
-                @click="hideEvent(event, '收藏')"
-              >
-                收藏
-              </el-button>
-              <el-button
-                type="primary"
-                link
-                size="small"
-                @click="restoreEvent(event.slug)"
-              >
-                删除
-              </el-button>
-            </div>
-          </div>
-        </template>
-      </div>
-
       <!-- 已收藏 -->
       <div class="sub-group">
         <div class="group-header">
@@ -98,6 +60,44 @@
                 @click="hideEvent(event, '隐藏')"
               >
                 隐藏
+              </el-button>
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click="restoreEvent(event.slug)"
+              >
+                删除
+              </el-button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 已隐藏 -->
+      <div class="sub-group">
+        <div class="group-header">
+          <el-tag type="info" effect="dark" size="small">已隐藏</el-tag>
+        </div>
+
+        <!-- 使用 template 包裹 v-for，解决优先级问题 -->
+        <template v-for="event in hiddenEvents" :key="event.slug">
+          <div v-if="event.updateStatus === '隐藏'" class="event-card managed">
+            <div class="card-inner">
+              <a
+                :href="`https://polymarket.com/zh/event/${event.slug}`"
+                target="_blank"
+                class="event-title muted"
+              >
+                {{ event.title }}
+              </a>
+              <el-button
+                type="warning"
+                plain
+                size="small"
+                @click="hideEvent(event, '收藏')"
+              >
+                收藏
               </el-button>
               <el-button
                 type="primary"

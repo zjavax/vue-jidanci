@@ -81,6 +81,10 @@
           <el-button type="primary" link size="small" @click="delAll('隐藏')">
             全部删除
           </el-button>
+
+          <el-button type="primary" link size="small" @click="hideAllEvents">
+            全部隐藏
+          </el-button>
         </div>
 
         <!-- 使用 template 包裹 v-for，解决优先级问题 -->
@@ -213,6 +217,17 @@ const hideEvent = (event: MarketEvent, status: string) => {
   event.updateStatus = status;
   saveLocalStorage(event.slug, event);
   loadHiddenEvents();
+};
+
+const hideAllEvents = () => {
+  events.value.forEach((event) => {
+    // 保存到 localStorage
+    event.updateStatus = "隐藏";
+    saveLocalStorage(event.slug, event);
+
+    loadEvents();
+    loadHiddenEvents();
+  });
 };
 
 // 存储字符串数组

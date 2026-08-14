@@ -229,6 +229,7 @@ const hideEventBySearch = async () => {
   const event = await fetchPolymarketEvent(input.value);
   if (event) {
     hideEvent(event, "收藏");
+    alert("保存成功:" + event.title);
   }
 };
 

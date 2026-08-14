@@ -78,6 +78,9 @@
       <div class="sub-group">
         <div class="group-header">
           <el-tag type="info" effect="dark" size="small">已隐藏</el-tag>
+          <el-button type="primary" link size="small" @click="delAll('隐藏')">
+            全部删除
+          </el-button>
         </div>
 
         <!-- 使用 template 包裹 v-for，解决优先级问题 -->
@@ -158,6 +161,30 @@ const restoreEvent = (slug: string) => {
   loadHiddenEvents();
   // 如果需要也重新加载显示的事件列表
   loadEvents();
+};
+
+const delAll = (status: string) => {
+  // 遍历 localStorage 中的所有键值对
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i) || "";
+    const value = localStorage.getItem(key);
+
+    if (value && value !== "auto") {
+      try {
+        const data = JSON.parse(value);
+        if (data.updateStatus === status) {
+          localStorage.removeItem(key);
+        }
+      } catch (e) {
+        // 跳过无法解析为 JSON 的值
+        console.warn("跳过解析失败的 localStorage 值:", key);
+      }
+    }
+  }
+
+  // 刷新事件列表
+  loadEvents();
+  loadHiddenEvents();
 };
 
 // 获取数据

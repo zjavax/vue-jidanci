@@ -35,6 +35,16 @@
 
       <!-- 已收藏 -->
       <div class="sub-group">
+        <el-input
+          v-model="input"
+          style="width: 500px"
+          placeholder="Please input"
+        ></el-input>
+
+        <el-button type="info" plain size="small" @click="hideEventBySearch">
+          保存
+        </el-button>
+
         <div class="group-header">
           <el-tag type="warning" effect="dark" size="small">已收藏</el-tag>
         </div>
@@ -124,7 +134,13 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { fetchPolymarketEvents, MarketEvent } from "./polymarket";
+import {
+  fetchPolymarketEvents,
+  MarketEvent,
+  fetchPolymarketEvent,
+} from "./polymarket";
+
+const input = ref("");
 
 // interface MarketEvent {
 //   slug: string;
@@ -207,6 +223,13 @@ const loadEvents = async () => {
       // Include the event only if it's NOT in localStorage (storedValue is null)
       return !storedValue;
     });
+};
+
+const hideEventBySearch = async () => {
+  const event = await fetchPolymarketEvent(input.value);
+  if (event) {
+    hideEvent(event, "收藏");
+  }
 };
 
 // 隐藏事件

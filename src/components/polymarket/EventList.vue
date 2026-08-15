@@ -228,7 +228,13 @@ const loadEvents = async () => {
 };
 
 const hideEventBySearch = async () => {
-  const event = await fetchPolymarketEvent(input.value);
+  // 兼容两种输入：直接传 slug，或传完整链接（自动截取 slug）
+  let keyword = input.value.trim();
+  const match = keyword.match(/\/event\/([^/?#]+)/);
+  if (match) {
+    keyword = match[1];
+  }
+  const event = await fetchPolymarketEvent(keyword);
   if (event) {
     hideEvent(event, "收藏");
     alert("保存成功:" + event.title);

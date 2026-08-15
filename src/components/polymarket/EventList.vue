@@ -35,15 +35,17 @@
 
       <!-- 已收藏 -->
       <div class="sub-group">
-        <el-input
-          v-model="input"
-          style="width: 500px"
-          placeholder="Please input"
-        ></el-input>
-
-        <el-button type="info" plain size="small" @click="hideEventBySearch">
-          保存
-        </el-button>
+        <div class="search-bar">
+          <el-input
+            v-model="input"
+            class="search-input"
+            placeholder="请输入事件链接或 slug，点击保存收藏"
+            clearable
+          ></el-input>
+          <el-button type="info" plain @click="hideEventBySearch">
+            保存
+          </el-button>
+        </div>
 
         <div class="group-header">
           <el-tag type="warning" effect="dark" size="small">已收藏</el-tag>
@@ -360,6 +362,23 @@ loadHiddenEvents();
 
 .sub-group {
   margin-bottom: 20px;
+}
+
+/* 搜索栏样式 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+}
+
+.search-input {
+  flex: 1;
+  max-width: 500px;
 }
 
 .group-header {

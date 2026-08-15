@@ -15,3 +15,7 @@ pnpm-lock.yaml
 connect_server.sh
 server_jidanci.sh
 src/components.d.ts
+.freebuff/desktop-v2.db
+.freebuff/desktop-v2.db-shm
+.freebuff/desktop-v2.db-wal
+src/components.d.ts

@@ -4,6 +4,7 @@ export interface UserPosition {
   initialValue: number
   size: number
   avgPrice: number
+  curPrice: number
   currentValue: number
   cashPnl: number
   percentPnl: number

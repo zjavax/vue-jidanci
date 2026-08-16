@@ -9,6 +9,7 @@
           <th>我的买入</th>
           <th>份额</th>
           <th>平均价格</th>
+          <th>当前价格</th>
           <th>当前价值</th>
           <th>我的收益</th>
           <th>百分比收益</th>
@@ -29,6 +30,7 @@
           <td>{{ position.initialValue.toFixed(2) }}</td>
           <td>{{ position.size.toFixed(2) }}</td>
           <td>{{ position.avgPrice.toFixed(4) }}</td>
+          <td>{{ position.curPrice.toFixed(4) }}</td>
           <td>{{ position.currentValue.toFixed(2) }}</td>
           <td
             :class="{

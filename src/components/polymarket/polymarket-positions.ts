@@ -12,10 +12,10 @@ export interface UserPosition {
   eventSlug: string
 }
 
-export async function fetchUserPositions(): Promise<UserPosition[]> {
+export async function fetchUserPositions(address = '0xb976609df37a76d5213b414833d9cb9cbd395876'): Promise<UserPosition[]> {
   try {
     const response = await fetch(
-      'https://data-api.polymarket.com/positions?user=0xb976609df37a76d5213b414833d9cb9cbd395876&sortBy=CURRENT&sortDirection=DESC&sizeThreshold=.1&limit=30&offset=0&redeemable=false',
+      `https://data-api.polymarket.com/positions?user=${address}&sortBy=CURRENT&sortDirection=DESC&sizeThreshold=.1&limit=30&offset=0&redeemable=false`,
     )
 
     if (!response.ok) {

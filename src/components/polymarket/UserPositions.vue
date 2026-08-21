@@ -1,6 +1,6 @@
 <template>
   <div class="positions-container">
-    <h2>我的仓位</h2>
+    <h2>我的仓位（zjavax）</h2>
     <table class="positions-table">
       <thead>
         <tr>
@@ -55,6 +55,62 @@
     <div v-if="!loading && positions.length === 0" class="no-data">
       暂无数据
     </div>
+
+    <h2 style="margin-top: 40px">我的仓位（zjavax2）</h2>
+    <table class="positions-table">
+      <thead>
+        <tr>
+          <th>标题</th>
+          <th>我的选择</th>
+          <th>我的买入</th>
+          <th>份额</th>
+          <th>平均价格</th>
+          <th>当前价格</th>
+          <th>当前价值</th>
+          <th>我的收益</th>
+          <th>百分比收益</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="position in positions2" :key="position.slug">
+          <td>
+            <a
+              :href="`https://polymarket.com/zh/event/${position.eventSlug}`"
+              target="_blank"
+              class="title-link"
+            >
+              {{ position.title }}
+            </a>
+          </td>
+          <td>{{ position.outcome }}</td>
+          <td>{{ position.initialValue.toFixed(2) }}</td>
+          <td>{{ position.size.toFixed(2) }}</td>
+          <td>{{ position.avgPrice.toFixed(4) }}</td>
+          <td>{{ position.curPrice.toFixed(4) }}</td>
+          <td>{{ position.currentValue.toFixed(2) }}</td>
+          <td
+            :class="{
+              positive: position.cashPnl > 0,
+              negative: position.cashPnl < 0,
+            }"
+          >
+            {{ position.cashPnl.toFixed(2) }}
+          </td>
+          <td
+            :class="{
+              positive: position.percentPnl > 0,
+              negative: position.percentPnl < 0,
+            }"
+          >
+            {{ position.percentPnl.toFixed(2) }}%
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div v-if="loading2" class="loading">加载中...</div>
+    <div v-if="!loading2 && positions2.length === 0" class="no-data">
+      暂无数据
+    </div>
   </div>
 </template>
 
@@ -64,6 +120,8 @@ import { fetchUserPositions, UserPosition } from "./polymarket-positions";
 
 const positions = ref<UserPosition[]>([]);
 const loading = ref<boolean>(true);
+const positions2 = ref<UserPosition[]>([]);
+const loading2 = ref<boolean>(true);
 
 const loadPositions = async () => {
   loading.value = true;
@@ -76,8 +134,22 @@ const loadPositions = async () => {
   }
 };
 
+const loadPositions2 = async () => {
+  loading2.value = true;
+  try {
+    positions2.value = await fetchUserPositions(
+      "0xe5c47cd9a52960df9730a05ed9a9b3959ab02231"
+    );
+  } catch (error) {
+    console.error("Failed to load positions:", error);
+  } finally {
+    loading2.value = false;
+  }
+};
+
 onMounted(() => {
   loadPositions();
+  loadPositions2();
 });
 </script>
 

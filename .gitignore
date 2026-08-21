@@ -19,3 +19,4 @@ src/components.d.ts
 .freebuff/desktop-v2.db-shm
 .freebuff/desktop-v2.db-wal
 src/components.d.ts
+.freebuff/project-id

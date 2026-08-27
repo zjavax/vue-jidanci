@@ -1,5 +1,19 @@
 <template>
   <div class="event-list">
+    <!-- 标签筛选 -->
+    <div class="tag-bar">
+      <el-button
+        v-for="tag in tags"
+        :key="tag.value"
+        :type="activeTag === tag.value ? 'primary' : 'info'"
+        :plain="activeTag !== tag.value"
+        size="small"
+        @click="switchTag(tag.value)"
+      >
+        {{ tag.label }}
+      </el-button>
+    </div>
+
     <!-- 活跃事件 -->
     <div v-for="event in events" :key="event.slug" class="event-card">
       <a
@@ -143,6 +157,11 @@ import {
 } from "./polymarket_sports";
 
 const input = ref("");
+const activeTag = ref('politics');
+const tags = [
+  { label: '政治', value: 'politics' },
+  { label: '加密', value: 'crypto' },
+];
 
 // interface MarketEvent {
 //   slug: string;
@@ -211,7 +230,7 @@ const delAll = (status: string) => {
 
 // 获取数据
 const loadEvents = async () => {
-  const eventData = await fetchPolymarketEvents();
+  const eventData = await fetchPolymarketEvents(activeTag.value);
   events.value = eventData
     .map((event) => ({
       id: event.id,
@@ -249,6 +268,11 @@ const hideEvent = (event: MarketEvent, status: string) => {
   event.updateStatus = status;
   saveLocalStorage(event.slug, event);
   loadHiddenEvents();
+};
+
+const switchTag = (tag: string) => {
+  activeTag.value = tag;
+  loadEvents();
 };
 
 const hideAllEvents = () => {
@@ -314,6 +338,13 @@ loadHiddenEvents();
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+/* 标签栏 */
+.tag-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 /* 卡片样式 */

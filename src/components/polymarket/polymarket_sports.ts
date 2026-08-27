@@ -10,10 +10,10 @@ interface ApiResponse {
 }
 
 // 根据 volume24hr 取前100个数据， 总的
-export async function fetchPolymarketEvents(): Promise<MarketEvent[]> {
+export async function fetchPolymarketEvents(tagSlug = 'politics'): Promise<MarketEvent[]> {
   try {
     const response = await fetch(
-      'https://gamma-api.polymarket.com/events/keyset?limit=100&tag_slug=politics&closed=false&order=volume24hr&ascending=false&locale=zh&locale=zh',
+      `https://gamma-api.polymarket.com/events/keyset?limit=100&tag_slug=${tagSlug}&closed=false&order=volume24hr&ascending=false&locale=zh`,
     )
 
     if (!response.ok) {

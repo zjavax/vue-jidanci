@@ -19,7 +19,8 @@ import { toggleDark } from "~/composables";
 
       <el-menu-item index="/oneStoryADay">oneStoryADay</el-menu-item>
 
-      <el-menu-item index="/EventList">polymarket</el-menu-item>
+      <el-menu-item index="/EventList">热门</el-menu-item>
+      <el-menu-item index="/EventList_sports">每个类别的热门</el-menu-item>
       <el-menu-item index="/UserPositions">我的仓位</el-menu-item>
       <!-- <el-sub-menu index="2-4">
         <template #title>item four</template>
@@ -30,7 +31,7 @@ import { toggleDark } from "~/composables";
     </el-sub-menu>
     <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
     <!-- <el-menu-item index="4">Orders</el-menu-item> -->
-    <el-menu-item h="full" @click="toggleDark()">
+    <el-menu-item h="full" @click="toggleDark()" index="">
       <button
         class="border-none w-full bg-transparent cursor-pointer"
         style="height: var(--ep-menu-item-height)"
@@ -38,10 +39,10 @@ import { toggleDark } from "~/composables";
         <i inline-flex i="dark:ep-moon ep-sunny" />
       </button>
     </el-menu-item>
-    <el-menu-item
+    <el-menu-item index=""
       ><a :href="`https://github.com/zjavax/vue-jidanci`" target="_blank">
         github
-      </a></el-menu-item
-    >
+      </a>
+    </el-menu-item>
   </el-menu>
 </template>

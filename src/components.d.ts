@@ -37,6 +37,7 @@ declare module '@vue/runtime-core' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EventList: typeof import('./components/polymarket/EventList.vue')['default']
+    EventList_sports: typeof import('./components/polymarket/EventList_sports.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     Nce2: typeof import('./components/Nce2.vue')['default']
     OneStoryADay: typeof import('./components/OneStoryADay.vue')['default']

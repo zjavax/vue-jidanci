@@ -13,7 +13,7 @@ interface ApiResponse {
 export async function fetchPolymarketEvents(): Promise<MarketEvent[]> {
   try {
     const response = await fetch(
-      'https://gamma-api.polymarket.com/events/keyset?limit=100&closed=false&order=volume24hr&ascending=false&locale=zh&locale=zh',
+      'https://gamma-api.polymarket.com/events/keyset?limit=100&tag_slug=politics&closed=false&order=volume24hr&ascending=false&locale=zh&locale=zh',
     )
 
     if (!response.ok) {

@@ -15,6 +15,7 @@ import TableTest from './components/TableTest.vue'
 import HelloWorld from './components/HelloWorld.vue'
 
 import EventList from './components/polymarket/EventList.vue'
+import EventList_sports from './components/polymarket/EventList_sports.vue'
 import UserPositions from './components/polymarket/UserPositions.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
@@ -36,6 +37,7 @@ const router = createRouter({
     { path: '/helloWorld', component: HelloWorld },
     { path: '/oneStoryADay', component: OneStoryADay },
     { path: '/EventList', component: EventList },
+    { path: '/EventList_sports', component: EventList_sports },
     { path: '/UserPositions', component: UserPositions },
   ],
 })

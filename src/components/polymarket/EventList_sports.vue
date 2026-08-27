@@ -7,7 +7,7 @@
         :key="tag.value"
         :type="activeTag === tag.value ? 'primary' : 'info'"
         :plain="activeTag !== tag.value"
-        size="small"
+        size="large"
         @click="switchTag(tag.value)"
       >
         {{ tag.label }}
@@ -160,7 +160,18 @@ const input = ref("");
 const activeTag = ref('politics');
 const tags = [
   { label: '政治', value: 'politics' },
+  { label: '体育', value: 'sports' },
   { label: '加密', value: 'crypto' },
+  { label: '电竞', value: 'esports' },
+  { label: '伊朗', value: 'iran' },
+  { label: '金融财务', value: 'finance' },
+  { label: '地缘政治', value: 'geopolitics' },
+  { label: '科技', value: 'tech' },
+  { label: '流行文化', value: 'pop-culture' },
+  { label: '经济', value: 'economy' },
+  { label: '天气', value: 'weather' },
+  { label: '选举', value: 'elections' },
+  { label: '艺术', value: 'art' },
 ];
 
 // interface MarketEvent {

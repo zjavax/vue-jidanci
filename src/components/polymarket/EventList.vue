@@ -49,9 +49,6 @@
 
         <div class="group-header">
           <el-tag type="warning" effect="dark" size="small">已收藏</el-tag>
-          <el-button type="primary" link size="small" @click="showSlugs">
-            查看slug
-          </el-button>
         </div>
 
         <!-- 使用 template 包裹 v-for，解决优先级问题 -->
@@ -134,15 +131,6 @@
         </template>
       </div>
     </div>
-
-    <!-- slug 弹框 -->
-    <el-dialog v-model="slugDialogVisible" title="已收藏事件 slug" width="600px">
-      <div class="slug-list">{{ slugsText }}</div>
-      <template #footer>
-        <el-button @click="copySlugs">复制</el-button>
-        <el-button type="primary" @click="slugDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -155,22 +143,6 @@ import {
 } from "./polymarket";
 
 const input = ref("");
-const slugDialogVisible = ref(false);
-const slugsText = ref("");
-
-// 查看所有已收藏事件的 slug
-const showSlugs = () => {
-  slugsText.value = hiddenEvents.value
-    .filter((event) => event.updateStatus === "收藏")
-    .map((event) => event.slug)
-    .join("\n");
-  slugDialogVisible.value = true;
-};
-
-// 复制 slug 列表到剪贴板
-const copySlugs = () => {
-  navigator.clipboard.writeText(slugsText.value);
-};
 
 // interface MarketEvent {
 //   slug: string;
@@ -417,18 +389,6 @@ loadHiddenEvents();
 
 .group-header {
   margin-bottom: 10px;
-}
-
-/* slug 列表弹框内容 */
-.slug-list {
-  white-space: pre-wrap;
-  word-break: break-all;
-  max-height: 400px;
-  overflow-y: auto;
-  line-height: 1.8;
-  background: #f5f7fa;
-  padding: 12px;
-  border-radius: 6px;
 }
 
 /* 已管理卡片特殊样式 */

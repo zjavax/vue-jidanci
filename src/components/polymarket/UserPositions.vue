@@ -5,13 +5,13 @@
       <thead>
         <tr>
           <th>标题</th>
-          <th>我的选择</th>
-          <th>我的买入</th>
+          <th>选择</th>
+          <th>买入</th>
           <th>份额</th>
           <th>平均价格</th>
           <th>当前价格</th>
           <th>当前价值</th>
-          <th>我的收益</th>
+          <th>收益</th>
           <th>百分比收益</th>
         </tr>
       </thead>
@@ -61,13 +61,13 @@
       <thead>
         <tr>
           <th>标题</th>
-          <th>我的选择</th>
-          <th>我的买入</th>
+          <th>选择</th>
+          <th>买入</th>
           <th>份额</th>
           <th>平均价格</th>
           <th>当前价格</th>
           <th>当前价值</th>
-          <th>我的收益</th>
+          <th>收益</th>
           <th>百分比收益</th>
         </tr>
       </thead>
@@ -207,5 +207,45 @@ onMounted(() => {
   text-align: center;
   padding: 40px;
   color: #666;
+}
+
+/* 手机端：整表自适应收缩到屏幕宽度，保持行/列不变，无需手动缩放 */
+@media (max-width: 768px) {
+  .positions-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 10px 5px;
+  }
+
+  .positions-container h2 {
+    font-size: 15px;
+    margin: 14px 0 6px;
+  }
+
+  .positions-table {
+    margin-top: 6px;
+    /* 固定布局，列宽按比例分配，表格永远不会超过屏幕宽度 */
+    table-layout: fixed;
+    font-size: 10px;
+  }
+
+  .positions-table th,
+  .positions-table td {
+    padding: 5px 2px;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .positions-table th {
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  /* 标题列尽可能窄，把宽度全部让给数值列 */
+  .positions-table th:first-child,
+  .positions-table td:first-child {
+    width: 14%;
+  }
 }
 </style>

@@ -50,6 +50,33 @@
           </td>
         </tr>
       </tbody>
+      <tfoot v-if="positions.length > 0">
+        <tr class="total-row">
+          <td>合计</td>
+          <td></td>
+          <td>{{ total.initialValue.toFixed(0) }}</td>
+          <td>{{ total.size.toFixed(0) }}</td>
+          <td></td>
+          <td></td>
+          <td>{{ total.currentValue.toFixed(0) }}</td>
+          <td
+            :class="{
+              positive: total.cashPnl > 0,
+              negative: total.cashPnl < 0,
+            }"
+          >
+            {{ total.cashPnl.toFixed(2) }}
+          </td>
+          <td
+            :class="{
+              positive: total.percentPnl > 0,
+              negative: total.percentPnl < 0,
+            }"
+          >
+            {{ total.percentPnl.toFixed(2) }}%
+          </td>
+        </tr>
+      </tfoot>
     </table>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!loading && positions.length === 0" class="no-data">
@@ -106,22 +133,113 @@
           </td>
         </tr>
       </tbody>
+      <tfoot v-if="positions2.length > 0">
+        <tr class="total-row">
+          <td>合计</td>
+          <td></td>
+          <td>{{ total2.initialValue.toFixed(0) }}</td>
+          <td>{{ total2.size.toFixed(0) }}</td>
+          <td></td>
+          <td></td>
+          <td>{{ total2.currentValue.toFixed(0) }}</td>
+          <td
+            :class="{
+              positive: total2.cashPnl > 0,
+              negative: total2.cashPnl < 0,
+            }"
+          >
+            {{ total2.cashPnl.toFixed(2) }}
+          </td>
+          <td
+            :class="{
+              positive: total2.percentPnl > 0,
+              negative: total2.percentPnl < 0,
+            }"
+          >
+            {{ total2.percentPnl.toFixed(2) }}%
+          </td>
+        </tr>
+      </tfoot>
     </table>
     <div v-if="loading2" class="loading">加载中...</div>
     <div v-if="!loading2 && positions2.length === 0" class="no-data">
       暂无数据
     </div>
+
+    <div class="grand-total">
+      <div class="grand-total-title">两个账号合计</div>
+      <div class="grand-total-grid">
+        <div class="grand-metric">
+          <span class="grand-label">总买入</span>
+          <span class="grand-value">{{ grandTotal.initialValue.toFixed(0) }}</span>
+        </div>
+        <div class="grand-metric">
+          <span class="grand-label">总份额</span>
+          <span class="grand-value">{{ grandTotal.size.toFixed(0) }}</span>
+        </div>
+        <div class="grand-metric">
+          <span class="grand-label">总收益</span>
+          <span
+            class="grand-value"
+            :class="{
+              positive: grandTotal.cashPnl > 0,
+              negative: grandTotal.cashPnl < 0,
+            }"
+          >
+            {{ grandTotal.cashPnl.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+      <div class="grand-sub">
+        zjavax：买入 {{ total.initialValue.toFixed(0) }} · 份额
+        {{ total.size.toFixed(0) }} · 收益 {{ total.cashPnl.toFixed(2) }}
+        ｜ zjavax2：买入 {{ total2.initialValue.toFixed(0) }} · 份额
+        {{ total2.size.toFixed(0) }} · 收益 {{ total2.cashPnl.toFixed(2) }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { fetchUserPositions, UserPosition } from "./polymarket-positions";
 
 const positions = ref<UserPosition[]>([]);
 const loading = ref<boolean>(true);
 const positions2 = ref<UserPosition[]>([]);
 const loading2 = ref<boolean>(true);
+
+/** 汇总一个账号的所有仓位：总买入 / 总份额 / 总当前价值 / 总收益 / 总收益率（按买入额加权） */
+const summarize = (list: UserPosition[]) => {
+  const initialValue = list.reduce((sum, p) => sum + (p.initialValue || 0), 0);
+  const size = list.reduce((sum, p) => sum + (p.size || 0), 0);
+  const currentValue = list.reduce((sum, p) => sum + (p.currentValue || 0), 0);
+  const cashPnl = list.reduce((sum, p) => sum + (p.cashPnl || 0), 0);
+  return {
+    initialValue,
+    size,
+    currentValue,
+    cashPnl,
+    percentPnl: initialValue > 0 ? (cashPnl / initialValue) * 100 : 0,
+  };
+};
+
+const total = computed(() => summarize(positions.value));
+const total2 = computed(() => summarize(positions2.value));
+
+const grandTotal = computed(() => {
+  const a = total.value;
+  const b = total2.value;
+  const initialValue = a.initialValue + b.initialValue;
+  const cashPnl = a.cashPnl + b.cashPnl;
+  return {
+    initialValue,
+    size: a.size + b.size,
+    currentValue: a.currentValue + b.currentValue,
+    cashPnl,
+    percentPnl: initialValue > 0 ? (cashPnl / initialValue) * 100 : 0,
+  };
+});
 
 const loadPositions = async () => {
   loading.value = true;
@@ -205,6 +323,71 @@ onMounted(() => {
   border-bottom: none;
 }
 
+/* 每个账号表格底部的「合计」行 */
+.positions-table tfoot .total-row td {
+  border-top: 1px solid #e4e7ec;
+  border-bottom: none;
+  background-color: #fbfcfe;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.positions-table tfoot .total-row td:first-child {
+  color: #667085;
+  font-weight: 600;
+}
+
+/* 两个账号合并后的总计 */
+.grand-total {
+  margin-top: 36px;
+  padding: 18px 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  background-color: #f9fafb;
+}
+
+.grand-total-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 14px;
+}
+
+.grand-total-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.grand-metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #eef0f4;
+}
+
+.grand-label {
+  font-size: 12px;
+  color: #667085;
+}
+
+.grand-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
+.grand-sub {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #98a2b3;
+  line-height: 1.6;
+}
+
 .title-link {
   color: #3538cd;
   font-weight: 500;
@@ -282,6 +465,43 @@ onMounted(() => {
   .positions-table th:nth-child(2),
   .positions-table td:nth-child(2) {
     width: 7%;
+  }
+
+  .positions-table tfoot .total-row td {
+    font-size: 10px;
+    padding: 7px 2px;
+  }
+
+  .grand-total {
+    margin-top: 20px;
+    padding: 12px 10px;
+  }
+
+  .grand-total-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .grand-total-grid {
+    gap: 6px;
+  }
+
+  .grand-metric {
+    padding: 8px 6px;
+    gap: 4px;
+  }
+
+  .grand-label {
+    font-size: 11px;
+  }
+
+  .grand-value {
+    font-size: 15px;
+  }
+
+  .grand-sub {
+    font-size: 11px;
+    margin-top: 10px;
   }
 }
 </style>

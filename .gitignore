@@ -22,3 +22,6 @@ src/components.d.ts
 
 # AI 助手工作目录
 .workbuddy-ai/
+
+# 本地浏览器验证临时目录（勿提交）
+.tmp-verify/

@@ -2,14 +2,15 @@
   <div class="event-list">
     <!-- 屏蔽词输入框 -->
     <div class="block-bar">
+      <span class="block-label">屏蔽</span>
       <el-input
         v-model="blockInput"
         class="block-input"
+        type="textarea"
+        :rows="3"
         placeholder="屏蔽词，多个用分号 ; 分隔，例如：选举;足球"
         clearable
-      >
-        <template #prepend>屏蔽</template>
-      </el-input>
+      />
       <span v-if="blockWords.length" class="block-count">
         已屏蔽 {{ events.length - filteredEvents.length }} 条
       </span>
@@ -393,13 +394,19 @@ loadHiddenEvents();
 /* 屏蔽词栏 */
 .block-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-bottom: 20px;
   padding: 14px 16px;
   background: #fff;
   border: 1px solid #ebeef5;
   border-radius: 8px;
+}
+
+.block-label {
+  padding-top: 8px;
+  color: #606266;
+  white-space: nowrap;
 }
 
 .block-input {

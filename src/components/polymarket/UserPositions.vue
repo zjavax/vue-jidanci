@@ -158,55 +158,79 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  color: #1f2937;
+}
+
+.positions-container h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .positions-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 12px;
+  font-size: 13.5px;
 }
 
 .positions-table th,
 .positions-table td {
-  padding: 12px;
+  padding: 10px 12px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #eef0f4;
 }
 
 .positions-table th {
-  background-color: #f5f5f5;
-  font-weight: bold;
+  background-color: #f7f8fa;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.positions-table tr:hover {
-  background-color: #f9f9f9;
+/* 数值列右对齐 + 等宽数字，方便纵向比较大小 */
+.positions-table th:nth-child(n + 3),
+.positions-table td:nth-child(n + 3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.positions-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.positions-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .title-link {
-  color: #007bff;
+  color: #3538cd;
+  font-weight: 500;
   text-decoration: none;
 }
 
 .title-link:hover {
   text-decoration: underline;
-  color: #0056b3;
 }
 
 .positive {
-  color: #28a745;
-  font-weight: bold;
+  color: #15803d;
+  font-weight: 600;
 }
 
 .negative {
-  color: #dc3545;
-  font-weight: bold;
+  color: #b42318;
+  font-weight: 600;
 }
 
 .loading,
 .no-data {
   text-align: center;
-  padding: 40px;
-  color: #666;
+  padding: 32px;
+  color: #98a2b3;
+  font-size: 14px;
 }
 
 /* 手机端：整表自适应收缩到屏幕宽度，保持行/列不变，无需手动缩放 */
@@ -239,7 +263,13 @@ onMounted(() => {
 
   .positions-table th {
     font-size: 9px;
-    font-weight: 600;
+    /* 表头允许换行，否则会把列撑宽 */
+    white-space: normal;
+  }
+
+  /* 数值列允许在窄列里折行 */
+  .positions-table td:nth-child(n + 3) {
+    white-space: normal;
   }
 
   /* 标题列尽可能窄，把宽度全部让给数值列 */

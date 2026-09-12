@@ -27,10 +27,10 @@
             </a>
           </td>
           <td>{{ position.outcome }}</td>
-          <td>{{ position.initialValue.toFixed(2) }}</td>
-          <td>{{ position.size.toFixed(2) }}</td>
-          <td>{{ position.avgPrice.toFixed(4) }}</td>
-          <td>{{ position.curPrice.toFixed(4) }}</td>
+          <td>{{ position.initialValue.toFixed(0) }}</td>
+          <td>{{ position.size.toFixed(0) }}</td>
+          <td>{{ position.avgPrice.toFixed(2) }}</td>
+          <td>{{ position.curPrice.toFixed(2) }}</td>
           <td>{{ position.currentValue.toFixed(2) }}</td>
           <td
             :class="{
@@ -83,10 +83,10 @@
             </a>
           </td>
           <td>{{ position.outcome }}</td>
-          <td>{{ position.initialValue.toFixed(2) }}</td>
-          <td>{{ position.size.toFixed(2) }}</td>
-          <td>{{ position.avgPrice.toFixed(4) }}</td>
-          <td>{{ position.curPrice.toFixed(4) }}</td>
+          <td>{{ position.initialValue.toFixed(0) }}</td>
+          <td>{{ position.size.toFixed(0) }}</td>
+          <td>{{ position.avgPrice.toFixed(2) }}</td>
+          <td>{{ position.curPrice.toFixed(2) }}</td>
           <td>{{ position.currentValue.toFixed(2) }}</td>
           <td
             :class="{

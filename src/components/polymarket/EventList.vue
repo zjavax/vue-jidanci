@@ -1,7 +1,22 @@
 <template>
   <div class="event-list">
+    <!-- 屏蔽词输入框 -->
+    <div class="block-bar">
+      <el-input
+        v-model="blockInput"
+        class="block-input"
+        placeholder="屏蔽词，多个用分号 ; 分隔，例如：选举;足球"
+        clearable
+      >
+        <template #prepend>屏蔽</template>
+      </el-input>
+      <span v-if="blockWords.length" class="block-count">
+        已屏蔽 {{ events.length - filteredEvents.length }} 条
+      </span>
+    </div>
+
     <!-- 活跃事件 -->
-    <div v-for="event in events" :key="event.slug" class="event-card">
+    <div v-for="event in filteredEvents" :key="event.slug" class="event-card">
       <a
         :href="`https://polymarket.com/zh/event/${event.slug}`"
         target="_blank"
@@ -147,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
 import {
   fetchPolymarketEvents,
   MarketEvent,
@@ -157,6 +172,23 @@ import {
 const input = ref("");
 const slugDialogVisible = ref(false);
 const slugsText = ref("");
+
+// ===== 屏蔽词 =====
+const BLOCK_KEY = "polymarket-block-words";
+
+const blockInput = ref(localStorage.getItem(BLOCK_KEY) || "");
+
+// 解析屏蔽词：支持中英文分号，去空白、去空项、忽略大小写
+const blockWords = computed(() =>
+  blockInput.value
+    .split(/[;；]/)
+    .map((w) => w.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+watch(blockInput, (val) => {
+  localStorage.setItem(BLOCK_KEY, val);
+});
 
 // 查看所有已收藏事件的 slug
 const showSlugs = () => {
@@ -180,15 +212,26 @@ const copySlugs = () => {
 const events = ref<MarketEvent[]>([]);
 const hiddenEvents = ref<MarketEvent[]>([]);
 
+// 标题或 slug 命中任一屏蔽词即过滤掉
+const filteredEvents = computed(() => {
+  if (!blockWords.value.length) return events.value;
+  return events.value.filter((event) => {
+    const text = `${event.title} ${event.slug}`.toLowerCase();
+    return !blockWords.value.some((word) => text.includes(word));
+  });
+});
+
 // 在组件加载时获取隐藏的事件
 const loadHiddenEvents = () => {
   const hidden: MarketEvent[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key !== "vueuse-color-scheme") {
+    // 排除非事件数据的 key：主题色、屏蔽词
+    if (key && key !== "vueuse-color-scheme" && key !== BLOCK_KEY) {
       try {
         const event = getLocalStorage(key);
-        if (event) {
+        // 屏蔽词的值可能恰好是合法 JSON（如 "123"），用 slug 类型兜底，避免脏数据混进来
+        if (event && typeof event.slug === "string") {
           hidden.push({
             id: event.id,
             slug: event.slug,
@@ -280,14 +323,17 @@ const hideEvent = (event: MarketEvent, status: string) => {
 };
 
 const hideAllEvents = () => {
-  events.value.forEach((event) => {
+  // 只处理当前可见的事件（已被屏蔽词过滤掉的不动），与屏幕上看到的数量保持一致
+  filteredEvents.value.forEach((event) => {
     // 保存到 localStorage
     event.updateStatus = "隐藏";
     saveLocalStorage(event.slug, event);
-
-    loadEvents();
-    loadHiddenEvents();
   });
+
+  // 注意：刷新调用必须放在循环外。
+  // 原先写在 forEach 内部，100 条事件会触发 100 个并发 API 请求（实测点击一次打 86+ 次）。
+  loadEvents();
+  loadHiddenEvents();
 };
 
 // 存储字符串数组
@@ -342,6 +388,29 @@ loadHiddenEvents();
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+/* 屏蔽词栏 */
+.block-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+}
+
+.block-input {
+  flex: 1;
+  max-width: 560px;
+}
+
+.block-count {
+  font-size: 12px;
+  color: #909399;
+  flex-shrink: 0;
 }
 
 /* 卡片样式 */

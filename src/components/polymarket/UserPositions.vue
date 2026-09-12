@@ -31,7 +31,7 @@
           <td>{{ position.size.toFixed(0) }}</td>
           <td>{{ position.avgPrice.toFixed(2) }}</td>
           <td>{{ position.curPrice.toFixed(2) }}</td>
-          <td>{{ position.currentValue.toFixed(2) }}</td>
+          <td>{{ position.currentValue.toFixed(0) }}</td>
           <td
             :class="{
               positive: position.cashPnl > 0,
@@ -87,7 +87,7 @@
           <td>{{ position.size.toFixed(0) }}</td>
           <td>{{ position.avgPrice.toFixed(2) }}</td>
           <td>{{ position.curPrice.toFixed(2) }}</td>
-          <td>{{ position.currentValue.toFixed(2) }}</td>
+          <td>{{ position.currentValue.toFixed(0) }}</td>
           <td
             :class="{
               positive: position.cashPnl > 0,
@@ -276,6 +276,12 @@ onMounted(() => {
   .positions-table th:first-child,
   .positions-table td:first-child {
     width: 14%;
+  }
+
+  /* “选择”内容很短，压缩该列以给数值列留出更多空间 */
+  .positions-table th:nth-child(2),
+  .positions-table td:nth-child(2) {
+    width: 7%;
   }
 }
 </style>

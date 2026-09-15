@@ -4,9 +4,9 @@ import { toggleDark } from "~/composables";
 
 <template>
   <el-menu class="el-menu-demo" mode="horizontal" router>
-    <el-menu-item index="/">Element Plus</el-menu-item>
+    <el-menu-item index="/">主页主页</el-menu-item>
     <el-sub-menu index="2">
-      <template #title>Workspace</template>
+      <template #title>记单词</template>
       <el-menu-item index="/nce2">nce2</el-menu-item>
       <el-menu-item index="/table">table</el-menu-item>
       <el-menu-item index="/danci3000">danci3000</el-menu-item>
@@ -18,16 +18,18 @@ import { toggleDark } from "~/composables";
       <el-menu-item index="/helloWorld">helloWorld</el-menu-item>
 
       <el-menu-item index="/oneStoryADay">oneStoryADay</el-menu-item>
-
-      <el-menu-item index="/EventList">热门</el-menu-item>
-      <el-menu-item index="/EventList_sports">每个类别的热门</el-menu-item>
-      <el-menu-item index="/UserPositions">我的仓位</el-menu-item>
       <!-- <el-sub-menu index="2-4">
         <template #title>item four</template>
         <el-menu-item index="2-4-1">item one</el-menu-item>
         <el-menu-item index="2-4-2">item two</el-menu-item>
         <el-menu-item index="2-4-3">item three</el-menu-item>
       </el-sub-menu> -->
+    </el-sub-menu>
+    <el-sub-menu index="3">
+      <template #title>Polymarket</template>
+      <el-menu-item index="/UserPositions">我的仓位</el-menu-item>
+      <el-menu-item index="/EventList">热门</el-menu-item>
+      <el-menu-item index="/EventList_sports">每个类别的热门</el-menu-item>
     </el-sub-menu>
     <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
     <!-- <el-menu-item index="4">Orders</el-menu-item> -->
@@ -42,6 +44,14 @@ import { toggleDark } from "~/composables";
     <el-menu-item index=""
       ><a :href="`https://github.com/zjavax/vue-jidanci`" target="_blank">
         github
+      </a>
+    </el-menu-item>
+    <el-menu-item index=""
+      ><a
+        :href="`https://github.com/element-plus/element-plus-vite-starter`"
+        target="_blank"
+      >
+        Element Plus
       </a>
     </el-menu-item>
   </el-menu>

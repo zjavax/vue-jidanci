@@ -4,7 +4,7 @@ import { toggleDark } from "~/composables";
 
 <template>
   <el-menu class="el-menu-demo" mode="horizontal" router>
-    <el-menu-item index="/">主页主页</el-menu-item>
+    <el-menu-item index="/">网站主页</el-menu-item>
     <el-sub-menu index="2">
       <template #title>记单词</template>
       <el-menu-item index="/nce2">nce2</el-menu-item>

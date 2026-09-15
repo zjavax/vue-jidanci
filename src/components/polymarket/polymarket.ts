@@ -1,8 +1,57 @@
+/**
+ * gamma-api /events 返回的市场（一个事件下的一个选项组）。
+ * 字段名照抄接口，故用 snake→camel 之外的原始写法：outcomes / outcomePrices 都是
+ * **JSON 字符串**（如 '["是","否"]'），不是数组，用前必须 parse。
+ */
+export interface PolymarketMarket {
+  id: string
+  /** 完整问题，如「美联储会在2026年9月会议后下调利率50个基点以上吗？」 */
+  question?: string
+  /** 分组名，如「下调50个基点以上」；negRisk 多元事件里比 question 更适合当行标题 */
+  groupItemTitle?: string
+  /** JSON 字符串数组 */
+  outcomes?: string
+  /** JSON 字符串数组，与 outcomes 下标对齐 */
+  outcomePrices?: string
+  /** 二元市场是数字，多元市场是数组 */
+  bestBid?: number | number[] | null
+  bestAsk?: number | number[] | null
+  volume24hr?: number
+  /** 24h 价格变动，单位是「价格」不是百分点（0.05 = 5pp） */
+  oneDayPriceChange?: number
+  oneWeekPriceChange?: number
+  spread?: number
+  closed?: boolean
+  acceptingOrders?: boolean
+  endDate?: string
+}
+
+export interface PolymarketTag {
+  id?: string
+  label: string
+  slug?: string
+}
+
 export interface MarketEvent {
   id: string
   slug: string
   title: string
-  updateStatus: string
+  /** 历史遗留字段，接口里并不存在，保留只为兼容旧调用方 */
+  updateStatus?: string
+
+  // ===== 以下都是 /events 接口实际会返回、但列表接口未必用到的字段 =====
+  image?: string
+  icon?: string
+  endDate?: string
+  volume?: number
+  volume24hr?: number
+  liquidity?: number
+  commentCount?: number
+  closed?: boolean
+  active?: boolean
+  tags?: PolymarketTag[]
+  /** 选项组。收藏卡片要展示「选项 / 概率 / 24h量」全靠它 */
+  markets?: PolymarketMarket[]
 }
 
 interface ApiResponse {
@@ -78,6 +127,9 @@ async function fetchEventChunk(slugs: string[]): Promise<MarketEvent[]> {
 /**
  * 批量按 slug 取事件。批量收藏用它，避免 N 个 slug 打 N 个请求。
  * 返回结果里查不到的 slug 需要调用方自己比对差集。
+ *
+ * 注意：返回值里带着完整的 markets / volume24hr / endDate，
+ * 收藏卡片的行情明细就是从这些字段里来的。
  */
 export async function fetchPolymarketEventsBySlugs(
   slugs: string[],

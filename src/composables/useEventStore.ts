@@ -208,6 +208,8 @@ export function useEventStore() {
     event: EventLike,
     status: EventStatus,
     timestamp: number,
+    /** 新记录是否直接置顶。只有「单条收藏」会传 true，见 markEvent */
+    pinNew = false,
   ): StoredEvent {
     const existing = managed.value.find((item) => item.slug === event.slug)
     return {
@@ -215,8 +217,11 @@ export function useEventStore() {
       id: String(event.id ?? existing?.id ?? ''),
       title: event.title,
       status,
-      // 已有记录保留置顶和备注，只在状态变更时重建其它字段
-      pinned: existing?.pinned ?? false,
+      // 收藏 = 新关注，默认置顶，省得收藏完还要再点一次置顶；
+      // 隐藏没有置顶概念；批量导入不套用（一次几十条全顶上去反而看不清）。
+      // 已有记录则保留用户自己的置顶选择。
+      pinned:
+        pinNew && status === 'favorite' ? true : (existing?.pinned ?? false),
       note: existing?.note ?? '',
       createdAt: existing?.createdAt ?? timestamp,
       statusChangedAt: timestamp,
@@ -260,7 +265,8 @@ export function useEventStore() {
 
   async function markEvent(event: EventLike, status: EventStatus) {
     await init()
-    const record = buildRecord(event, status, Date.now())
+    // 单条收藏默认置顶：刚收藏的立刻出现在最上面
+    const record = buildRecord(event, status, Date.now(), true)
     upsertLocal(record)
     await putEvent(record)
   }

@@ -87,6 +87,22 @@
           <el-button
             v-if="favorites.length"
             type="primary"
+            plain
+            size="small"
+            :loading="quotesLoading"
+            @click="refreshQuotes"
+          >
+            刷新行情
+          </el-button>
+          <span v-if="quotesUpdatedAt" class="quotes-updated">
+            行情更新于 {{ quotesUpdatedAt }}
+          </span>
+          <span v-else-if="quotesError" class="quotes-error">
+            {{ quotesError }}
+          </span>
+          <el-button
+            v-if="favorites.length"
+            type="primary"
             link
             size="small"
             @click="showSlugs"
@@ -96,34 +112,34 @@
         </div>
 
         <!-- 使用 template 包裹 v-for，解决优先级问题 -->
-        <template v-for="event in favorites" :key="event.slug">
+        <template v-for="card in favoriteCards" :key="card.event.slug">
           <div
             class="event-card managed favorite"
-            :class="{ pinned: event.pinned }"
+            :class="{ pinned: card.event.pinned }"
           >
             <div class="card-main">
-              <span v-if="event.pinned" class="pin-flag">置顶</span>
+              <span v-if="card.event.pinned" class="pin-flag">置顶</span>
               <a
-                :href="`https://polymarket.com/zh/event/${event.slug}`"
+                :href="`https://polymarket.com/zh/event/${card.event.slug}`"
                 target="_blank"
                 class="event-title"
               >
-                {{ event.title }}
+                {{ card.event.title }}
               </a>
               <div class="action-group">
                 <el-button
-                  :type="event.pinned ? 'danger' : 'warning'"
+                  :type="card.event.pinned ? 'danger' : 'warning'"
                   plain
                   size="small"
-                  @click="togglePin(event.slug)"
+                  @click="togglePin(card.event.slug)"
                 >
-                  {{ event.pinned ? '取消置顶' : '置顶' }}
+                  {{ card.event.pinned ? '取消置顶' : '置顶' }}
                 </el-button>
                 <el-button
                   type="primary"
                   plain
                   size="small"
-                  @click="startEditNote(event)"
+                  @click="startEditNote(card.event)"
                 >
                   备注
                 </el-button>
@@ -131,7 +147,7 @@
                   type="info"
                   plain
                   size="small"
-                  @click="markEvent(event, 'hidden')"
+                  @click="markEvent(card.event, 'hidden')"
                 >
                   隐藏
                 </el-button>
@@ -139,7 +155,7 @@
                   type="primary"
                   link
                   size="small"
-                  @click="unmarkEvent(event.slug)"
+                  @click="unmarkEvent(card.event.slug)"
                 >
                   删除
                 </el-button>
@@ -147,13 +163,13 @@
             </div>
 
             <div
-              v-if="event.note && editingSlug !== event.slug"
+              v-if="card.event.note && editingSlug !== card.event.slug"
               class="card-note"
             >
-              {{ event.note }}
+              {{ card.event.note }}
             </div>
 
-            <div v-if="editingSlug === event.slug" class="note-editor">
+            <div v-if="editingSlug === card.event.slug" class="note-editor">
               <el-input
                 v-model="noteDraft"
                 type="textarea"
@@ -167,11 +183,20 @@
                 <el-button
                   type="primary"
                   size="small"
-                  @click="saveNote(event.slug)"
+                  @click="saveNote(card.event.slug)"
                 >
                   保存备注
                 </el-button>
               </div>
+            </div>
+
+            <!-- 行情明细：截止时间 / 成交量 + 选项概率表 -->
+            <EventQuotePanel v-if="card.quote" :quote="card.quote" />
+            <div v-else-if="quotesLoading" class="quote-placeholder">
+              行情加载中…
+            </div>
+            <div v-else-if="quotesError" class="quote-placeholder error">
+              {{ quotesError }}
             </div>
 
           </div>
@@ -179,34 +204,6 @@
 
         <div v-if="ready && !favorites.length" class="empty-hint">
           还没有收藏。粘贴事件链接或 slug 到上面的输入框，点保存即可。
-        </div>
-
-        <!-- 批量收藏：每行一个 slug 或链接 -->
-        <div class="batch-bar">
-          <div class="batch-title">批量收藏</div>
-          <el-input
-            v-model="batchInput"
-            type="textarea"
-            :rows="4"
-            placeholder="每行一个 slug 或链接"
-          />
-          <div class="batch-actions">
-            <span class="batch-count">
-              {{
-                batchCount
-                  ? `识别到 ${batchCount} 个 slug`
-                  : "每行一个，支持裸 slug 或完整链接"
-              }}
-            </span>
-            <el-button
-              type="info"
-              plain
-              :loading="batchSaving"
-              @click="saveBatch"
-            >
-              保存全部
-            </el-button>
-          </div>
         </div>
       </div>
 
@@ -279,6 +276,52 @@
           </template>
         </div>
       </div>
+
+      <!-- 批量收藏：低频功能，默认折叠，放在整个页面的最底部 -->
+      <div class="sub-group">
+        <div class="group-header">
+          <button
+            type="button"
+            class="collapse-toggle"
+            :aria-expanded="batchOpen"
+            @click="batchOpen = !batchOpen"
+          >
+            <span class="caret" :class="{ open: batchOpen }"></span>
+            <span class="batch-toggle-label">批量收藏</span>
+          </button>
+          <span v-if="batchCount" class="batch-count">
+            识别到 {{ batchCount }} 个 slug
+          </span>
+        </div>
+
+        <div v-show="batchOpen" class="collapse-body">
+          <div class="batch-bar">
+            <el-input
+              v-model="batchInput"
+              type="textarea"
+              :rows="4"
+              placeholder="每行一个 slug 或链接"
+            />
+            <div class="batch-actions">
+              <span class="batch-count">
+                {{
+                  batchCount
+                    ? `识别到 ${batchCount} 个 slug`
+                    : "每行一个，支持裸 slug 或完整链接"
+                }}
+              </span>
+              <el-button
+                type="info"
+                plain
+                :loading="batchSaving"
+                @click="saveBatch"
+              >
+                保存全部
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- slug 弹框 -->
@@ -293,14 +336,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { fetchPolymarketEvents, type MarketEvent } from "./polymarket";
+import EventQuotePanel from "./EventQuotePanel.vue";
+import { formatClock } from "./polymarket-quote";
 import {
   useEventStore,
   parseSlugList,
   type StoredEvent,
 } from "../../composables/useEventStore";
+import { useEventQuotes } from "../../composables/useEventQuotes";
 
 // 解构出来，让每个 ref 成为顶层绑定 —— 否则模板里的 `store.xxx` 不会自动解包。
 const {
@@ -323,6 +369,16 @@ const {
   addManyBySlugs,
 } = useEventStore();
 
+const {
+  quotes,
+  loading: quotesLoading,
+  error: quotesError,
+  lastUpdated: quotesLastUpdated,
+  getQuote,
+  hasQuote,
+  refresh: fetchQuotes,
+} = useEventQuotes();
+
 const events = ref<MarketEvent[]>([]);
 
 // 事件列表只从接口取一次；「已管理」「屏蔽词」两个过滤条件都作用在 computed 上，
@@ -332,6 +388,40 @@ const visibleEvents = computed(() => filterVisible(events.value));
 async function loadEvents() {
   events.value = await fetchPolymarketEvents();
 }
+
+// ===== 已收藏：行情 =====
+//
+// 收藏记录里只有 slug / 标题，概率和成交量得另外拉。这里把两者配成对，
+// 模板里就不必反复调 getQuote() 再处理 null。
+const favoriteCards = computed(() =>
+  favorites.value.map((event) => ({
+    event,
+    quote: quotes.value[event.slug] ?? null,
+  })),
+);
+
+const favoriteSlugs = computed(() => favorites.value.map((event) => event.slug));
+
+const quotesUpdatedAt = computed(() =>
+  quotesLastUpdated.value ? formatClock(quotesLastUpdated.value) : "",
+);
+
+function refreshQuotes() {
+  return fetchQuotes(favoriteSlugs.value);
+}
+
+// 新收藏进来的事件还没行情时补拉一次。只在「缺行情的 slug 组合」变化时触发，
+// 拉到结果之后组合变成空串，不会再触发，不存在来回刷的死循环。
+watch(
+  () =>
+    favorites.value
+      .filter((event) => !hasQuote(event.slug))
+      .map((event) => event.slug)
+      .join("|"),
+  (pending) => {
+    if (pending) refreshQuotes();
+  },
+);
 
 // ===== 已收藏：备注 =====
 const editingSlug = ref("");
@@ -384,6 +474,8 @@ async function saveByInput() {
 const hiddenOpen = ref(false);
 
 // ===== 批量收藏 =====
+// 默认折叠、并且放在页面最底下：它是「一次性导入」用的，不该抢收藏列表的位置。
+const batchOpen = ref(false);
 const batchInput = ref("");
 const batchSaving = ref(false);
 const batchCount = computed(() => parseSlugList(batchInput.value).slugs.length);
@@ -442,6 +534,9 @@ function copySlugs() {
 // 必须在 onMounted 里读库：vite-ssg 预渲染跑在 Node 上，没有 indexedDB。
 onMounted(async () => {
   await Promise.all([init(), loadEvents()]);
+  // 收藏读出来之后才知道要拉哪些 slug，所以放在 init 之后。
+  // 不 await：行情慢不该拖住首屏，卡片会先显示「行情加载中…」。
+  refreshQuotes();
 });
 </script>
 
@@ -686,13 +781,41 @@ onMounted(async () => {
   border-radius: 6px;
 }
 
+/* 行情状态提示 */
+.quotes-updated {
+  font-size: 12px;
+  color: #909399;
+}
+
+.quotes-error {
+  font-size: 12px;
+  color: #d53a3a;
+}
+
+.quote-placeholder {
+  border-top: 1px dashed #e4e7ed;
+  padding-top: 10px;
+  font-size: 12px;
+  color: #a8abb2;
+}
+
+.quote-placeholder.error {
+  color: #d53a3a;
+}
+
 /* 批量收藏 */
 .batch-bar {
-  margin-top: 16px;
+  margin-top: 10px;
   padding: 14px 16px;
   background: #fff;
   border: 1px dashed #dcdfe6;
   border-radius: 8px;
+}
+
+.batch-toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .batch-title {

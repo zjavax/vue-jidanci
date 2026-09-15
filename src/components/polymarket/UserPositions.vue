@@ -1,6 +1,14 @@
 <template>
   <div class="positions-container">
-    <h2>我的仓位（zjavax）</h2>
+    <h2>
+      我的仓位（<a
+        class="account-link"
+        href="https://polymarket.com/zh/@zjavax"
+        target="_blank"
+        rel="noopener"
+        >zjavax</a
+      >）
+    </h2>
     <table class="positions-table">
       <thead>
         <tr>
@@ -83,7 +91,15 @@
       暂无数据
     </div>
 
-    <h2 style="margin-top: 40px">我的仓位（zjavax2）</h2>
+    <h2 style="margin-top: 40px">
+      我的仓位（<a
+        class="account-link"
+        href="https://polymarket.com/zh/@zjavax2"
+        target="_blank"
+        rel="noopener"
+        >zjavax2</a
+      >）
+    </h2>
     <table class="positions-table">
       <thead>
         <tr>
@@ -191,9 +207,22 @@
         </div>
       </div>
       <div class="grand-sub">
-        zjavax：买入 {{ total.initialValue.toFixed(0) }} · 份额
+        <a
+          class="account-link"
+          href="https://polymarket.com/zh/@zjavax"
+          target="_blank"
+          rel="noopener"
+          >zjavax</a
+        >：买入 {{ total.initialValue.toFixed(0) }} · 份额
         {{ total.size.toFixed(0) }} · 收益 {{ total.cashPnl.toFixed(2) }}
-        ｜ zjavax2：买入 {{ total2.initialValue.toFixed(0) }} · 份额
+        ｜
+        <a
+          class="account-link"
+          href="https://polymarket.com/zh/@zjavax2"
+          target="_blank"
+          rel="noopener"
+          >zjavax2</a
+        >：买入 {{ total2.initialValue.toFixed(0) }} · 份额
         {{ total2.size.toFixed(0) }} · 收益 {{ total2.cashPnl.toFixed(2) }}
       </div>
     </div>
@@ -396,6 +425,21 @@ onMounted(() => {
 
 .title-link:hover {
   text-decoration: underline;
+}
+
+/* 账号名（zjavax / zjavax2）→ 跳转 polymarket 个人主页。
+   默认跟随所在标题的颜色，用虚线下划线暗示可点，避免整行标题变蓝 */
+.account-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed #b9c0cc;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.account-link:hover {
+  color: #3538cd;
+  border-bottom-color: #3538cd;
+  border-bottom-style: solid;
 }
 
 .positive {

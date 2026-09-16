@@ -25,6 +25,18 @@ export interface EventLike {
   title: string
 }
 
+/**
+ * 「较收藏时」的基准：收藏那一刻各选项的概率快照。
+ * 有它，界面上就能显示「从我收藏到现在涨了多少」，而不是接口给的 24h 变动 ——
+ * 竹子关注的是长周期事件（截止日期常在几个月后），24h 波动对他没什么信息量。
+ */
+export interface EventBaseline {
+  /** 基准建立时间 */
+  at: number
+  /** 选项 key（`QuoteOption.key`，形状是 `slug#市场id#下标`）→ 概率（0~1） */
+  prices: Record<string, number>
+}
+
 export interface StoredEvent {
   /** 主键 */
   slug: string
@@ -35,6 +47,11 @@ export interface StoredEvent {
   pinned: boolean
   /** 备注 */
   note: string
+  /**
+   * 收藏时的行情基准。可选：这个字段是后加的，老记录没有；
+   * 另外收藏那一刻行情还没拉到时也会暂时为空。界面会退化成显示 24h 变动。
+   */
+  baseline?: EventBaseline
   /** 首次被标记的时间 */
   createdAt: number
   /** status 最后一次变更的时间 —— 列表排序依据 */
@@ -141,6 +158,24 @@ function isStoredEvent(value: unknown): value is StoredEvent {
   )
 }
 
+/**
+ * 基准是后加的字段，老记录没有；也可能被手改坏。
+ * 校验不过就当没有 —— 界面会退回显示 24h 变动，比渲染出 NaN 好。
+ */
+function normalizeBaseline(value: unknown): EventBaseline | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const raw = value as Partial<EventBaseline>
+  if (typeof raw.at !== 'number' || !raw.prices || typeof raw.prices !== 'object') {
+    return undefined
+  }
+  const prices: Record<string, number> = {}
+  Object.entries(raw.prices).forEach(([key, price]) => {
+    if (typeof price === 'number' && Number.isFinite(price)) prices[key] = price
+  })
+  if (!Object.keys(prices).length) return undefined
+  return { at: raw.at, prices }
+}
+
 /** 补齐缺失字段，避免读到老结构写入的行时炸掉 */
 function normalize(row: StoredEvent): StoredEvent {
   const fallback = Date.now()
@@ -151,6 +186,7 @@ function normalize(row: StoredEvent): StoredEvent {
     status: row.status,
     pinned: row.pinned === true,
     note: typeof row.note === 'string' ? row.note : '',
+    baseline: normalizeBaseline(row.baseline),
     createdAt: typeof row.createdAt === 'number' ? row.createdAt : fallback,
     statusChangedAt:
       typeof row.statusChangedAt === 'number' ? row.statusChangedAt : fallback,

@@ -26,32 +26,42 @@
     </div>
 
     <!-- 活跃事件 -->
-    <div v-for="event in visibleEvents" :key="event.slug" class="event-card">
-      <a
-        :href="`https://polymarket.com/zh/event/${event.slug}`"
-        target="_blank"
-        class="event-title"
-      >
-        {{ event.title }}
-      </a>
-      <div class="action-group">
-        <el-button
-          type="info"
-          plain
-          size="small"
-          @click="markEvent(event, 'hidden')"
+    <div
+      v-for="card in activeCards"
+      :key="card.event.slug"
+      class="event-card"
+      :class="{ 'with-quote': card.quote }"
+    >
+      <div class="card-main">
+        <a
+          :href="`https://polymarket.com/zh/event/${card.event.slug}`"
+          target="_blank"
+          class="event-title"
         >
-          隐藏
-        </el-button>
-        <el-button
-          type="warning"
-          plain
-          size="small"
-          @click="markEvent(event, 'favorite')"
-        >
-          收藏
-        </el-button>
+          {{ card.event.title }}
+        </a>
+        <div class="action-group">
+          <el-button
+            type="info"
+            plain
+            size="small"
+            @click="markEvent(card.event, 'hidden')"
+          >
+            隐藏
+          </el-button>
+          <el-button
+            type="warning"
+            plain
+            size="small"
+            @click="markEvent(card.event, 'favorite', card.quote)"
+          >
+            收藏
+          </el-button>
+        </div>
       </div>
+
+      <!-- 默认铺开前 3 项，其余折在「展开其余 N 项」后面 -->
+      <EventQuotePanel v-if="card.quote" :quote="card.quote" />
     </div>
 
     <!-- 管理区域：不再依赖「有没有已管理事件」才渲染。
@@ -190,8 +200,13 @@
               </div>
             </div>
 
-            <!-- 行情明细：截止时间 / 成交量 + 选项概率表 -->
-            <EventQuotePanel v-if="card.quote" :quote="card.quote" />
+            <!-- 行情明细：截止时间 / 成交量 + 选项概率表。
+                 传了 baseline 就把「24h变动」列换成「较收藏时」。 -->
+            <EventQuotePanel
+              v-if="card.quote"
+              :quote="card.quote"
+              :baseline="card.event.baseline"
+            />
             <div v-else-if="quotesLoading" class="quote-placeholder">
               行情加载中…
             </div>
@@ -340,7 +355,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { fetchPolymarketEvents, type MarketEvent } from "./polymarket";
 import EventQuotePanel from "./EventQuotePanel.vue";
-import { formatClock } from "./polymarket-quote";
+import { buildEventQuote, formatClock } from "./polymarket-quote";
 import {
   useEventStore,
   parseSlugList,
@@ -365,6 +380,7 @@ const {
   clearByStatus,
   togglePin,
   setNote,
+  ensureBaselines,
   addBySlugOrUrl,
   addManyBySlugs,
 } = useEventStore();
@@ -388,6 +404,31 @@ const visibleEvents = computed(() => filterVisible(events.value));
 async function loadEvents() {
   events.value = await fetchPolymarketEvents();
 }
+
+// ===== 活跃列表：行情 =====
+//
+// 列表接口（/events/keyset）返回的事件**本身就带着 markets**，所以正常情况下
+// 一条额外请求都不用打。万一某条没带 markets（接口字段变动），就把缺的 slug
+// 交给行情层补拉 —— 有兜底，不必赌接口形状。
+const activeCards = computed(() =>
+  visibleEvents.value.map((event) => ({
+    event,
+    quote:
+      quotes.value[event.slug] ??
+      (event.markets?.length ? buildEventQuote(event) : null),
+  })),
+);
+
+const missingActiveSlugs = computed(() =>
+  visibleEvents.value
+    .filter((event) => !event.markets?.length && !hasQuote(event.slug))
+    .map((event) => event.slug)
+    .join("|"),
+);
+
+watch(missingActiveSlugs, (pending) => {
+  if (pending) fetchQuotes(pending.split("|"));
+});
 
 // ===== 已收藏：行情 =====
 //
@@ -420,6 +461,24 @@ watch(
       .join("|"),
   (pending) => {
     if (pending) refreshQuotes();
+  },
+);
+
+// 给「还没有基准」的收藏补一个基准 —— 这个功能上线前收藏的老记录，
+// 以及收藏那一刻行情还没拉到的。ensureBaselines 幂等，补完组合变空串就不再触发。
+watch(
+  () =>
+    favorites.value
+      .filter((event) => !event.baseline && hasQuote(event.slug))
+      .map((event) => event.slug)
+      .join("|"),
+  (pending) => {
+    if (!pending) return;
+    ensureBaselines(
+      pending
+        .split("|")
+        .map((slug) => ({ slug, quote: quotes.value[slug] ?? null })),
+    );
   },
 );
 
@@ -596,6 +655,13 @@ onMounted(async () => {
 .event-card:hover {
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+}
+
+/* 活跃卡片带上行情后改成纵向：标题行 + 行情块 */
+.event-card.with-quote {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
 
 /* 标题链接 */

@@ -16,7 +16,12 @@ import { computed, ref, watch } from 'vue'
 import {
   fetchPolymarketEvent,
   fetchPolymarketEventsBySlugs,
+  type MarketEvent,
 } from '../components/polymarket/polymarket'
+import {
+  buildEventQuote,
+  type EventQuote,
+} from '../components/polymarket/polymarket-quote'
 import {
   deleteEvent,
   deleteEventsByStatus,
@@ -24,6 +29,7 @@ import {
   isIndexedDBAvailable,
   putEvent,
   putEvents,
+  type EventBaseline,
   type EventLike,
   type EventStatus,
   type StoredEvent,
@@ -32,7 +38,7 @@ import {
 /** 屏蔽词仍然留在 localStorage：它是纯配置、需要同步读取，且不再有人遍历 localStorage */
 const BLOCK_KEY = 'polymarket-block-words'
 
-export type { EventLike, EventStatus, StoredEvent }
+export type { EventBaseline, EventLike, EventStatus, StoredEvent }
 
 function safeDecode(value: string): string {
   try {
@@ -133,6 +139,53 @@ function sortManaged(list: StoredEvent[]): StoredEvent[] {
   })
 }
 
+// ===== 「较收藏时」的基准 =====
+
+/** 行情里每条选项的 key → 概率。没有选项就返回 null（不建立空基准） */
+function pricesOf(quote: EventQuote | null | undefined): Record<string, number> | null {
+  if (!quote?.options.length) return null
+  const prices: Record<string, number> = {}
+  quote.options.forEach((option) => {
+    prices[option.key] = option.price
+  })
+  return prices
+}
+
+/**
+ * 从事件自己带的 markets 现算一份行情。
+ * 批量收藏时接口返回的事件就带着 markets，不用再多打一次请求。
+ */
+function quoteFromEvent(event: EventLike): EventQuote | null {
+  const markets = (event as MarketEvent).markets
+  if (!markets?.length) return null
+  try {
+    return buildEventQuote(event as MarketEvent)
+  } catch {
+    // 行情结构变了不该让「收藏」这个动作失败
+    return null
+  }
+}
+
+/**
+ * 决定这条记录该带什么基准：
+ *  - 只有收藏需要基准，隐藏不需要；
+ *  - **已经有基准的绝不被覆盖** ——「较收藏时」里的「收藏时」就是收藏那一刻，
+ *    之后再点收藏、改备注都不该把基准往后挪，否则数字会莫名其妙归零；
+ *  - 收藏时行情还没到（刚粘贴链接、接口慢）就先不建，等行情回来由
+ *    ensureBaselines 补上。
+ */
+function nextBaseline(
+  status: EventStatus,
+  timestamp: number,
+  existing: StoredEvent | undefined,
+  quote: EventQuote | null | undefined,
+): EventBaseline | undefined {
+  if (status !== 'favorite') return existing?.baseline
+  if (existing?.baseline) return existing.baseline
+  const prices = pricesOf(quote)
+  return prices ? { at: timestamp, prices } : undefined
+}
+
 export function useEventStore() {
   /** 已管理事件，始终保持「置顶优先 + 时间倒序」 */
   const managed = ref<StoredEvent[]>([])
@@ -210,6 +263,8 @@ export function useEventStore() {
     timestamp: number,
     /** 新记录是否直接置顶。只有「单条收藏」会传 true，见 markEvent */
     pinNew = false,
+    /** 收藏那一刻的行情，用来建立「较收藏时」的基准 */
+    quote?: EventQuote | null,
   ): StoredEvent {
     const existing = managed.value.find((item) => item.slug === event.slug)
     return {
@@ -223,6 +278,7 @@ export function useEventStore() {
       pinned:
         pinNew && status === 'favorite' ? true : (existing?.pinned ?? false),
       note: existing?.note ?? '',
+      baseline: nextBaseline(status, timestamp, existing, quote),
       createdAt: existing?.createdAt ?? timestamp,
       statusChangedAt: timestamp,
       updatedAt: timestamp,
@@ -263,20 +319,34 @@ export function useEventStore() {
   // 等 init 的 promise 先结算，就能保证「先读后写」的顺序。
   // init 内部有 promise 记忆，重复 await 不产生额外开销。
 
-  async function markEvent(event: EventLike, status: EventStatus) {
+  async function markEvent(
+    event: EventLike,
+    status: EventStatus,
+    /** 收藏那一刻的行情。传了才能建立「较收藏时」的基准 */
+    quote?: EventQuote | null,
+  ) {
     await init()
     // 单条收藏默认置顶：刚收藏的立刻出现在最上面
-    const record = buildRecord(event, status, Date.now(), true)
+    const record = buildRecord(event, status, Date.now(), true, quote)
     upsertLocal(record)
     await putEvent(record)
   }
 
-  /** 批量标记，写入合并成单个事务 */
-  async function markMany(events: EventLike[], status: EventStatus) {
+  /**
+   * 批量标记，写入合并成单个事务。
+   * quotes 按 slug 传进来（调用方手上就有）；缺的那条等行情回来由 ensureBaselines 补。
+   */
+  async function markMany(
+    events: EventLike[],
+    status: EventStatus,
+    quotes?: Map<string, EventQuote>,
+  ) {
     if (!events.length) return
     await init()
     const timestamp = Date.now()
-    const records = events.map((event) => buildRecord(event, status, timestamp))
+    const records = events.map((event) =>
+      buildRecord(event, status, timestamp, false, quotes?.get(event.slug)),
+    )
 
     const bySlug = new Map(managed.value.map((item) => [item.slug, item]))
     records.forEach((record) => bySlug.set(record.slug, record))
@@ -321,6 +391,41 @@ export function useEventStore() {
     await putEvent(next)
   }
 
+  /**
+   * 给「还没有基准」的收藏补一个基准，基准时间就是现在。
+   *
+   * 会走到这里的有两种：这个功能上线之前收藏的老记录，以及收藏那一刻行情还没拉到的。
+   * 幂等 —— 已经有基准的一律不动，所以可以在行情每次更新后放心反复调用。
+   * 不碰 statusChangedAt，所以不会让卡片顺序跳动。
+   */
+  async function ensureBaselines(
+    items: { slug: string; quote: EventQuote | null }[],
+  ) {
+    if (!items.length) return
+    await init()
+    const timestamp = Date.now()
+    const bySlug = new Map(managed.value.map((item) => [item.slug, item]))
+    const updated: StoredEvent[] = []
+
+    items.forEach(({ slug, quote }) => {
+      const target = bySlug.get(slug)
+      if (!target || target.status !== 'favorite' || target.baseline) return
+      const prices = pricesOf(quote)
+      if (!prices) return
+      const next: StoredEvent = {
+        ...target,
+        baseline: { at: timestamp, prices },
+        updatedAt: timestamp,
+      }
+      bySlug.set(slug, next)
+      updated.push(next)
+    })
+
+    if (!updated.length) return
+    managed.value = sortManaged([...bySlug.values()])
+    await putEvents(updated)
+  }
+
   /** 粘贴链接或 slug 直接收藏 */
   async function addBySlugOrUrl(
     input: string,
@@ -331,7 +436,8 @@ export function useEventStore() {
     const event = await fetchPolymarketEvent(slug)
     if (!event) return { ok: false, message: `没有找到 slug 为「${slug}」的事件` }
 
-    await markEvent(event, 'favorite')
+    // 刚查回来的事件就带着 markets，顺手把基准建上，不用等界面再拉一次行情
+    await markEvent(event, 'favorite', quoteFromEvent(event))
     return { ok: true, title: event.title }
   }
 
@@ -360,8 +466,16 @@ export function useEventStore() {
     const fetchedSlugs = new Set(fetched.map((event) => event.slug))
     const notFound = toFetch.filter((slug) => !fetchedSlugs.has(slug))
 
+    // 基准：只有「刚查回来的」那些能现算；从库里翻出来的（原本是隐藏）没有 markets，
+    // 等界面拉到行情后由 ensureBaselines 补。
+    const quotes = new Map<string, EventQuote>()
+    fetched.forEach((event) => {
+      const quote = quoteFromEvent(event)
+      if (quote) quotes.set(event.slug, quote)
+    })
+
     const records: EventLike[] = [...fromLibrary, ...fetched]
-    if (records.length) await markMany(records, 'favorite')
+    if (records.length) await markMany(records, 'favorite', quotes)
 
     return {
       added: records.length,
@@ -397,6 +511,7 @@ export function useEventStore() {
     clearByStatus,
     togglePin,
     setNote,
+    ensureBaselines,
     addBySlugOrUrl,
     addManyBySlugs,
   }

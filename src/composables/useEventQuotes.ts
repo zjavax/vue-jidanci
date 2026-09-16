@@ -27,8 +27,12 @@ export function useEventQuotes() {
   /** 接口没返回的 slug */
   const missing = ref<string[]>([])
 
-  // 同一时刻只允许一个刷新在飞，避免连点「刷新行情」打出一堆并发请求
+  // 同一时刻只允许一个刷新在飞。**还要记住它覆盖了哪些 slug** ——
+  // 只看「有没有在飞」不够：收藏列表和活跃列表会用不同的 slug 各调一次，
+  // 直接复用在飞的那个会让后到的 slug 被静默丢掉；
+  // 而无脑排队又会让同一批 slug 被重复请求（实测收藏那两行打了 2 次同样的请求）。
   let inFlight: Promise<void> | null = null
+  let inFlightSlugs = new Set<string>()
 
   function getQuote(slug: string): EventQuote | null {
     return quotes.value[slug] ?? null
@@ -41,23 +45,24 @@ export function useEventQuotes() {
   /**
    * 按 slug 列表刷新行情。
    *
-   * 关键约定：**失败不清空已有行情**。网络抖一下就把满屏数据擦成空白，
-   * 比显示一份略旧的数据糟糕得多，所以只在拿到结果时覆盖。
+   * 两条约定：
+   * - **只增不删**。失败或空列表都不清空已有行情：网络抖一下就把满屏数据擦成空白，
+   *   比显示一份略旧的数据糟糕得多。（缓存里留几条不再展示的旧行情，代价可以忽略。）
+   * - **能复用就复用，覆盖不到才排队**。在飞的请求已经覆盖这批 slug → 直接返回它；
+   *   覆盖不到（另一批 slug）→ 等它结算再发自己的。
    */
   async function refresh(slugs: string[]): Promise<void> {
-    if (inFlight) return inFlight
-
     const unique = [...new Set(slugs.filter(Boolean))]
-    if (!unique.length) {
-      quotes.value = {}
-      missing.value = []
-      error.value = ''
-      lastUpdated.value = 0
-      return
+    if (!unique.length) return
+
+    if (inFlight) {
+      if (unique.every((slug) => inFlightSlugs.has(slug))) return inFlight
+      await inFlight
     }
 
     loading.value = true
     error.value = ''
+    inFlightSlugs = new Set(unique)
 
     inFlight = (async () => {
       try {
@@ -83,6 +88,7 @@ export function useEventQuotes() {
       } finally {
         loading.value = false
         inFlight = null
+        inFlightSlugs = new Set()
       }
     })()
 

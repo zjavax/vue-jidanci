@@ -1,9 +1,9 @@
-export interface MarketEvent {
-  id: string
-  slug: string
-  title: string
-  updateStatus: string
-}
+// 事件的字段形状和 polymarket.ts 完全一致（同一个 gamma-api），
+// 所以直接复用那份类型，别在这儿再抄一份窄的 —— 抄窄了就拿不到
+// markets / volume24hr / tags，卡片也就渲染不出行情。
+import type { MarketEvent } from './polymarket'
+
+export type { MarketEvent }
 
 interface ApiResponse {
   events: MarketEvent[]

@@ -11,7 +11,7 @@
     </h2>
     <div class="account-wallet">
       <span class="wallet-item">
-        <span class="wallet-label">资金组合</span>
+        <span class="wallet-label">资产组合</span>
         <span class="wallet-value">{{ money(walletCombined.total) }}</span>
       </span>
       <span class="wallet-item">
@@ -116,7 +116,7 @@
     </h2>
     <div class="account-wallet">
       <span class="wallet-item">
-        <span class="wallet-label">资金组合</span>
+        <span class="wallet-label">资产组合</span>
         <span class="wallet-value">{{ money(walletCombined2.total) }}</span>
       </span>
       <span class="wallet-item">
@@ -234,7 +234,7 @@
           </span>
         </div>
         <div class="grand-metric">
-          <span class="grand-label">总资产</span>
+          <span class="grand-label">总资产组合</span>
           <span class="grand-value">{{ money(grandAsset) }}</span>
         </div>
         <div class="grand-metric">
@@ -248,7 +248,7 @@
       </div>
       <div class="grand-sub">
         当前总价值 = 两个账号持仓市值合计；现金 = pUSD + USDC.e 链上余额；
-        总资产 = 当前总价值 + 现金。
+        总资产组合 = 当前总价值 + 现金。
       </div>
       <div class="grand-sub">
         <a
@@ -299,7 +299,7 @@ const wallet2 = ref<AccountWallet>({ ...EMPTY_WALLET });
 const money = (value: number | null | undefined) =>
   value === undefined ? "…" : value === null ? "—" : value.toFixed(2);
 
-/** 资金组合 = 现金 + 持仓总价值（Polymarket 口径的 Portfolio）。任一项缺失则整体未知。 */
+/** 资产组合 = 现金 + 持仓总价值（Polymarket 口径的 Portfolio）。任一项缺失则整体未知。 */
 const combineWallet = (w: AccountWallet) => {
   const pending = w.cash === undefined || w.portfolio === undefined;
   const failed = w.cash === null || w.portfolio === null;
@@ -361,7 +361,7 @@ const grandWallet = computed(() => {
   return { cash: sum("cash"), portfolio: sum("portfolio"), total: sum("total") };
 });
 
-/** 总资产 = 持仓总价值 + 现金。用官方 /value 的持仓值，避免被 limit 截断。 */
+/** 总资产组合 = 持仓总价值 + 现金。用官方 /value 的持仓值，避免被 limit 截断。 */
 const grandAsset = computed(() => {
   const p = grandWallet.value.portfolio;
   const c = grandWallet.value.cash;
@@ -626,9 +626,14 @@ onMounted(() => {
     overflow-wrap: anywhere;
   }
 
-  .positions-table th {
+  /* 表头允许换行，否则会把列撑宽。
+     ⚠️ 必须带上 `:nth-child(n + 3)` —— 桌面的数值列规则
+     `.positions-table th:nth-child(n + 3) { white-space: nowrap }` 权重 (0,2,1) 更高，
+     只写 `.positions-table th` 是 (0,1,1) 覆盖不掉，第 3 列起的表头会一直 nowrap，
+     「百分比收益」就是这么撑出 5px 横向溢出的。 */
+  .positions-table th,
+  .positions-table th:nth-child(n + 3) {
     font-size: 9px;
-    /* 表头允许换行，否则会把列撑宽 */
     white-space: normal;
   }
 

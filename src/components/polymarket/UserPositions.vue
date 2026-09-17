@@ -9,6 +9,20 @@
         >zjavax</a
       >）
     </h2>
+    <div class="account-wallet">
+      <span class="wallet-item">
+        <span class="wallet-label">资金组合</span>
+        <span class="wallet-value">{{ money(walletCombined.total) }}</span>
+      </span>
+      <span class="wallet-item">
+        <span class="wallet-label">现金</span>
+        <span class="wallet-value">{{ money(walletCombined.cash) }}</span>
+      </span>
+      <span class="wallet-item">
+        <span class="wallet-label">持仓总价值</span>
+        <span class="wallet-value">{{ money(walletCombined.portfolio) }}</span>
+      </span>
+    </div>
     <table class="positions-table">
       <thead>
         <tr>
@@ -100,6 +114,20 @@
         >zjavax2</a
       >）
     </h2>
+    <div class="account-wallet">
+      <span class="wallet-item">
+        <span class="wallet-label">资金组合</span>
+        <span class="wallet-value">{{ money(walletCombined2.total) }}</span>
+      </span>
+      <span class="wallet-item">
+        <span class="wallet-label">现金</span>
+        <span class="wallet-value">{{ money(walletCombined2.cash) }}</span>
+      </span>
+      <span class="wallet-item">
+        <span class="wallet-label">持仓总价值</span>
+        <span class="wallet-value">{{ money(walletCombined2.portfolio) }}</span>
+      </span>
+    </div>
     <table class="positions-table">
       <thead>
         <tr>
@@ -205,6 +233,22 @@
             {{ grandTotal.cashPnl.toFixed(2) }}
           </span>
         </div>
+        <div class="grand-metric">
+          <span class="grand-label">总资产</span>
+          <span class="grand-value">{{ money(grandAsset) }}</span>
+        </div>
+        <div class="grand-metric">
+          <span class="grand-label">现金</span>
+          <span class="grand-value">{{ money(grandWallet.cash) }}</span>
+        </div>
+        <div class="grand-metric">
+          <span class="grand-label">当前总价值</span>
+          <span class="grand-value">{{ money(grandWallet.portfolio) }}</span>
+        </div>
+      </div>
+      <div class="grand-sub">
+        当前总价值 = 两个账号持仓市值合计；现金 = pUSD + USDC.e 链上余额；
+        总资产 = 当前总价值 + 现金。
       </div>
       <div class="grand-sub">
         <a
@@ -232,11 +276,46 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { fetchUserPositions, UserPosition } from "./polymarket-positions";
+import {
+  fetchAccountWallet,
+  type AccountWallet,
+  EMPTY_WALLET,
+} from "./polymarket-wallet";
+
+/** 两个账号的钱包地址。加账号时改这里 + 模板里的两张表。 */
+const ADDRESS_ZJAVAX = "0xb976609df37a76d5213b414833d9cb9cbd395876";
+const ADDRESS_ZJAVAX2 = "0xe5c47cd9a52960df9730a05ed9a9b3959ab02231";
 
 const positions = ref<UserPosition[]>([]);
 const loading = ref<boolean>(true);
 const positions2 = ref<UserPosition[]>([]);
 const loading2 = ref<boolean>(true);
+
+/** 每个账号的链上现金 / 持仓总价值（undefined = 加载中，null = 取不到） */
+const wallet = ref<AccountWallet>({ ...EMPTY_WALLET });
+const wallet2 = ref<AccountWallet>({ ...EMPTY_WALLET });
+
+/** 金额展示：加载中「…」、取不到「—」，绝不拿 0 冒充读不到 */
+const money = (value: number | null | undefined) =>
+  value === undefined ? "…" : value === null ? "—" : value.toFixed(2);
+
+/** 资金组合 = 现金 + 持仓总价值（Polymarket 口径的 Portfolio）。任一项缺失则整体未知。 */
+const combineWallet = (w: AccountWallet) => {
+  const pending = w.cash === undefined || w.portfolio === undefined;
+  const failed = w.cash === null || w.portfolio === null;
+  return {
+    cash: w.cash,
+    portfolio: w.portfolio,
+    total: pending
+      ? undefined
+      : failed
+        ? null
+        : (w.cash as number) + (w.portfolio as number),
+  };
+};
+
+const walletCombined = computed(() => combineWallet(wallet.value));
+const walletCombined2 = computed(() => combineWallet(wallet2.value));
 
 /** 汇总一个账号的所有仓位：总买入 / 总份额 / 总当前价值 / 总收益 / 总收益率（按买入额加权） */
 const summarize = (list: UserPosition[]) => {
@@ -270,10 +349,31 @@ const grandTotal = computed(() => {
   };
 });
 
+/** 两个账号的现金 / 资金组合合计。任一项未知则合计也未知。 */
+const grandWallet = computed(() => {
+  const sum = (key: "cash" | "portfolio" | "total") => {
+    const a = walletCombined.value[key];
+    const b = walletCombined2.value[key];
+    if (a === undefined || b === undefined) return undefined;
+    if (a === null || b === null) return null;
+    return a + b;
+  };
+  return { cash: sum("cash"), portfolio: sum("portfolio"), total: sum("total") };
+});
+
+/** 总资产 = 持仓总价值 + 现金。用官方 /value 的持仓值，避免被 limit 截断。 */
+const grandAsset = computed(() => {
+  const p = grandWallet.value.portfolio;
+  const c = grandWallet.value.cash;
+  if (p === undefined || c === undefined) return undefined;
+  if (p === null || c === null) return null;
+  return p + c;
+});
+
 const loadPositions = async () => {
   loading.value = true;
   try {
-    positions.value = await fetchUserPositions();
+    positions.value = await fetchUserPositions(ADDRESS_ZJAVAX);
   } catch (error) {
     console.error("Failed to load positions:", error);
   } finally {
@@ -284,9 +384,7 @@ const loadPositions = async () => {
 const loadPositions2 = async () => {
   loading2.value = true;
   try {
-    positions2.value = await fetchUserPositions(
-      "0xe5c47cd9a52960df9730a05ed9a9b3959ab02231"
-    );
+    positions2.value = await fetchUserPositions(ADDRESS_ZJAVAX2);
   } catch (error) {
     console.error("Failed to load positions:", error);
   } finally {
@@ -294,9 +392,19 @@ const loadPositions2 = async () => {
   }
 };
 
+const loadWallet = async () => {
+  wallet.value = await fetchAccountWallet(ADDRESS_ZJAVAX);
+};
+
+const loadWallet2 = async () => {
+  wallet2.value = await fetchAccountWallet(ADDRESS_ZJAVAX2);
+};
+
 onMounted(() => {
   loadPositions();
   loadPositions2();
+  loadWallet();
+  loadWallet2();
 });
 </script>
 
@@ -366,6 +474,35 @@ onMounted(() => {
   font-weight: 600;
 }
 
+/* 每个账号标题下的钱包概况：现金 / 持仓总价值 / 资金组合 */
+.account-wallet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 8px 12px;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  background-color: #f8fafc;
+}
+
+.wallet-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.wallet-label {
+  font-size: 12px;
+  color: #667085;
+}
+
+.wallet-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
 /* 两个账号合并后的总计 */
 .grand-total {
   margin-top: 36px;
@@ -382,13 +519,14 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 
+/* 6 个指标 → 3 列 × 2 行 */
 .grand-total-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
 .grand-metric {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -514,6 +652,24 @@ onMounted(() => {
   .positions-table tfoot .total-row td {
     font-size: 10px;
     padding: 7px 2px;
+  }
+
+  .account-wallet {
+    gap: 4px 14px;
+    padding: 6px 8px;
+    margin-bottom: 2px;
+  }
+
+  .wallet-item {
+    gap: 4px;
+  }
+
+  .wallet-label {
+    font-size: 11px;
+  }
+
+  .wallet-value {
+    font-size: 12px;
   }
 
   .grand-total {

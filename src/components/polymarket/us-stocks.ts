@@ -107,19 +107,21 @@ export async function fetchTopUsStocks(limit = 10): Promise<UsStock[] | null> {
     });
 
     // 去重：① 非普通股直接丢（存托凭证/优先股，它们和正股共享市值）；
-    // ② 同一市值视为同一家公司的多个股份类别，只留一个。
-    //    留哪个？按成交量挑最大的 —— 实测 Alphabet 会同时返回 GOOGL / GOOG（市值相同），
-    //    且**返回顺序不稳定**（america 与 global 两个端点给的先后不一样），
-    //    靠成交量选能稳定落到主流报价上（GOOGL 成交量通常高于 GOOG）。
-    const byMarketCap = new Map<number, UsStock & { volume: number }>();
+    // ② 同一家公司只留一条 —— 用**公司名**做 key，留成交量最大的那个
+    //    （GOOGL 成交量通常高于 GOOG）。
+    // ⚠️ 不能拿「市值相等」当 key：2026-09-18 实测 GOOGL / GOOG 的 `market_cap_basic`
+    //    已经变成两个**略有差异**的值（界面上都显示 4.21 万亿，但不全等），
+    //    精确匹配会漏掉，结果前十里同时出现 GOOGL 和 GOOG。
+    const byCompany = new Map<string, UsStock & { volume: number }>();
     for (const row of rows) {
       if (!row.ticker || !row.marketCap) continue;
       if (NON_COMMON_RE.test(row.name)) continue;
-      const prev = byMarketCap.get(row.marketCap);
-      if (!prev || row.volume > prev.volume) byMarketCap.set(row.marketCap, row);
+      const key = (row.name || row.ticker).trim().toLowerCase();
+      const prev = byCompany.get(key);
+      if (!prev || row.volume > prev.volume) byCompany.set(key, row);
     }
 
-    return [...byMarketCap.values()]
+    return [...byCompany.values()]
       .sort((a, b) => b.marketCap - a.marketCap)
       .slice(0, limit)
       .map(({ volume: _volume, ...stock }) => stock);

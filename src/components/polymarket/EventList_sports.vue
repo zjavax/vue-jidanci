@@ -39,6 +39,35 @@
       </span>
     </div>
 
+    <!-- 数据工具条：重新拉一次事件列表 + 已收藏的行情。
+         放在屏蔽词下面、事件卡片上面 —— 这里是「页面上所有数据」的总开关，
+         和已收藏分组头里那个只刷行情的「刷新行情」不是一回事。
+         「跳到已收藏」只是滚动导航，不发任何请求。 -->
+    <div class="list-toolbar">
+      <el-button
+        type="primary"
+        plain
+        size="small"
+        :loading="eventsLoading"
+        @click="reloadAll"
+      >
+        刷新数据
+      </el-button>
+      <el-button
+        type="primary"
+        plain
+        size="small"
+        :disabled="!favorites.length"
+        @click="scrollToFavorites"
+      >
+        跳到已收藏事件
+      </el-button>
+      <span v-if="eventsFetchedClock" class="fetched-at">
+        数据获取于 {{ eventsFetchedClock }}
+      </span>
+      <span v-if="eventsError" class="fetched-error">{{ eventsError }}</span>
+    </div>
+
     <!-- 活跃事件 -->
     <div
       v-for="card in activeCards"
@@ -85,8 +114,8 @@
     <div class="managed-section">
       <el-divider content-position="left">已管理事件</el-divider>
 
-      <!-- 已收藏 -->
-      <div class="sub-group">
+      <!-- 已收藏。这个 ref 是工具条上「跳到已收藏」的锚点 -->
+      <div ref="favoritesAnchor" class="sub-group">
         <div class="search-bar">
           <el-input
             v-model="input"
@@ -258,8 +287,14 @@
           </el-button>
         </div>
 
-        <!-- 使用 template 包裹 v-for，解决优先级问题 -->
-        <div v-show="hiddenOpen" class="collapse-body">
+        <!-- 使用 template 包裹 v-for，解决优先级问题。
+             这里必须是 v-if 而不是 v-show：v-show 只是 display:none，
+             隐藏列表的卡片节点和里面的 el-button 组件实例照样全部创建，
+             隐藏几百条时光首屏建节点就够卡了。改成 v-if 之后，没展开时
+             这块 DOM 根本不存在，点标题才渲染。
+             数据本来就在 IndexedDB 里（hiddenEvents 是个纯 computed），
+             所以「点击才获取」不需要额外请求，展开时同步渲染即可。 -->
+        <div v-if="hiddenOpen" class="collapse-body">
           <template v-for="event in hiddenEvents" :key="event.slug">
           <div class="event-card managed">
             <div class="card-inner">
@@ -409,8 +444,61 @@ const events = ref<MarketEvent[]>([]);
 
 const visibleEvents = computed(() => filterVisible(events.value));
 
+const eventsLoading = ref(false);
+const eventsError = ref("");
+/** 列表最后一次成功拉取的时刻 */
+const eventsFetchedAt = ref(0);
+
+const eventsFetchedClock = computed(() =>
+  eventsFetchedAt.value ? formatClock(eventsFetchedAt.value) : "",
+);
+
+/**
+ * 请求序号：连点刷新、或快速切标签时，只认最后一次的结果。
+ * 不能用「正在加载就直接 return」来防连点 —— 那会让切标签丢掉后一次请求，
+ * 出现「标签已经切了、列表还是上一个分类」的错位。
+ */
+let loadSeq = 0;
+
 async function loadEvents() {
-  events.value = await fetchPolymarketEvents(activeTag.value);
+  const seq = ++loadSeq;
+  const tag = activeTag.value; // 先固定住，别等 await 回来再读（那时可能已经切了）
+  eventsLoading.value = true;
+  eventsError.value = "";
+  try {
+    const list = await fetchPolymarketEvents(tag);
+    if (seq !== loadSeq) return; // 已经有更新的请求发出去了，这次结果作废
+    // fetchPolymarketEvents 把异常吞掉、返回 []，所以「空结果」只能当失败处理。
+    // 这时**保留旧列表** —— 刷新失败不该把正在看的内容清空。
+    if (!list.length) {
+      eventsError.value = "没拿到数据，请检查网络后重试";
+      return;
+    }
+    events.value = list;
+    eventsFetchedAt.value = Date.now();
+  } finally {
+    if (seq === loadSeq) eventsLoading.value = false;
+  }
+}
+
+/**
+ * 「刷新数据」：事件列表和已收藏的行情一起重拉。
+ * 只刷一半会出现「列表是新的、行情是旧的」，看着像数据错乱。
+ */
+async function reloadAll() {
+  await Promise.all([loadEvents(), refreshQuotes()]);
+}
+
+/** 「已收藏」分组的锚点。工具条在页面顶部，收藏区在最下面，中间隔着上百条活跃事件。 */
+const favoritesAnchor = ref<HTMLElement | null>(null);
+
+/**
+ * 「跳到已收藏」：把收藏区滚到视口顶部。
+ * 用 ref 拿元素，而不是 querySelector('.sub-group') —— 「已隐藏」「批量收藏」用的是同一个
+ * class，按 class 取会滚错地方。
+ */
+function scrollToFavorites() {
+  favoritesAnchor.value?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function switchTag(tag: string) {
@@ -643,6 +731,24 @@ onMounted(async () => {
   font-size: 12px;
   color: #909399;
   flex-shrink: 0;
+}
+
+/* 数据工具条 */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fetched-at {
+  font-size: 12px;
+  color: #909399;
+}
+
+.fetched-error {
+  font-size: 12px;
+  color: #d53a3a;
 }
 
 /* 卡片样式 */

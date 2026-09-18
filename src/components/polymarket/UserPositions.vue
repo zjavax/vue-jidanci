@@ -1,6 +1,15 @@
 <template>
   <div class="positions-page">
     <div class="positions-container">
+      <div class="page-topbar">
+        <a
+          class="status-link"
+          href="https://status.polymarket.com/"
+          target="_blank"
+          rel="noopener"
+          >pm当前状态</a
+        >
+      </div>
       <h2>
         我的仓位（<a
           class="account-link"
@@ -541,6 +550,33 @@ onMounted(() => {
   flex: 1 1 auto;
   min-width: 0;
   color: #1f2937;
+}
+
+/* 页面顶部的工具链接：Polymarket 服务状态页 */
+.page-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.status-link {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid #d6d9e0;
+  border-radius: 999px;
+  background-color: #ffffff;
+  color: #3538cd;
+  font-size: 12px;
+  line-height: 1.6;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.status-link:hover {
+  border-color: #3538cd;
+  background-color: #f5f6ff;
 }
 
 .positions-container h2 {

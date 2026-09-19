@@ -40,6 +40,7 @@
             <th>选择</th>
             <th>买入</th>
             <th>份额</th>
+            <th>预计收益</th>
             <th>平均价格</th>
             <th>当前价格</th>
             <th>当前价值</th>
@@ -61,6 +62,7 @@
             <td>{{ position.outcome }}</td>
             <td>{{ position.initialValue.toFixed(0) }}</td>
             <td>{{ position.size.toFixed(0) }}</td>
+            <td>{{ (position.size - position.initialValue).toFixed(0) }}</td>
             <td>{{ position.avgPrice.toFixed(2) }}</td>
             <td>{{ position.curPrice.toFixed(2) }}</td>
             <td>{{ position.currentValue.toFixed(0) }}</td>
@@ -88,6 +90,7 @@
             <td></td>
             <td>{{ total.initialValue.toFixed(0) }}</td>
             <td>{{ total.size.toFixed(0) }}</td>
+            <td>{{ total.estimatedPnl.toFixed(0) }}</td>
             <td></td>
             <td></td>
             <td>{{ total.currentValue.toFixed(0) }}</td>
@@ -145,6 +148,7 @@
             <th>选择</th>
             <th>买入</th>
             <th>份额</th>
+            <th>预计收益</th>
             <th>平均价格</th>
             <th>当前价格</th>
             <th>当前价值</th>
@@ -166,6 +170,7 @@
             <td>{{ position.outcome }}</td>
             <td>{{ position.initialValue.toFixed(0) }}</td>
             <td>{{ position.size.toFixed(0) }}</td>
+            <td>{{ (position.size - position.initialValue).toFixed(0) }}</td>
             <td>{{ position.avgPrice.toFixed(2) }}</td>
             <td>{{ position.curPrice.toFixed(2) }}</td>
             <td>{{ position.currentValue.toFixed(0) }}</td>
@@ -193,6 +198,7 @@
             <td></td>
             <td>{{ total2.initialValue.toFixed(0) }}</td>
             <td>{{ total2.size.toFixed(0) }}</td>
+            <td>{{ total2.estimatedPnl.toFixed(0) }}</td>
             <td></td>
             <td></td>
             <td>{{ total2.currentValue.toFixed(0) }}</td>
@@ -242,6 +248,10 @@
             >
               {{ grandTotal.cashPnl.toFixed(2) }}
             </span>
+          </div>
+          <div class="grand-metric">
+            <span class="grand-label">总预计收益</span>
+            <span class="grand-value">{{ grandTotal.estimatedPnl.toFixed(0) }}</span>
           </div>
           <div class="grand-metric">
             <span class="grand-label">总资产组合</span>
@@ -431,6 +441,9 @@ const summarize = (list: UserPosition[]) => {
     size,
     currentValue,
     cashPnl,
+    // 预计收益 = 份额 − 买入。Polymarket 每份结算价固定 $1，
+    // 所以「份额 × 1」就是全部押对时的回报，减去买入即净收益。
+    estimatedPnl: size - initialValue,
     percentPnl: initialValue > 0 ? (cashPnl / initialValue) * 100 : 0,
   };
 };
@@ -448,6 +461,7 @@ const grandTotal = computed(() => {
     size: a.size + b.size,
     currentValue: a.currentValue + b.currentValue,
     cashPnl,
+    estimatedPnl: a.estimatedPnl + b.estimatedPnl,
     percentPnl: initialValue > 0 ? (cashPnl / initialValue) * 100 : 0,
   };
 });

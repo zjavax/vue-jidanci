@@ -2,6 +2,23 @@
   <div class="positions-page">
     <div class="positions-container">
       <div class="page-topbar">
+        <div v-if="hlQuote" class="hl-quote">
+          <span class="hl-name">Hyperliquid io:ANTH</span>
+          <span class="hl-mark">{{ formatHlPrice(hlQuote.mark) }}</span>
+          <span
+            class="hl-chg"
+            :class="{
+              positive: hlQuote.changePct > 0,
+              negative: hlQuote.changePct < 0,
+            }"
+            >{{ hlQuote.changePct >= 0 ? "+" : ""
+            }}{{ hlQuote.changePct.toFixed(2) }}%</span
+          >
+          <span class="hl-val"
+            >隐含估值
+            {{ formatMarketCap(hlQuote.valTrillion * 1e12) }}</span
+          >
+        </div>
         <a
           class="status-link"
           href="https://status.polymarket.com/"
@@ -388,6 +405,7 @@ import {
   formatCryptoPrice,
   type CryptoCoin,
 } from "./crypto-market";
+import { fetchHlQuote, formatHlPrice, type HlQuote } from "./hyperliquid";
 
 /** 两个账号的钱包地址。加账号时改这里 + 模板里的两张表。 */
 const ADDRESS_ZJAVAX = "0xb976609df37a76d5213b414833d9cb9cbd395876";
@@ -407,6 +425,9 @@ const topStocks = ref<UsStock[]>([]);
 const stocksLoading = ref<boolean>(true);
 const topCryptos = ref<CryptoCoin[]>([]);
 const cryptosLoading = ref<boolean>(true);
+
+/** 顶部：Hyperliquid io:ANTH 报价（手机端不渲染，见样式里的 @media） */
+const hlQuote = ref<HlQuote | null>(null);
 
 /** 金额展示：加载中「…」、取不到「—」，绝不拿 0 冒充读不到 */
 const money = (value: number | null | undefined) =>
@@ -536,6 +557,11 @@ const loadCryptos = async () => {
   }
 };
 
+const loadHlQuote = async () => {
+  // 取不到返回 null → 顶部报价整块不渲染（不留空壳）
+  hlQuote.value = await fetchHlQuote();
+};
+
 onMounted(() => {
   loadPositions();
   loadPositions2();
@@ -543,6 +569,7 @@ onMounted(() => {
   loadWallet2();
   loadStocks();
   loadCryptos();
+  loadHlQuote();
 });
 </script>
 
@@ -566,11 +593,50 @@ onMounted(() => {
   color: #1f2937;
 }
 
-/* 页面顶部的工具链接：Polymarket 服务状态页 */
+/* 页面顶栏：左侧 Hyperliquid 报价 + 右侧「pm当前状态」链接 */
 .page-topbar {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 10px;
   margin-bottom: 10px;
+}
+
+/* Hyperliquid io:ANTH 报价条。
+   margin-right: auto 把它顶到最左，链接仍靠右；hlQuote 为空时整块不渲染，链接位置不变。 */
+.hl-quote {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-right: auto;
+  padding: 3px 10px;
+  border: 1px solid #e2e5ea;
+  border-radius: 6px;
+  background-color: #fafbfc;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.hl-name {
+  color: #667085;
+}
+
+.hl-mark {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+  /* 数字等宽，刷新时不会左右跳动 */
+  font-variant-numeric: tabular-nums;
+}
+
+.hl-chg {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hl-val {
+  color: #98a2b3;
 }
 
 .status-link {
@@ -894,6 +960,11 @@ onMounted(() => {
 
   /* 手机端不显示右侧行情栏（桌面才有空间放它） */
   .side-column {
+    display: none;
+  }
+
+  /* 手机端不显示顶部 Hyperliquid 报价（竹子指定） */
+  .hl-quote {
     display: none;
   }
 

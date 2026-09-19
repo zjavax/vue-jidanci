@@ -360,7 +360,11 @@ export default {
     </el-form-item>
 
     <el-form-item>
-      <el-button type="primary" @click="addALL">添加数据</el-button>
+      <!-- 方法与本项目其它几个页面一样已下线（见 methods 里被注释的 addALL），
+           按钮漏注释会渲染出一个点了没反应的按钮，并触发
+           "Property addALL was accessed during render but is not defined" 警告。
+           需要恢复该功能时，连同 methods 里的 addALL 一起取消注释即可。 -->
+      <!-- <el-button type="primary" @click="addALL">添加数据</el-button> -->
       总数：{{ totalData.length }} 困难度：{{ difficulty }}
     </el-form-item>
     <el-form-item>

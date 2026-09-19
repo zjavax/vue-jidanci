@@ -31,7 +31,7 @@
  *
  * flex: 1 1 auto —— 之前只写了 min-width:0、没有 flex-grow，
  * 于是宽度 = **内容宽度**而非容器宽度，而 flex 容器默认 justify-content:flex-start
- * → 整页贴左。实测（视口 1485）15 个路由里有 8 个中招：
+ * → 整页贴左。实测（视口 1485、覆盖 15 个路由）有 8 个中招：
  *   PoolStake 980 / EventList 825 / EventList_sports 840 / tableTest 1000 /
  *   adaArticle 1420 / UserPositions 1424 / addText 474 / helloWorld 394
  * （撑满 1485 的那几个只是内容本来就宽，不是布局对了。）

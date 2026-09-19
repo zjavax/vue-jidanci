@@ -31,6 +31,7 @@ import { toggleDark } from "~/composables";
       <el-menu-item index="/EventList">热门</el-menu-item>
       <el-menu-item index="/EventList_sports">每个类别的热门</el-menu-item>
     </el-sub-menu>
+    <el-menu-item index="/PoolStake">摆渡质押池</el-menu-item>
     <!-- <el-menu-item index="3" disabled>Info</el-menu-item> -->
     <!-- <el-menu-item index="4">Orders</el-menu-item> -->
     <el-menu-item h="full" @click="toggleDark()" index="">

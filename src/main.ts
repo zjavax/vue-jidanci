@@ -17,6 +17,8 @@ import HelloWorld from './components/HelloWorld.vue'
 import EventList from './components/polymarket/EventList.vue'
 import EventList_sports from './components/polymarket/EventList_sports.vue'
 import UserPositions from './components/polymarket/UserPositions.vue'
+
+import PoolStake from './components/cardano/PoolStake.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
@@ -39,6 +41,7 @@ const router = createRouter({
     { path: '/EventList', component: EventList },
     { path: '/EventList_sports', component: EventList_sports },
     { path: '/UserPositions', component: UserPositions },
+    { path: '/PoolStake', component: PoolStake },
   ],
 })
 

@@ -21,6 +21,9 @@ export const ADDRESS_SSE_URL = `https://pool.pm/events/${POOL_ADDRESS}?dpr=1`
 /** pool.pm 页面地址（页脚外链用） */
 export const POOL_PM_URL = `https://pool.pm/${POOL_ID}`
 
+/** BAIDU 质押池文档站（点 BAIDU 徽章跳转） */
+export const POOL_DOC_URL = 'https://zjavax.github.io/cardano_doc/#/'
+
 export interface SseMessage {
   type: string
   // pool.pm 的帧字段随 type 变化，这里只声明用得到的几个

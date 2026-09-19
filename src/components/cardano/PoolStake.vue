@@ -14,6 +14,7 @@ import { isDark as siteIsDark } from '~/composables'
 import {
   ADDRESS_SSE_URL,
   POOL_ADDRESS,
+  POOL_DOC_URL,
   POOL_ID,
   POOL_PM_URL,
   calcEpochProgress,
@@ -332,7 +333,14 @@ onBeforeUnmount(() => {
       <!-- HERO -->
       <div class="ps-card ps-hero">
         <div class="ps-hero-head">
-          <span class="ps-ticker">{{ ticker }}</span>
+          <a
+            class="ps-ticker"
+            :href="POOL_DOC_URL"
+            target="_blank"
+            rel="noopener"
+            title="查看 BAIDU 质押池文档"
+            >{{ ticker }}</a
+          >
           <span class="ps-pid" title="点击复制池 ID" @click="copy(POOL_ID, '池 ID 已复制')">
             {{ POOL_ID }}
           </span>
@@ -706,6 +714,7 @@ onBeforeUnmount(() => {
   margin-bottom: 6px;
 }
 .ps-ticker {
+  display: inline-block; /* inline 元素上 transform 不生效，hover 的上浮需要它 */
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.6px;
@@ -714,6 +723,15 @@ onBeforeUnmount(() => {
   background: var(--ps-accent-soft);
   color: var(--ps-accent);
   border: 1px solid color-mix(in srgb, var(--ps-accent) 22%, transparent);
+  /* 站点全局有 `a { color: var(--ep-color-primary) }`，虽然本选择器特异性更高能压住，
+     但下划线是浏览器默认值，必须显式去掉 */
+  text-decoration: none;
+  transition: 0.16s ease;
+}
+.ps-ticker:hover {
+  border-color: color-mix(in srgb, var(--ps-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ps-accent) 15%, var(--ps-card));
+  transform: translateY(-1px);
 }
 .ps-pid {
   font-family: var(--ps-mono);

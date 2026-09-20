@@ -619,7 +619,8 @@ async function saveByInput() {
       ElMessage.success(`已收藏：${result.title}`);
     } else {
       input.value = value; // 失败就把输入还回去，别让用户重打
-      ElMessage.error(result.message || "保存失败");
+      // message 为空 = 失败原因数据层已经弹过一条了（写库失败），这里别重复报
+      if (result.message) ElMessage.error(result.message);
     }
   } finally {
     saving.value = false;
@@ -645,6 +646,10 @@ async function saveBatch() {
   batchSaving.value = true;
   try {
     const result = await addManyBySlugs(batchInput.value);
+
+    // 写库失败时内存里是加上了，但刷新就没了 —— 不能报「已收藏 N 个」骗人。
+    // 错误提示由数据层统一弹（见 WRITE_LOST），这里只负责不谎报成功、把输入框留着方便重试。
+    if (result.writeFailed) return;
 
     const parts = [`已收藏 ${result.added} 个`];
     if (result.alreadyFavorite.length)

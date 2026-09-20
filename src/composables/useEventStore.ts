@@ -146,6 +146,11 @@ export interface BatchAddResult {
   duplicated: string[]
   /** 解析不出 slug 的原始输入 */
   invalid: string[]
+  /**
+   * 写库失败。为 true 时 `added` 不可信 —— 记录只加进了内存，刷新就没了。
+   * 调用方必须优先报错，不能报「已收藏 N 个」。
+   */
+  writeFailed: boolean
 }
 
 /** 置顶优先，其次按 status 最后变更时间倒序 */
@@ -368,13 +373,15 @@ export function useEventStore() {
   /**
    * 批量标记，写入合并成单个事务。
    * quotes 按 slug 传进来（调用方手上就有）；缺的那条等行情回来由 ensureBaselines 补。
+   *
+   * 和 markEvent 一样返回「有没有真的写进库」——批量收藏的提示文案也要看它。
    */
   async function markMany(
     events: EventLike[],
     status: EventStatus,
     quotes?: Map<string, EventQuote>,
-  ) {
-    if (!events.length) return
+  ): Promise<boolean> {
+    if (!events.length) return true
     await init()
     const timestamp = Date.now()
     const records = events.map((event) =>
@@ -385,7 +392,7 @@ export function useEventStore() {
     records.forEach((record) => bySlug.set(record.slug, record))
     managed.value = sortManaged([...bySlug.values()])
 
-    await putEvents(records)
+    return putEvents(records)
   }
 
   async function unmarkEvent(slug: string) {
@@ -472,8 +479,9 @@ export function useEventStore() {
     // 刚查回来的事件就带着 markets，顺手把基准建上，不用等界面再拉一次行情
     const saved = await markEvent(event, 'favorite', quoteFromEvent(event))
     if (!saved) {
-      // 不能报「已收藏」——内存里是加上了，但刷新就没了，等于骗用户
-      return { ok: false, message: '写入本地存储失败，这条收藏没有保存成功，请重试' }
+      // 不能报「已收藏」——内存里是加上了，但刷新就没了，等于骗用户。
+      // 故意不带 message：写库失败已经由数据层统一弹过一条了，这里再给一条会连出两个 toast。
+      return { ok: false }
     }
     return { ok: true, title: event.title }
   }
@@ -512,7 +520,10 @@ export function useEventStore() {
     })
 
     const records: EventLike[] = [...fromLibrary, ...fetched]
-    if (records.length) await markMany(records, 'favorite', quotes)
+    let writeFailed = false
+    if (records.length) {
+      writeFailed = !(await markMany(records, 'favorite', quotes))
+    }
 
     return {
       added: records.length,
@@ -520,6 +531,7 @@ export function useEventStore() {
       alreadyFavorite,
       duplicated,
       invalid,
+      writeFailed,
     }
   }
 

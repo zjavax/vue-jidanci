@@ -130,7 +130,9 @@ export function setDbErrorReporter(reporter: DbErrorReporter | null) {
   reportToUI = reporter
 }
 
-const WRITE_LOST = '本地存储写入失败，这次改动刷新后会丢失'
+// 这是**唯一**会弹给用户的写库失败文案：调用方不要再自己弹一条，
+// 否则同一个失败会连出两个 toast（实测过）。
+const WRITE_LOST = '本地存储写入失败，改动刷新后会丢失，请重试'
 const READ_LOST = '本地存储读取失败，列表可能不完整'
 
 /** 读操作：以请求成功为准 */

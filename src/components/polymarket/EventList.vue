@@ -399,7 +399,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { fetchPolymarketEvents, type MarketEvent } from "./polymarket";
 import EventQuotePanel from "./EventQuotePanel.vue";
-import { buildEventQuote, formatClock } from "./polymarket-quote";
+import { buildEventQuoteCached, formatClock } from "./polymarket-quote";
 import {
   useEventStore,
   parseSlugList,
@@ -507,12 +507,18 @@ function scrollToFavorites() {
 // 列表接口（/events/keyset）返回的事件**本身就带着 markets**，所以正常情况下
 // 一条额外请求都不用打。万一某条没带 markets（接口字段变动），就把缺的 slug
 // 交给行情层补拉 —— 有兜底，不必赌接口形状。
+//
+// ⚠️ 这里必须用 buildEventQuoteCached 而不是 buildEventQuote：
+// 这个 computed 每次重算都会把每条事件重新算一遍行情，而 buildEventQuote
+// 每次返回新对象 → EventQuotePanel 的 props 引用全变 → 整列表子组件重渲染。
+// 实测点一次「隐藏」会因此产生 69ms longtask（DOM 却只变了 4 个节点）。
+// 缓存后引用稳定，Vue 能跳过没变化的卡片。
 const activeCards = computed(() =>
   visibleEvents.value.map((event) => ({
     event,
     quote:
       quotes.value[event.slug] ??
-      (event.markets?.length ? buildEventQuote(event) : null),
+      (event.markets?.length ? buildEventQuoteCached(event) : null),
   })),
 );
 

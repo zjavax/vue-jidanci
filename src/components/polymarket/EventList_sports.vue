@@ -393,7 +393,7 @@ import {
   type MarketEvent,
 } from "./polymarket_sports";
 import EventQuotePanel from "./EventQuotePanel.vue";
-import { buildEventQuote, formatClock } from "./polymarket-quote";
+import { buildEventQuoteCached, formatClock } from "./polymarket-quote";
 import {
   useEventStore,
   parseSlugList,
@@ -520,12 +520,16 @@ function switchTag(tag: string) {
 //
 // 列表接口本身就返回 markets，正常情况下一条额外请求都不用打；
 // 万一某条没带，就把缺的 slug 交给行情层补拉。
+//
+// ⚠️ 必须用 buildEventQuoteCached：buildEventQuote 每次返回新对象，
+// 会让这个 computed 每次重算都改变所有卡片的 quote 引用 →
+// EventQuotePanel 全部重渲染（实测点一次「隐藏」69ms longtask，DOM 却只变 4 个节点）。
 const activeCards = computed(() =>
   visibleEvents.value.map((event) => ({
     event,
     quote:
       quotes.value[event.slug] ??
-      (event.markets?.length ? buildEventQuote(event) : null),
+      (event.markets?.length ? buildEventQuoteCached(event) : null),
   })),
 );
 

@@ -105,7 +105,15 @@ async function fetchEventChunk(slugs: string[]): Promise<MarketEvent[]> {
   try {
     // gamma-api 支持重复的 slug 参数（?slug=a&slug=b），但不支持逗号分隔
     // （实测 `slug=a,b` 返回 0 条），所以这里拼重复参数。
-    const params = new URLSearchParams({ locale: 'zh' })
+    //
+    // ⚠️ limit 必须显式传，不能靠默认值：/events 默认 limit=20，
+    // 传 30 个 slug 也只回 20 条（实测 21→20、40→20、50→20；加 limit=50 才回 50）。
+    // 漏传的后果是收藏超过 20 个以后，多出来的卡片**静默**没有行情 ——
+    // 标题照常显示（那是本地库里的），选项和概率一片空白，连报错都没有。
+    const params = new URLSearchParams({
+      locale: 'zh',
+      limit: String(slugs.length),
+    })
     slugs.forEach((slug) => params.append('slug', slug))
 
     const response = await fetch(

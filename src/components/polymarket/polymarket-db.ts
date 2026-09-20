@@ -112,17 +112,43 @@ function openDB(): Promise<IDBDatabase> {
   return dbPromise
 }
 
+/**
+ * 出错时的对外通告。这一层不引 UI 依赖（文件在 Node 预渲染里也会被加载），
+ * 所以只留一个钩子，由组合层接到 ElMessage 上。
+ *
+ * 为什么必须有：本文件的函数一律「失败就返回空值 / false」，而调用方基本不看返回值 ——
+ * 写库失败因此**完全静默**：界面照样显示成功，刷新后改动全没了。
+ * 2026-09-20 的 DataCloneError（reactive Proxy 进不了 IndexedDB）就是这么藏了很久，
+ * 表现为「收藏 / 置顶 / 备注 / 隐藏」四个操作全部显示成功、全部刷新后回滚。
+ *
+ * 只负责通知 UI；详细的错误对象仍由各函数自己的 console.error 打（避免重复刷屏）。
+ */
+type DbErrorReporter = (message: string) => void
+let reportToUI: DbErrorReporter | null = null
+
+export function setDbErrorReporter(reporter: DbErrorReporter | null) {
+  reportToUI = reporter
+}
+
+const WRITE_LOST = '本地存储写入失败，这次改动刷新后会丢失'
+const READ_LOST = '本地存储读取失败，列表可能不完整'
+
 /** 读操作：以请求成功为准 */
 function read<T>(run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  return openDB().then(
-    (db) =>
-      new Promise<T>((resolve, reject) => {
-        const transaction = db.transaction(STORE, 'readonly')
-        const request = run(transaction.objectStore(STORE))
-        request.onsuccess = () => resolve(request.result)
-        request.onerror = () => reject(request.error)
-      }),
-  )
+  return openDB()
+    .then(
+      (db) =>
+        new Promise<T>((resolve, reject) => {
+          const transaction = db.transaction(STORE, 'readonly')
+          const request = run(transaction.objectStore(STORE))
+          request.onsuccess = () => resolve(request.result)
+          request.onerror = () => reject(request.error)
+        }),
+    )
+    .catch((error) => {
+      reportToUI?.(READ_LOST)
+      throw error
+    })
 }
 
 /**
@@ -130,23 +156,28 @@ function read<T>(run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
  * 请求返回成功之后事务仍然可能整体回滚，只等 request.onsuccess 会漏掉这种情况。
  */
 function write(run: (store: IDBObjectStore) => void): Promise<void> {
-  return openDB().then(
-    (db) =>
-      new Promise<void>((resolve, reject) => {
-        const transaction = db.transaction(STORE, 'readwrite')
-        try {
-          run(transaction.objectStore(STORE))
-        } catch (error) {
-          transaction.abort()
-          reject(error)
-          return
-        }
-        transaction.oncomplete = () => resolve()
-        transaction.onerror = () => reject(transaction.error)
-        transaction.onabort = () =>
-          reject(transaction.error ?? new Error('事务被中止'))
-      }),
-  )
+  return openDB()
+    .then(
+      (db) =>
+        new Promise<void>((resolve, reject) => {
+          const transaction = db.transaction(STORE, 'readwrite')
+          try {
+            run(transaction.objectStore(STORE))
+          } catch (error) {
+            transaction.abort()
+            reject(error)
+            return
+          }
+          transaction.oncomplete = () => resolve()
+          transaction.onerror = () => reject(transaction.error)
+          transaction.onabort = () =>
+            reject(transaction.error ?? new Error('事务被中止'))
+        }),
+    )
+    .catch((error) => {
+      reportToUI?.(WRITE_LOST)
+      throw error
+    })
 }
 
 function isStoredEvent(value: unknown): value is StoredEvent {
@@ -206,11 +237,37 @@ export async function getAllEvents(): Promise<StoredEvent[]> {
   }
 }
 
+/**
+ * 深拷贝成纯对象（顺带解包 Vue 的 reactive Proxy）。
+ *
+ * 为什么写库前必须做：IndexedDB 的 structured clone **不接受 Proxy**，会抛 DataCloneError。
+ * 而调用方经常直接把响应式状态里的字段塞进记录，最典型的两处：
+ *   - `nextBaseline` 里的 `return existing.baseline` —— existing 取自 managed（reactive 数组元素）；
+ *   - `togglePin` / `setNote` 的 `{ ...target }` —— spread 只解一层，baseline 这个嵌套对象仍是 Proxy。
+ * 不处理的后果很隐蔽：store.put 抛错 → 被 catch 吞掉只打一行日志 →
+ * 界面上「收藏 / 置顶 / 备注 / 隐藏」全都显示成功 → **刷新后全部回滚**。
+ *
+ * 只递归普通对象和数组；其它对象（Date 之类）原样透传，交给 structured clone 自己判断。
+ */
+function toPlain<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => toPlain(item)) as unknown as T
+  }
+  if (!value || typeof value !== 'object') return value
+  const proto = Object.getPrototypeOf(value)
+  if (proto !== Object.prototype && proto !== null) return value
+  const out: Record<string, unknown> = {}
+  Object.keys(value as Record<string, unknown>).forEach((key) => {
+    out[key] = toPlain((value as Record<string, unknown>)[key])
+  })
+  return out as T
+}
+
 export async function putEvent(event: StoredEvent): Promise<boolean> {
   if (!isIndexedDBAvailable()) return false
   try {
     await write((store) => {
-      store.put(event)
+      store.put(toPlain(event))
     })
     return true
   } catch (error) {
@@ -224,7 +281,7 @@ export async function putEvents(events: StoredEvent[]): Promise<boolean> {
   if (!events.length || !isIndexedDBAvailable()) return false
   try {
     await write((store) => {
-      events.forEach((event) => store.put(event))
+      events.forEach((event) => store.put(toPlain(event)))
     })
     return true
   } catch (error) {
@@ -273,6 +330,9 @@ export async function deleteEventsByStatus(status: EventStatus): Promise<number>
         reject(transaction.error ?? new Error('事务被中止'))
     })
   } catch (error) {
+    // 这个函数没走 write()（它要游标逐条删），所以得自己通告一次。
+    // 它失败时返回 0，而 0 同时也是「本来就没东西可删」，调用方分不出来 —— 必须在这里说话。
+    reportToUI?.(WRITE_LOST)
     console.error('[polymarket-db] 按状态批量删除失败:', error)
     return 0
   }

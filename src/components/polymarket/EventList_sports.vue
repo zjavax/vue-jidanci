@@ -243,6 +243,15 @@
             <div v-else-if="quotesError" class="quote-placeholder error">
               {{ quotesError }}
             </div>
+            <!-- 兜底：接口压根没返回这个 slug。以前这里什么都不渲染，
+                 于是「有的卡片有选项概率、有的整块空白」看起来像随机现象，
+                 其实是批量接口按 limit 截断了。必须说话，不能沉默。 -->
+            <div
+              v-else-if="quotesMissing.includes(card.event.slug)"
+              class="quote-placeholder error"
+            >
+              接口没有返回这个事件的行情，点上面的「刷新行情」重试
+            </div>
           </div>
         </template>
 
@@ -419,6 +428,7 @@ const {
   loading: quotesLoading,
   error: quotesError,
   lastUpdated: quotesLastUpdated,
+  missing: quotesMissing,
   hasQuote,
   refresh: fetchQuotes,
 } = useEventQuotes();

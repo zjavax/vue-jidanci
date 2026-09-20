@@ -11,6 +11,7 @@
  */
 
 import { computed, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 // 这里只从 polymarket.ts 取接口函数：它和 polymarket_sports.ts 里的同名实现完全一致，
 // 数据层不需要知道调用方是哪个页面。
 import {
@@ -29,6 +30,7 @@ import {
   isIndexedDBAvailable,
   putEvent,
   putEvents,
+  setDbErrorReporter,
   type EventBaseline,
   type EventLike,
   type EventStatus,
@@ -51,11 +53,18 @@ function safeDecode(value: string): string {
 /**
  * 从「完整链接」或「裸 slug」里取出 slug。
  *
- * 不要只认 `/event/` —— Polymarket 的链接有好几种形状，slug 都在**路径最后一段**：
+ * Polymarket 的链接有好几种形状，**不能一律取最后一段**：
  *   https://polymarket.com/zh/event/fed-decision-in-september-762   → fed-decision-in-september-762
- *   https://polymarket.com/zh/sports/tur/tur-gal-koc-2026-09-13     → tur-gal-koc-2026-09-13
+ *   https://polymarket.com/zh/sports/tur/tur-gal-koc-2026-09-13     → tur-gal-koc-2026-09-13（末段就是事件 slug）
  *   https://polymarket.com/sports/tur/tur-gal-koc-2026-09-13        → tur-gal-koc-2026-09-13
- * 所以统一取最后一段，顺带兼容没写协议的 `polymarket.com/zh/...` 和纯路径 `/zh/...`。
+ *
+ * ⚠️ 点进某个具体市场后地址会**多一段**，末段变成市场 slug：
+ *   https://polymarket.com/zh/event/<事件slug>/<市场slug>
+ * 市场 slug 拿去查 `/events?slug=` 是查不到的（会报「没有找到」），所以只要路径里有
+ * `event` 这一段，就取它**后面那一段**，而不是最后一段。
+ * 体育类路径里没有 `event`，仍走末段。
+ *
+ * 顺带兼容没写协议的 `polymarket.com/zh/...` 和纯路径 `/zh/...`。
  */
 export function extractSlug(input: string): string {
   const value = input.trim()
@@ -75,6 +84,14 @@ export function extractSlug(input: string): string {
 
   const segments = pathname.split('/').filter(Boolean)
   if (!segments.length) return ''
+
+  // 事件页：/event/<事件slug>[/<市场slug>] → 取 event 后面那一段
+  const eventIndex = segments.indexOf('event')
+  if (eventIndex !== -1 && segments[eventIndex + 1]) {
+    return safeDecode(segments[eventIndex + 1])
+  }
+
+  // 其它形状（sports 等）：末段就是事件 slug
   return safeDecode(segments[segments.length - 1])
 }
 
@@ -301,6 +318,18 @@ export function useEventStore() {
         ready.value = true
         return
       }
+
+      // 写库失败必须让人看见。界面走的是「先改内存、再写库」，不接这个钩子就完全静默：
+      // 曾经因此出现「收藏 / 置顶 / 备注 / 隐藏」四个操作全部显示成功、刷新后全部回滚。
+      // 节流 3 秒 —— 一次失败常被重试逻辑连着触发好几次，刷屏反而没人看。
+      let lastNotifiedAt = 0
+      setDbErrorReporter((message) => {
+        const now = Date.now()
+        if (now - lastNotifiedAt < 3000) return
+        lastNotifiedAt = now
+        ElMessage.error(message)
+      })
+
       managed.value = sortManaged(await getAllEvents())
       ready.value = true
     })()
@@ -319,17 +348,21 @@ export function useEventStore() {
   // 等 init 的 promise 先结算，就能保证「先读后写」的顺序。
   // init 内部有 promise 记忆，重复 await 不产生额外开销。
 
+  /**
+   * 返回「有没有真的写进库」。界面上的状态是内存里的，写库失败照样显示成功，
+   * 所以调用方需要提示用户的场景（比如粘贴链接保存）必须看这个返回值。
+   */
   async function markEvent(
     event: EventLike,
     status: EventStatus,
     /** 收藏那一刻的行情。传了才能建立「较收藏时」的基准 */
     quote?: EventQuote | null,
-  ) {
+  ): Promise<boolean> {
     await init()
     // 单条收藏默认置顶：刚收藏的立刻出现在最上面
     const record = buildRecord(event, status, Date.now(), true, quote)
     upsertLocal(record)
-    await putEvent(record)
+    return putEvent(record)
   }
 
   /**
@@ -437,7 +470,11 @@ export function useEventStore() {
     if (!event) return { ok: false, message: `没有找到 slug 为「${slug}」的事件` }
 
     // 刚查回来的事件就带着 markets，顺手把基准建上，不用等界面再拉一次行情
-    await markEvent(event, 'favorite', quoteFromEvent(event))
+    const saved = await markEvent(event, 'favorite', quoteFromEvent(event))
+    if (!saved) {
+      // 不能报「已收藏」——内存里是加上了，但刷新就没了，等于骗用户
+      return { ok: false, message: '写入本地存储失败，这条收藏没有保存成功，请重试' }
+    }
     return { ok: true, title: event.title }
   }
 

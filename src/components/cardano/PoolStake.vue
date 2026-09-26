@@ -71,6 +71,8 @@ const stakeExact = ref('等待数据…')
 const epochNo = ref('—')
 const epochPct = ref(0)
 const epochRight = ref('—')
+/** 悬停说明：只有「本机时间与链上不符」时才有内容 */
+const epochTitle = ref('')
 
 const epochBlocks = ref('—')
 const updatedAt = ref('—')
@@ -116,7 +118,6 @@ async function triggerFlash(target: typeof stakeFlash) {
 /* ------------------------------------------------------------------ *
  * 渲染
  * ------------------------------------------------------------------ */
-let lastSlot = 0
 let lastStake: string | null = null
 let lastBalance: string | null = null
 let lastStakeValue: string | null = null
@@ -129,13 +130,20 @@ function markUpdated() {
   updatedAt.value = stamp()
 }
 
-function renderEpoch() {
-  const p = calcEpochProgress(lastSlot)
-  if (!p) {
-    epochRight.value = '等待区块数据…'
+/**
+ * 进度由本机时间推链尖 slot 得出，不依赖 Block 帧
+ * （Block 是「本池自己出的块」，实测能落后链尖十几个小时）。
+ * onChainEpoch 是 pool.pm 给的链上 epoch 号，只用来交叉校验本机时间。
+ */
+function renderEpoch(onChainEpoch: number | null) {
+  const p = calcEpochProgress(onChainEpoch)
+  epochNo.value = comma(p.epoch)
+  epochTitle.value = p.title
+  if (p.suspect) {
+    epochPct.value = 0
+    epochRight.value = '本机时间与链上不符，进度无法计算'
     return
   }
-  epochNo.value = comma(p.epoch)
   epochPct.value = Number(p.pct.toFixed(2))
   epochRight.value = `${p.pct.toFixed(2)}% · 剩余 ${p.remainDays} 天 ${p.remainHours} 小时`
 }
@@ -149,7 +157,7 @@ function renderPool(p: PoolSnapshot) {
   if (p.ticker) ticker.value = p.ticker
   epochBlocks.value = p.epoch_blocks != null ? String(p.epoch_blocks) : '—'
 
-  renderEpoch()
+  renderEpoch(p.epoch)
   markUpdated()
 }
 
@@ -198,9 +206,8 @@ async function refreshData(manual: boolean) {
   addrStatusText.value = '获取中…'
 
   const poolTask = fetchPool(ctrl.signal)
-    .then(({ pool, lastSlot: slot }) => {
+    .then((pool) => {
       if (disposed) return
-      if (slot) lastSlot = slot
       renderPool(pool)
       statusKind.value = 'live'
       statusText.value = `已更新 ${stamp()}`
@@ -420,7 +427,7 @@ onBeforeUnmount(() => {
       <div class="ps-card">
         <div class="ps-epoch-top">
           <div class="ps-t">Epoch <span>{{ epochNo }}</span> 进度</div>
-          <div class="ps-r">{{ epochRight }}</div>
+          <div class="ps-r" :title="epochTitle || undefined">{{ epochRight }}</div>
         </div>
         <div class="ps-bar"><i :style="{ width: epochPct + '%' }" /></div>
       </div>

@@ -34,6 +34,8 @@ export interface SseMessage {
   ticker?: string
   balance?: string
   stake_value?: string
+  /** Config 帧带：创世参数（用来推链尖 slot） */
+  genesis?: unknown
   [key: string]: unknown
 }
 
@@ -108,33 +110,104 @@ export function formatLovelace(lovelace: string | number | bigint): string {
 
 /* ------------------------------------------------------------------ *
  * Epoch（Cardano 主网）
+ *
+ * ⚠ 进度**绝不能**拿 SSE 里 Block 帧的 slot 来算 —— 那是「本池自己出的块」，
+ * 小池可能十几个小时才出一个。实测 BAIDU 的最后一个块落后链尖 10.7 小时，
+ * 照它算出来的进度差 8.95 个百分点、剩余时间差 10 小时；出块间隔再长一点
+ * 连 epoch 号都会差一个（09-22 那次就是：页面显示 656，链上是 657）。
+ *
+ * 正确做法：锚定 Shelley 创世参数，用**本机时间**推算链尖 slot：
+ *     slot = shelley_known_slot + (unix秒 - shelley_known_time)
+ * 已用 Koios /tip 校验过（abs_slot 198475767 ↔ block_time 1790042058，精确吻合），
+ * 误差只来自链尖本身滞后几个 slot，5 天里小于 0.02%。
+ *
+ * epoch 号以 pool.pm 的 Pool 帧为准（链上权威），本机时间推算的只用来交叉校验：
+ * 两者对不上且差得离谱，说明是本机系统时间偏了，此时进度不可信，要直说。
  * ------------------------------------------------------------------ */
 
 const SHELLEY_SLOT = 4492800
 const EPOCH_LEN = 432000
 /** epoch 208 = 首个 Shelley epoch */
 const EPOCH_OFFSET = 208
+/** Shelley 创世锚点：slot 4492800 ↔ 1596059091（2020-07-29 21:44:51 UTC） */
+const GENESIS_SLOT = 4492800
+const GENESIS_TIME = 1596059091
+
+/** 链上 epoch 与本机时间推算差超过这个量，就认定本机时间偏了（6 小时） */
+const CLOCK_TOLERANCE_S = 6 * 3600
+
+/**
+ * 创世锚点。SSE 的 Config 帧会覆盖它 —— 覆盖只是为了不把参数写死，
+ * 实测 pool.pm 给的三个值和上面的默认值完全一致。
+ */
+const anchor = { slot: GENESIS_SLOT, time: GENESIS_TIME, epochLen: EPOCH_LEN }
+
+/** 用 Config 帧刷新创世锚点；字段缺失就保持原值 */
+export function applyGenesis(genesis: unknown): void {
+  if (!genesis || typeof genesis !== 'object') return
+  const g = genesis as Record<string, unknown>
+  if (typeof g.shelley_known_slot === 'number') anchor.slot = g.shelley_known_slot
+  if (typeof g.shelley_known_time === 'number') anchor.time = g.shelley_known_time
+  if (typeof g.shelley_epoch_length === 'number') anchor.epochLen = g.shelley_epoch_length
+}
+
+/** 用本机时间推算链尖 slot（不依赖任何网络数据） */
+export function currentSlot(nowMs: number = Date.now()): number {
+  return anchor.slot + Math.floor(nowMs / 1000 - anchor.time)
+}
 
 export interface EpochProgress {
+  /** epoch 号：pool.pm 给了就用它的，没给就用本机时间推算 */
   epoch: number
+  /** 本纪元已走过的百分比，0..100 */
   pct: number
   remainDays: number
   remainHours: number
+  /** 本机系统时间和链上对不上（差 6 小时以上）→ 进度不可信 */
+  suspect: boolean
+  /** 悬停说明；一切正常时为空串 */
+  title: string
 }
 
 /**
- * 由最后一个区块的 slot 推算 epoch 进度。
- * slot 为 0（还没拿到区块数据）时返回 null。
+ * 算 epoch 进度。不需要任何网络数据 —— 链尖 slot 由本机时间推出来。
+ * epochNo 传 null 时用推算值（池数据没拿到也能显示正确的进度）。
  */
-export function calcEpochProgress(lastSlot: number): EpochProgress | null {
-  if (!lastSlot) return null
-  const raw = Math.floor((lastSlot - SHELLEY_SLOT) / EPOCH_LEN)
-  let inEpoch = (lastSlot - SHELLEY_SLOT) % EPOCH_LEN
+export function calcEpochProgress(epochNo: number | null, nowMs: number = Date.now()): EpochProgress {
+  const slotNow = currentSlot(nowMs)
+  const epochLen = anchor.epochLen
+  const epFromSlot = EPOCH_OFFSET + Math.floor((slotNow - SHELLEY_SLOT) / epochLen)
+  const epoch = epochNo != null ? epochNo : epFromSlot
+
+  // 进度 = 链尖 slot 相对「本纪元起始 slot」走了多远
+  const epochStart = SHELLEY_SLOT + (epoch - EPOCH_OFFSET) * epochLen
+  let inEpoch = slotNow - epochStart
+
+  const base = { epoch, pct: 0, remainDays: 0, remainHours: 0, suspect: false, title: '' }
+
+  // 链上 epoch 与按本机时间推算的对不上时，要分清两种情况，别一律报警：
+  //   ① 刚跨过纪元、pool.pm 的数据还停在旧纪元（只差几分钟）→ 照边界显示就行
+  //   ② 本机系统时间真的偏了（差几小时以上）→ 进度不可信，直说
+  if (epochNo != null && epochNo !== epFromSlot) {
+    const off = inEpoch < 0 ? -inEpoch : inEpoch - epochLen + 1
+    if (off > CLOCK_TOLERANCE_S) {
+      return {
+        ...base,
+        suspect: true,
+        title:
+          `链上 epoch ${epochNo}，按本机时间推算却是 ${epFromSlot}。` +
+          '请校准系统时间后刷新。',
+      }
+    }
+  }
+
   if (inEpoch < 0) inEpoch = 0
-  const pct = (inEpoch / EPOCH_LEN) * 100
-  const leftS = EPOCH_LEN - inEpoch
+  if (inEpoch >= epochLen) inEpoch = epochLen - 1
+
+  const pct = (inEpoch / epochLen) * 100
+  const leftS = epochLen - inEpoch
   return {
-    epoch: EPOCH_OFFSET + raw,
+    ...base,
     pct,
     remainDays: Math.floor(leftS / 86400),
     remainHours: Math.floor((leftS % 86400) / 3600),
@@ -150,7 +223,7 @@ export function calcEpochProgress(lastSlot: number): EpochProgress | null {
  *
  * - needTypes：需要凑齐的消息类型
  * - budgetMs ：整体最长等待
- * - graceMs  ：拿到第一个需要的帧后额外多等这么久（用来顺带收 Block）
+ * - graceMs  ：拿到第一个需要的帧后额外多等这么久（兜底，避免只差一帧就断）
  */
 export function collectSSE(
   url: string,
@@ -262,27 +335,25 @@ export function collectSSE(
   })
 }
 
-/** 池总量：SSE 优先，能顺带拿到最新 slot 用于算 epoch */
-export async function fetchPool(
-  signal?: AbortSignal,
-): Promise<{ pool: PoolSnapshot; lastSlot: number }> {
-  const msgs = await collectSSE(POOL_SSE_URL, ['Pool', 'Block'], 9000, 1200, signal)
+/**
+ * 池总量：SSE 只要 Config + Pool 两帧 —— Config 给创世锚点（用来推链尖 slot），
+ * Pool 给池数据。**不要再等 Block**：那是本池自己出的块，出块间隔不固定，等它只会白等。
+ * （实测 Config 与 Pool 同毫秒到达，400ms 的兜底窗口足够。）
+ */
+export async function fetchPool(signal?: AbortSignal): Promise<PoolSnapshot> {
+  const msgs = await collectSSE(POOL_SSE_URL, ['Config', 'Pool'], 9000, 400, signal)
   let pool: SseMessage | null = null
-  let slot = 0
   for (const m of msgs) {
+    if (m.type === 'Config') applyGenesis(m.genesis)
     if (m.type === 'Pool') pool = m
-    if (m.type === 'Block' && typeof m.slot === 'number' && m.slot > slot) slot = m.slot
   }
   if (!pool) throw new Error('没拿到池数据')
   return {
-    pool: {
-      ticker: (pool.ticker as string) || 'BAIDU',
-      live_stake: String(pool.live_stake ?? '0'),
-      epoch: typeof pool.epoch === 'number' ? pool.epoch : null,
-      epoch_blocks: typeof pool.epoch_blocks === 'number' ? pool.epoch_blocks : null,
-      aggregated: false,
-    },
-    lastSlot: slot,
+    ticker: (pool.ticker as string) || 'BAIDU',
+    live_stake: String(pool.live_stake ?? '0'),
+    epoch: typeof pool.epoch === 'number' ? pool.epoch : null,
+    epoch_blocks: typeof pool.epoch_blocks === 'number' ? pool.epoch_blocks : null,
+    aggregated: false,
   }
 }
 

@@ -23,7 +23,9 @@
       title="当前浏览器不支持 IndexedDB，收藏与隐藏不会被保存"
     />
 
-    <!-- 屏蔽词输入框（与 EventList.vue 共用同一个 key，两个页面过滤规则一致） -->
+    <!-- 屏蔽词输入框。**故意**和 EventList.vue 共用同一个 localStorage key：
+         它是「我不想看到什么」的全局偏好，不是某个页面的收藏数据，
+         所以不跟着作用域走（收藏 / 隐藏才是每页每标签独立的）。 -->
     <div class="block-bar">
       <span class="block-label">屏蔽</span>
       <el-input
@@ -397,9 +399,39 @@ import { buildEventQuoteCached, formatClock } from "./polymarket-quote";
 import {
   useEventStore,
   parseSlugList,
+  sportsScope,
   type StoredEvent,
 } from "../../composables/useEventStore";
 import { useEventQuotes } from "../../composables/useEventQuotes";
+
+const activeTag = ref("politics");
+const tags = [
+  { label: "政治", value: "politics" },
+  { label: "体育", value: "sports" },
+  { label: "加密", value: "crypto" },
+  { label: "电竞", value: "esports" },
+  { label: "伊朗", value: "iran" },
+  { label: "金融财务", value: "finance" },
+  { label: "地缘政治", value: "geopolitics" },
+  { label: "科技", value: "tech" },
+  { label: "流行文化", value: "pop-culture" },
+  { label: "经济", value: "economy" },
+  { label: "天气", value: "weather" },
+  { label: "选举", value: "elections" },
+  { label: "艺术", value: "art" },
+];
+
+/**
+ * 收藏 / 隐藏的作用域：`sports:<标签>`。
+ *
+ * 为什么要分：这些是「用户对这个列表的判断」，不是事件自身的属性。
+ * 以前 13 个标签共用一份（还和综合页共用），在体育标签里收藏一条，
+ * 切到政治标签照样看得见，完全没法用。
+ *
+ * 传 computed 而不是字符串：切标签时 store 内部会自己清空 + 重读，
+ * 这里不需要再写一遍联动逻辑。
+ */
+const storeScope = computed(() => sportsScope(activeTag.value));
 
 // 解构出来，让每个 ref 成为顶层绑定 —— 否则模板里的 `store.xxx` 不会自动解包。
 const {
@@ -421,7 +453,7 @@ const {
   ensureBaselines,
   addBySlugOrUrl,
   addManyBySlugs,
-} = useEventStore();
+} = useEventStore(storeScope);
 
 const {
   quotes,
@@ -432,23 +464,6 @@ const {
   hasQuote,
   refresh: fetchQuotes,
 } = useEventQuotes();
-
-const activeTag = ref("politics");
-const tags = [
-  { label: "政治", value: "politics" },
-  { label: "体育", value: "sports" },
-  { label: "加密", value: "crypto" },
-  { label: "电竞", value: "esports" },
-  { label: "伊朗", value: "iran" },
-  { label: "金融财务", value: "finance" },
-  { label: "地缘政治", value: "geopolitics" },
-  { label: "科技", value: "tech" },
-  { label: "流行文化", value: "pop-culture" },
-  { label: "经济", value: "economy" },
-  { label: "天气", value: "weather" },
-  { label: "选举", value: "elections" },
-  { label: "艺术", value: "art" },
-];
 
 const events = ref<MarketEvent[]>([]);
 
@@ -512,6 +527,9 @@ function scrollToFavorites() {
 }
 
 function switchTag(tag: string) {
+  if (tag === activeTag.value) return;
+  // 收藏 / 隐藏不用在这里管：storeScope 跟着 activeTag 变，
+  // useEventStore 内部会清空当前列表并按新作用域重读。
   activeTag.value = tag;
   loadEvents();
 }

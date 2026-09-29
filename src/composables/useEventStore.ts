@@ -4,13 +4,19 @@
  * EventList.vue 和 EventList_sports.vue 原先各自抄了一份屏蔽词过滤 + 已管理事件读写
  * （约 35 行 × 2），已经因此出现过「改一个漏一个」。这里收敛成一份。
  *
+ * **作用域（scope）**：收藏 / 隐藏是「用户对这个列表的判断」，不该跨页面串。
+ * 综合页用 DEFAULT_SCOPE，体育页每个标签一个 sportsScope(tag)。
+ * scope 可以是字符串，也可以是 ref / computed —— 体育页切标签时传 computed，
+ * 这里会自动重新读库、并把 ready 打回 false 避免闪一屏上一个标签的收藏。
+ *
  * 组件里的用法：
- *   const store = useEventStore()
+ *   const store = useEventStore()                       // 综合页
+ *   const store = useEventStore(computed(() => `sports:${tag.value}`))
  *   onMounted(store.init)                       // 必须在 onMounted 里，见下方 SSG 说明
  *   const visible = computed(() => store.filterVisible(rawEvents.value))
  */
 
-import { computed, ref, watch } from 'vue'
+import { computed, ref, unref, watch, type Ref } from 'vue'
 import { ElMessage } from 'element-plus'
 // 这里只从 polymarket.ts 取接口函数：它和 polymarket_sports.ts 里的同名实现完全一致，
 // 数据层不需要知道调用方是哪个页面。
@@ -24,6 +30,7 @@ import {
   type EventQuote,
 } from '../components/polymarket/polymarket-quote'
 import {
+  DEFAULT_SCOPE,
   deleteEvent,
   deleteEventsByStatus,
   getAllEvents,
@@ -36,6 +43,8 @@ import {
   type EventStatus,
   type StoredEvent,
 } from '../components/polymarket/polymarket-db'
+
+export { DEFAULT_SCOPE, sportsScope } from '../components/polymarket/polymarket-db'
 
 /** 屏蔽词仍然留在 localStorage：它是纯配置、需要同步读取，且不再有人遍历 localStorage */
 const BLOCK_KEY = 'polymarket-block-words'
@@ -208,8 +217,15 @@ function nextBaseline(
   return prices ? { at: timestamp, prices } : undefined
 }
 
-export function useEventStore() {
-  /** 已管理事件，始终保持「置顶优先 + 时间倒序」 */
+export function useEventStore(scope: string | Ref<string> = DEFAULT_SCOPE) {
+  /**
+   * 当前作用域。传字符串就是固定的，传 ref / computed 就能随页面状态切换
+   * （体育页切标签）。空串一律兜到默认作用域，避免出现「没有 scope 的记录」
+   * —— 复合主键里 scope 是 undefined 的话 store.put 会直接抛 DataError。
+   */
+  const scopeRef = computed(() => unref(scope) || DEFAULT_SCOPE)
+
+  /** 已管理事件（**仅当前作用域**），始终保持「置顶优先 + 时间倒序」 */
   const managed = ref<StoredEvent[]>([])
   /** 首次读取完成前为 false，用于避免管理区域闪一下空白 */
   const ready = ref(false)
@@ -217,6 +233,9 @@ export function useEventStore() {
   const supported = ref(true)
 
   // ===== 屏蔽词 =====
+  // ⚠️ 故意**不按作用域隔离**：屏蔽词是「我不想看到什么」的全局偏好，
+  // 在综合页和体育页的任何一个标签里设一次就够了。
+  // 如果哪天要改成每页独立，把 BLOCK_KEY 拼上 scopeRef.value 即可。
   const blockInput = ref(
     typeof localStorage === 'undefined'
       ? ''
@@ -267,19 +286,28 @@ export function useEventStore() {
 
   // ===== 本地缓存同步 =====
 
-  /** 写入内存并维持排序，避免每次操作都整表重读 */
+  /**
+   * 写入内存并维持排序，避免每次操作都整表重读。
+   *
+   * 先比 scope：写操作都要 await init()，await 期间用户可能已经切了标签
+   * （体育页尤其容易），这时记录属于上一个作用域，塞进当前列表就是串数据。
+   * 落库仍然照做（它本来就会落到正确的作用域），只是别污染正在看的这一屏。
+   */
   function upsertLocal(event: StoredEvent) {
+    if (event.scope !== scopeRef.value) return
     managed.value = sortManaged([
       ...managed.value.filter((item) => item.slug !== event.slug),
       event,
     ])
   }
 
-  function removeLocal(slug: string) {
+  function removeLocal(recordScope: string, slug: string) {
+    if (recordScope !== scopeRef.value) return
     managed.value = managed.value.filter((event) => event.slug !== slug)
   }
 
   function buildRecord(
+    recordScope: string,
     event: EventLike,
     status: EventStatus,
     timestamp: number,
@@ -290,6 +318,7 @@ export function useEventStore() {
   ): StoredEvent {
     const existing = managed.value.find((item) => item.slug === event.slug)
     return {
+      scope: recordScope,
       slug: event.slug,
       id: String(event.id ?? existing?.id ?? ''),
       title: event.title,
@@ -309,49 +338,86 @@ export function useEventStore() {
 
   // ===== 初始化 =====
 
+  /** 最近一次 startLoad 读的是哪个作用域 —— 和 scopeRef 不一致就说明内存里是脏的 */
+  let loadedScope: string | null = null
   let initPromise: Promise<void> | null = null
 
-  /**
-   * 读一次全表。必须在 onMounted 里调用：
-   * vite-ssg 预渲染跑在 Node 上，没有 indexedDB，在 setup 顶层直接调用会构建失败。
-   */
-  function init(): Promise<void> {
-    if (initPromise) return initPromise
+  function registerErrorReporter() {
+    // 写库失败必须让人看见。界面走的是「先改内存、再写库」，不接这个钩子就完全静默：
+    // 曾经因此出现「收藏 / 置顶 / 备注 / 隐藏」四个操作全部显示成功、刷新后全部回滚。
+    // 节流 3 秒 —— 一次失败常被重试逻辑连着触发好几次，刷屏反而没人看。
+    let lastNotifiedAt = 0
+    setDbErrorReporter((message) => {
+      const now = Date.now()
+      if (now - lastNotifiedAt < 3000) return
+      lastNotifiedAt = now
+      ElMessage.error(message)
+    })
+  }
+
+  function startLoad(target: string): Promise<void> {
+    loadedScope = target
+    ready.value = false
     initPromise = (async () => {
       supported.value = isIndexedDBAvailable()
       if (!supported.value) {
         ready.value = true
         return
       }
+      registerErrorReporter()
 
-      // 写库失败必须让人看见。界面走的是「先改内存、再写库」，不接这个钩子就完全静默：
-      // 曾经因此出现「收藏 / 置顶 / 备注 / 隐藏」四个操作全部显示成功、刷新后全部回滚。
-      // 节流 3 秒 —— 一次失败常被重试逻辑连着触发好几次，刷屏反而没人看。
-      let lastNotifiedAt = 0
-      setDbErrorReporter((message) => {
-        const now = Date.now()
-        if (now - lastNotifiedAt < 3000) return
-        lastNotifiedAt = now
-        ElMessage.error(message)
-      })
-
-      managed.value = sortManaged(await getAllEvents())
+      const rows = sortManaged(await getAllEvents(target))
+      // 读库期间作用域被切走了：这批结果属于上一个作用域，直接丢掉。
+      // 不丢的话会出现「标签已经切了、收藏还是上一个标签的」。
+      if (scopeRef.value !== target) return
+      managed.value = rows
       ready.value = true
     })()
     return initPromise
   }
 
+  /**
+   * 确保**当前作用域**已经读完库。
+   *
+   * 不能简单写成「initPromise 存在就直接 return」：读库途中切标签会把结果作废，
+   * 这时候返回的 promise 是「什么都没读」的，调用方接着往下走就会拿着空列表建记录
+   * （表现为置顶 / 备注丢失）。所以循环到「当前作用域确实读完了」为止。
+   * 循环次数有上限，正常最多转两次。
+   *
+   * 必须在 onMounted 里调用：vite-ssg 预渲染跑在 Node 上，没有 indexedDB，
+   * 在 setup 顶层直接调用会构建失败。
+   */
+  async function init(): Promise<void> {
+    for (let guard = 0; guard < 8; guard += 1) {
+      const target = scopeRef.value
+      if (loadedScope !== target) startLoad(target)
+      await initPromise
+      if (loadedScope === target && scopeRef.value === target) return
+    }
+  }
+
+  // 作用域切换（体育页切标签）：立刻清空再重读。
+  // 不清空的话，从点标签到读库返回之间，屏幕上摆的还是上一个标签的收藏，
+  // 而这期间用户完全可能点「删除」—— 删的却是刚切过来的那个标签。
+  watch(scopeRef, () => {
+    managed.value = []
+    init()
+  })
+
   async function refresh() {
-    managed.value = sortManaged(await getAllEvents())
+    const target = scopeRef.value
+    const rows = sortManaged(await getAllEvents(target))
+    if (scopeRef.value !== target) return
+    managed.value = rows
   }
 
   // ===== 写操作 =====
   //
-  // 每个写操作都先 await init()：init 会把整表快照赋值给 managed，
+  // 每个写操作都先 await init()：init 会把**当前作用域**的快照赋值给 managed，
   // 如果用户在首次读库返回之前就点了按钮，后到的快照会把刚写进内存的记录覆盖掉
   // （putEvent 已经落库，所以表现为「刷新后记录又冒出来了」）。
-  // 等 init 的 promise 先结算，就能保证「先读后写」的顺序。
-  // init 内部有 promise 记忆，重复 await 不产生额外开销。
+  // 等 init 结算就能保证「先读后写」的顺序，而且 init 保证结算时作用域就是当前的。
+  // 所以下面一律「先 await init()，再读 scopeRef」—— 顺序反了就会把记录写进别的标签。
 
   /**
    * 返回「有没有真的写进库」。界面上的状态是内存里的，写库失败照样显示成功，
@@ -364,8 +430,9 @@ export function useEventStore() {
     quote?: EventQuote | null,
   ): Promise<boolean> {
     await init()
+    const target = scopeRef.value
     // 单条收藏默认置顶：刚收藏的立刻出现在最上面
-    const record = buildRecord(event, status, Date.now(), true, quote)
+    const record = buildRecord(target, event, status, Date.now(), true, quote)
     upsertLocal(record)
     return putEvent(record)
   }
@@ -383,9 +450,10 @@ export function useEventStore() {
   ): Promise<boolean> {
     if (!events.length) return true
     await init()
+    const target = scopeRef.value
     const timestamp = Date.now()
     const records = events.map((event) =>
-      buildRecord(event, status, timestamp, false, quotes?.get(event.slug)),
+      buildRecord(target, event, status, timestamp, false, quotes?.get(event.slug)),
     )
 
     const bySlug = new Map(managed.value.map((item) => [item.slug, item]))
@@ -397,13 +465,18 @@ export function useEventStore() {
 
   async function unmarkEvent(slug: string) {
     await init()
-    removeLocal(slug)
-    await deleteEvent(slug)
+    const target = scopeRef.value
+    removeLocal(target, slug)
+    await deleteEvent(target, slug)
   }
 
   async function clearByStatus(status: EventStatus): Promise<number> {
     await init()
-    const removed = await deleteEventsByStatus(status)
+    const target = scopeRef.value
+    const removed = await deleteEventsByStatus(target, status)
+    // 删库期间可能已经切了标签，这时 managed 是**新**作用域的列表，
+    // 照删不误的话屏幕上会少掉一批其实还在库里的记录（刷新才回来）。
+    if (scopeRef.value !== target) return removed
     managed.value = managed.value.filter((event) => event.status !== status)
     return removed
   }

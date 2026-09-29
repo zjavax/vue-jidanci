@@ -8,6 +8,11 @@
  * 每新增一个配置项就多一个污染源，而且没法给记录加字段、没法排序。
  * 现在记录都躺在同一张表里，不存在「误伤其它 key」这个问题。
  *
+ * 作用域（scope）：
+ * 表主键是 [scope, slug] 复合键。综合页是 `default`，体育页每个标签一个
+ * `sports:<tag>` —— 同一个事件在不同页面的收藏 / 隐藏互不影响。
+ * 所有读写函数都必须显式传 scope，故意不设默认值以外的隐式全局行为。
+ *
  * 环境约定：IndexedDB 在 Node（vite-ssg 预渲染）里不存在，
  * 所以每个对外函数都先做环境守卫，不可用时安静返回空结果，绝不抛错。
  */
@@ -38,7 +43,18 @@ export interface EventBaseline {
 }
 
 export interface StoredEvent {
-  /** 主键 */
+  /**
+   * 作用域 —— 主键的第一段（主键是 [scope, slug] 复合键）。
+   *
+   * 为什么需要它：同一个事件可能在综合页和体育页同时出现，
+   * 而「收藏 / 隐藏」是用户对**这个页面的这个列表**的判断，不该跨页面共享。
+   * 体育页更进一步：13 个标签各自独立，体育标签里的收藏不该出现在政治标签里。
+   *
+   * 现有取值：
+   *   - `default`      → EventList.vue（综合页）
+   *   - `sports:<tag>` → EventList_sports.vue 的每个标签（见 sportsScope）
+   */
+  scope: string
   slug: string
   id: string
   title: string
@@ -61,8 +77,24 @@ export interface StoredEvent {
 }
 
 export const DB_NAME = 'polymarket'
-export const DB_VERSION = 1
+/** v2：主键从 slug 换成 [scope, slug]，见 openDB 里的迁移 */
+export const DB_VERSION = 2
 const STORE = 'events'
+
+/** 默认作用域：综合页（EventList.vue）。v1 的老数据迁移后也全部归到这里 */
+export const DEFAULT_SCOPE = 'default'
+
+/** 体育页每个标签一个作用域，例如 `sports:politics` */
+export function sportsScope(tag: string): string {
+  return `sports:${tag}`
+}
+
+/** 唯一一处建表语句，全新安装和迁移共用，避免两边结构写歪 */
+function createEventStore(db: IDBDatabase) {
+  const store = db.createObjectStore(STORE, { keyPath: ['scope', 'slug'] })
+  store.createIndex('scope', 'scope', { unique: false })
+  store.createIndex('scopeStatus', ['scope', 'status'], { unique: false })
+}
 
 export function isIndexedDBAvailable(): boolean {
   return typeof indexedDB !== 'undefined' && indexedDB !== null
@@ -81,10 +113,32 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = () => {
       const db = request.result
+      const transaction = request.transaction
+
+      // 全新安装：直接建新结构
       if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, { keyPath: 'slug' })
-        store.createIndex('status', 'status', { unique: false })
-        store.createIndex('statusChangedAt', 'statusChangedAt', { unique: false })
+        createEventStore(db)
+        return
+      }
+      if (!transaction) return
+
+      // v1 → v2：老表主键是 slug，换成 [scope, slug] 只能重建。
+      // IndexedDB 不支持改 keyPath，也不支持重命名 store，所以顺序必须是
+      // 「先把老数据全读进内存 → 删表 → 按新结构建表 → 回写」。
+      // 老数据一律归到 default 作用域，综合页的收藏因此一条都不会丢。
+      const legacy = transaction.objectStore(STORE)
+      const dump = legacy.getAll()
+      dump.onsuccess = () => {
+        const rows = Array.isArray(dump.result)
+          ? (dump.result as Partial<StoredEvent>[])
+          : []
+        db.deleteObjectStore(STORE)
+        createEventStore(db)
+        const store = transaction.objectStore(STORE)
+        rows.forEach((row) => {
+          if (!row || typeof row.slug !== 'string') return
+          store.put({ ...row, scope: row.scope || DEFAULT_SCOPE })
+        })
       }
     }
 
@@ -213,6 +267,9 @@ function normalizeBaseline(value: unknown): EventBaseline | undefined {
 function normalize(row: StoredEvent): StoredEvent {
   const fallback = Date.now()
   return {
+    // scope 缺失只会出现在「v1 老数据没迁移成功」的极端情况下，
+    // 兜到 default 至少让综合页还能看到自己的收藏
+    scope: typeof row.scope === 'string' && row.scope ? row.scope : DEFAULT_SCOPE,
     slug: row.slug,
     id: String(row.id ?? ''),
     title: row.title ?? row.slug,
@@ -227,10 +284,20 @@ function normalize(row: StoredEvent): StoredEvent {
   }
 }
 
-export async function getAllEvents(): Promise<StoredEvent[]> {
+/**
+ * 读某个作用域的全部记录。
+ *
+ * 走 scope 索引而不是 getAll() 再过滤：作用域会越开越多（体育页一个标签一个），
+ * 没必要为了显示 20 条把别人的几百条也读进内存。
+ */
+export async function getAllEvents(
+  scope: string = DEFAULT_SCOPE,
+): Promise<StoredEvent[]> {
   if (!isIndexedDBAvailable()) return []
   try {
-    const rows = await read<StoredEvent[]>((store) => store.getAll())
+    const rows = await read<StoredEvent[]>((store) =>
+      store.index('scope').getAll(IDBKeyRange.only(scope)),
+    )
     if (!Array.isArray(rows)) return []
     return rows.filter(isStoredEvent).map(normalize)
   } catch (error) {
@@ -292,11 +359,15 @@ export async function putEvents(events: StoredEvent[]): Promise<boolean> {
   }
 }
 
-export async function deleteEvent(slug: string): Promise<boolean> {
+/** 删一条。主键是复合键，必须 scope + slug 一起给 */
+export async function deleteEvent(
+  scope: string,
+  slug: string,
+): Promise<boolean> {
   if (!isIndexedDBAvailable()) return false
   try {
     await write((store) => {
-      store.delete(slug)
+      store.delete([scope, slug])
     })
     return true
   } catch (error) {
@@ -305,8 +376,11 @@ export async function deleteEvent(slug: string): Promise<boolean> {
   }
 }
 
-/** 按 status 走索引游标删除，返回实际删除条数 */
-export async function deleteEventsByStatus(status: EventStatus): Promise<number> {
+/** 按 status 走索引游标删除（限定在某个作用域内），返回实际删除条数 */
+export async function deleteEventsByStatus(
+  scope: string,
+  status: EventStatus,
+): Promise<number> {
   if (!isIndexedDBAvailable()) return 0
   try {
     const db = await openDB()
@@ -314,8 +388,8 @@ export async function deleteEventsByStatus(status: EventStatus): Promise<number>
       const transaction = db.transaction(STORE, 'readwrite')
       const store = transaction.objectStore(STORE)
       const cursorRequest = store
-        .index('status')
-        .openKeyCursor(IDBKeyRange.only(status))
+        .index('scopeStatus')
+        .openKeyCursor(IDBKeyRange.only([scope, status]))
 
       let removed = 0
       cursorRequest.onsuccess = () => {
@@ -340,11 +414,35 @@ export async function deleteEventsByStatus(status: EventStatus): Promise<number>
   }
 }
 
-export async function clearAllEvents(): Promise<boolean> {
+/**
+ * 清空。给测试 / 调试用。
+ * 传 scope 只清那一个作用域；不传就是整表清空（慎用）。
+ */
+export async function clearAllEvents(scope?: string): Promise<boolean> {
   if (!isIndexedDBAvailable()) return false
   try {
-    await write((store) => {
-      store.clear()
+    if (!scope) {
+      await write((store) => {
+        store.clear()
+      })
+      return true
+    }
+    const db = await openDB()
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(STORE, 'readwrite')
+      const store = transaction.objectStore(STORE)
+      const cursorRequest = store.index('scope').openKeyCursor(IDBKeyRange.only(scope))
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result
+        if (!cursor) return
+        store.delete(cursor.primaryKey)
+        cursor.continue()
+      }
+      cursorRequest.onerror = () => reject(cursorRequest.error)
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error('事务被中止'))
     })
     return true
   } catch (error) {

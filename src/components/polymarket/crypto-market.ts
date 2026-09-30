@@ -1,25 +1,30 @@
 /**
- * 加密货币市值前 N —— 数据源：CoinGecko 公开 API（免 key、CORS 放行）。
+ * 加密货币市值前 N —— 数据源：CoinPaprika（主）+ CoinLore（备）。
  *
- * 实测对比过的候选（2026-09-17，均在浏览器里真实 fetch）：
- *   - CoinGecko `/coins/markets` → 200 ✓ 本文件采用。直接按市值排序、自带 `market_cap_rank`，
- *     一个请求拿全 20 条，字段最规整。
- *   - CoinLore `/api/tickers` → 200 可用，字段是字符串且量级粗糙，作备选。
- *   - Binance `/api/v3/ticker/24hr` → 200 可用，但只有交易对报价、**没有市值排名**，
- *     要自己维护币种清单，不适合「前 20」这种需求。
- *   - CoinCap `/v2/assets` → CORS 拦（Failed to fetch）。
- *   - TradingView crypto scanner → 返回 `{"totalCount":0}`，crypto 市场不能用同一套参数。
+ * ⚠️ 2026-09-29 起 **CoinGecko 已不可用**，别再换回去：
+ *    `GET api.coingecko.com/api/v3/coins/markets?...` 对未鉴权请求返回 **403 Forbidden**，
+ *    且响应**不带 `Access-Control-Allow-Origin`** → 浏览器直接拦成 `TypeError: Failed to fetch`。
+ *    线上站（vercel）控制台原文：`... blocked by CORS policy: No 'Access-Control-Allow-Origin'
+ *    header is present ... net::ERR_FAILED 403 (Forbidden)`。
+ *    注意 `/api/v3/ping` 仍是 200 —— 所以「域名能通」不代表数据端点能用，别拿 ping 当判据。
  *
- * ⚠️ CoinGecko 免费额度有速率限制（按 IP 算，量级 10~30 次/分钟）。
- * 页面只在挂载时请求一次，不轮询，不会触发限流。
+ * 实测过的候选（2026-09-29，均在浏览器里真实 fetch，同一个 origin）：
+ *   - ✅ CoinPaprika `/v1/tickers?limit=20` → 200 / ~716ms。**本文件主源**。
+ *     字段最规整：`rank`、`symbol`、`name`、`quotes.USD.price`、`quotes.USD.market_cap`、
+ *     `quotes.USD.percent_change_24h`，**全是数字**，详情页 `/coin/<id>/`。
+ *   - ✅ CoinLore `/api/tickers/?limit=20` → 200 / ~1053ms。**备源**。
+ *     字段是**字符串**（要 Number()），详情页用 `nameid` 而非 `id`。
+ *   - ✅ Binance / Coinbase / OKX → 200，但**没有市值排名**，不适合「市值前 20」。
+ *   - ❌ CoinGecko（403 + 无 CORS 头）、CryptoCompare、CoinCap v3 → 全部 `Failed to fetch`。
  */
 
 import { formatMarketCap } from "./us-stocks";
 
-const MARKETS_URL = "https://api.coingecko.com/api/v3/coins/markets";
+const PAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers";
+const COINLORE_URL = "https://api.coinlore.net/api/tickers/";
 
 export interface CryptoCoin {
-  /** CoinGecko 的币种 id，如 `bitcoin`，用于拼详情页链接 */
+  /** 数据源内部的币种 id，只用于 `v-for` 的 key */
   id: string;
   /** 大写代码，如 `BTC` */
   symbol: string;
@@ -28,53 +33,106 @@ export interface CryptoCoin {
   price: number;
   /** 总市值（美元） */
   marketCap: number;
-  /** 市值排名（CoinGecko 官方排名） */
+  /** 市值排名 */
   rank: number;
   /** 24h 涨跌幅，百分数值（1.12 = +1.12%） */
   changePct: number;
+  /** 币种详情页。**两个数据源的链接格式不同，所以由数据层直接给出完整 URL**，
+   *  模板不要自己拼 —— 否则换源就得改模板。 */
+  url: string;
 }
 
-interface CoinGeckoRow {
+interface PaprikaRow {
   id?: string;
+  name?: string;
+  symbol?: string;
+  rank?: number;
+  quotes?: {
+    USD?: {
+      price?: number;
+      market_cap?: number;
+      percent_change_24h?: number;
+    };
+  };
+}
+
+interface CoinLoreRow {
+  id?: string;
+  nameid?: string;
   symbol?: string;
   name?: string;
-  current_price?: number;
-  market_cap?: number;
-  market_cap_rank?: number;
-  price_change_percentage_24h?: number;
+  rank?: number;
+  price_usd?: string;
+  market_cap_usd?: string;
+  percent_change_24h?: string;
+}
+
+/** CoinPaprika：主源。 */
+async function fetchFromPaprika(limit: number): Promise<CryptoCoin[] | null> {
+  const res = await fetch(`${PAPRIKA_URL}?limit=${limit}`, { cache: "no-store" });
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as PaprikaRow[];
+  if (!Array.isArray(json)) return null;
+
+  return json
+    .map((row, index) => {
+      const usd = row.quotes?.USD ?? {};
+      return {
+        id: String(row.id ?? ""),
+        symbol: String(row.symbol ?? "").toUpperCase(),
+        name: String(row.name ?? ""),
+        price: Number(usd.price) || 0,
+        marketCap: Number(usd.market_cap) || 0,
+        rank: Number(row.rank) || index + 1,
+        changePct: Number(usd.percent_change_24h) || 0,
+        url: `https://coinpaprika.com/coin/${row.id}/`,
+      };
+    })
+    .filter((coin) => coin.symbol && coin.price > 0);
+}
+
+/** CoinLore：备源。⚠️ 所有数值都是字符串，必须显式 Number()。 */
+async function fetchFromCoinLore(limit: number): Promise<CryptoCoin[] | null> {
+  const res = await fetch(`${COINLORE_URL}?limit=${limit}`, { cache: "no-store" });
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as { data?: CoinLoreRow[] };
+  const rows = json?.data;
+  if (!Array.isArray(rows)) return null;
+
+  return rows
+    .map((row, index) => ({
+      id: String(row.id ?? row.nameid ?? ""),
+      symbol: String(row.symbol ?? "").toUpperCase(),
+      name: String(row.name ?? ""),
+      price: Number(row.price_usd) || 0,
+      marketCap: Number(row.market_cap_usd) || 0,
+      rank: Number(row.rank) || index + 1,
+      changePct: Number(row.percent_change_24h) || 0,
+      // ⚠️ 用 nameid（`bitcoin`）不是 id（`90`）—— 后者拼不出能打开的页面
+      url: `https://www.coinlore.com/coin/${row.nameid ?? ""}`,
+    }))
+    .filter((coin) => coin.symbol && coin.price > 0);
 }
 
 /**
  * 取加密货币市值前 `limit` 名。
- * 失败返回 `null`（区别于「取到了但为空」），调用方据此区分「取不到」和「没有数据」。
+ *
+ * 主源失败（抛错 / 非 2xx / 空结果）自动降级到备源 —— 免费公开 API 随时可能改策略，
+ * 单个源挂掉不该让整个面板变「数据获取失败」。
+ * 两个都拿不到才返回 `null`（区别于「取到了但为空」）。
  */
 export async function fetchTopCryptos(limit = 20): Promise<CryptoCoin[] | null> {
-  try {
-    const url =
-      `${MARKETS_URL}?vs_currency=usd&order=market_cap_desc` +
-      `&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`;
-
-    const res = await fetch(url);
-    if (!res.ok) return null;
-
-    const json = (await res.json()) as CoinGeckoRow[];
-    if (!Array.isArray(json)) return null;
-
-    return json
-      .map((row, index) => ({
-        id: String(row.id ?? ""),
-        symbol: String(row.symbol ?? "").toUpperCase(),
-        name: String(row.name ?? ""),
-        price: Number(row.current_price) || 0,
-        marketCap: Number(row.market_cap) || 0,
-        rank: Number(row.market_cap_rank) || index + 1,
-        changePct: Number(row.price_change_percentage_24h) || 0,
-      }))
-      .filter((coin) => coin.symbol && coin.price > 0);
-  } catch {
-    // 网络 / CORS / 解析失败一律当作「取不到」，不抛出打断页面其它数据。
-    return null;
+  for (const source of [fetchFromPaprika, fetchFromCoinLore]) {
+    try {
+      const list = await source(limit);
+      if (list && list.length > 0) return list;
+    } catch {
+      // 网络 / CORS / 解析失败 → 换下一个源，不抛出打断页面其它数据
+    }
   }
+  return null;
 }
 
 /**

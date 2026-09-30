@@ -382,7 +382,7 @@
         <div class="side-panel-head">
           <span class="side-panel-title">加密货币市值前二十</span>
           <span class="side-panel-right">
-            <span class="side-panel-tag">CoinGecko</span>
+            <span class="side-panel-tag">CoinPaprika</span>
             <el-button
               type="primary"
               plain
@@ -408,7 +408,7 @@
               <td>
                 <a
                   class="side-link"
-                  :href="`https://www.coingecko.com/en/coins/${coin.id}`"
+                  :href="coin.url"
                   target="_blank"
                   rel="noopener"
                   :title="coin.name"
@@ -422,7 +422,7 @@
         </table>
         <div v-if="cryptosLoading" class="side-state">加载中…</div>
         <div v-else-if="topCryptos.length === 0" class="side-state">数据获取失败</div>
-        <div class="side-panel-note">24h 行情 · 数据来自 CoinGecko</div>
+        <div class="side-panel-note">24h 行情 · 数据来自 CoinPaprika</div>
       </section>
     </aside>
   </div>

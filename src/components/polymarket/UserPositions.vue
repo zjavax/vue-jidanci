@@ -27,14 +27,25 @@
           >pm当前状态</a
         >
       </div>
-      <h2>
-        我的仓位（<a
-          class="account-link"
-          href="https://polymarket.com/zh/@zjavax"
-          target="_blank"
-          rel="noopener"
-          >zjavax</a
-        >）
+      <h2 class="account-head">
+        <span class="account-title"
+          >我的仓位（<a
+            class="account-link"
+            href="https://polymarket.com/zh/@zjavax"
+            target="_blank"
+            rel="noopener"
+            >zjavax</a
+          >）</span
+        >
+        <!-- 重新拉这个账号的仓位 + 链上钱包（资产组合 / 现金 / 持仓总价值） -->
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          :loading="loading || refreshing1"
+          @click="reloadAccount1"
+          >刷新</el-button
+        >
       </h2>
       <div class="account-wallet">
         <span class="wallet-item">
@@ -135,14 +146,25 @@
         暂无数据
       </div>
 
-      <h2 style="margin-top: 40px">
-        我的仓位（<a
-          class="account-link"
-          href="https://polymarket.com/zh/@zjavax2"
-          target="_blank"
-          rel="noopener"
-          >zjavax2</a
-        >）
+      <h2 class="account-head" style="margin-top: 40px">
+        <span class="account-title"
+          >我的仓位（<a
+            class="account-link"
+            href="https://polymarket.com/zh/@zjavax2"
+            target="_blank"
+            rel="noopener"
+            >zjavax2</a
+          >）</span
+        >
+        <!-- 重新拉这个账号的仓位 + 链上钱包（资产组合 / 现金 / 持仓总价值） -->
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          :loading="loading2 || refreshing2"
+          @click="reloadAccount2"
+          >刷新</el-button
+        >
       </h2>
       <div class="account-wallet">
         <span class="wallet-item">
@@ -312,7 +334,17 @@
       <section class="side-panel">
         <div class="side-panel-head">
           <span class="side-panel-title">美股市值前十</span>
-          <span class="side-panel-tag">TradingView</span>
+          <span class="side-panel-right">
+            <span class="side-panel-tag">TradingView</span>
+            <el-button
+              type="primary"
+              plain
+              size="small"
+              :loading="stocksLoading"
+              @click="loadStocks"
+              >刷新</el-button
+            >
+          </span>
         </div>
         <table class="side-table">
           <thead>
@@ -349,7 +381,17 @@
       <section class="side-panel">
         <div class="side-panel-head">
           <span class="side-panel-title">加密货币市值前二十</span>
-          <span class="side-panel-tag">CoinGecko</span>
+          <span class="side-panel-right">
+            <span class="side-panel-tag">CoinGecko</span>
+            <el-button
+              type="primary"
+              plain
+              size="small"
+              :loading="cryptosLoading"
+              @click="loadCryptos"
+              >刷新</el-button
+            >
+          </span>
         </div>
         <table class="side-table">
           <thead>
@@ -538,6 +580,32 @@ const loadWallet2 = async () => {
   wallet2.value = await fetchAccountWallet(ADDRESS_ZJAVAX2);
 };
 
+/**
+ * 表头「刷新」按钮：把该账号的仓位和链上钱包一起重取。
+ * 单独用 refreshing1/2 驱动按钮转圈 —— 只盯 `loading` 的话，
+ * 仓位先回来、钱包还在飞的时候按钮就提前停转了。
+ */
+const refreshing1 = ref<boolean>(false);
+const refreshing2 = ref<boolean>(false);
+
+const reloadAccount1 = async () => {
+  refreshing1.value = true;
+  try {
+    await Promise.all([loadPositions(), loadWallet()]);
+  } finally {
+    refreshing1.value = false;
+  }
+};
+
+const reloadAccount2 = async () => {
+  refreshing2.value = true;
+  try {
+    await Promise.all([loadPositions2(), loadWallet2()]);
+  } finally {
+    refreshing2.value = false;
+  }
+};
+
 const loadStocks = async () => {
   stocksLoading.value = true;
   try {
@@ -663,6 +731,14 @@ onMounted(() => {
   margin: 0 0 8px;
   font-size: 17px;
   font-weight: 600;
+}
+
+/* 账号标题行：标题在左、「刷新」按钮贴右 */
+.account-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .positions-table {
@@ -816,12 +892,20 @@ onMounted(() => {
 
 .side-panel-head {
   display: flex;
-  align-items: baseline;
+  /* 原来是 baseline —— 加了按钮之后基线对齐会让按钮浮起来，改成 center */
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
   background-color: #f9fafb;
   border-bottom: 1px solid #eef0f4;
+}
+
+/* 面板头右侧：数据来源标签 + 刷新按钮 */
+.side-panel-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .side-panel-title {

@@ -19,6 +19,16 @@
             {{ formatMarketCap(hlQuote.valTrillion * 1e12) }}</span
           >
         </div>
+        <!-- 两个「我的仓位」表格共用这一个按钮：两个账号的仓位 + 链上钱包一起重取。
+             右侧栏的美股 / 加密面板各有自己的刷新按钮（数据源不同，分开更合理）。 -->
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          :loading="positionsRefreshing"
+          @click="reloadPositions"
+          >刷新仓位</el-button
+        >
         <a
           class="status-link"
           href="https://status.polymarket.com/"
@@ -27,25 +37,14 @@
           >pm当前状态</a
         >
       </div>
-      <h2 class="account-head">
-        <span class="account-title"
-          >我的仓位（<a
-            class="account-link"
-            href="https://polymarket.com/zh/@zjavax"
-            target="_blank"
-            rel="noopener"
-            >zjavax</a
-          >）</span
-        >
-        <!-- 重新拉这个账号的仓位 + 链上钱包（资产组合 / 现金 / 持仓总价值） -->
-        <el-button
-          type="primary"
-          plain
-          size="small"
-          :loading="loading || refreshing1"
-          @click="reloadAccount1"
-          >刷新</el-button
-        >
+      <h2>
+        我的仓位（<a
+          class="account-link"
+          href="https://polymarket.com/zh/@zjavax"
+          target="_blank"
+          rel="noopener"
+          >zjavax</a
+        >）
       </h2>
       <div class="account-wallet">
         <span class="wallet-item">
@@ -146,25 +145,14 @@
         暂无数据
       </div>
 
-      <h2 class="account-head" style="margin-top: 40px">
-        <span class="account-title"
-          >我的仓位（<a
-            class="account-link"
-            href="https://polymarket.com/zh/@zjavax2"
-            target="_blank"
-            rel="noopener"
-            >zjavax2</a
-          >）</span
-        >
-        <!-- 重新拉这个账号的仓位 + 链上钱包（资产组合 / 现金 / 持仓总价值） -->
-        <el-button
-          type="primary"
-          plain
-          size="small"
-          :loading="loading2 || refreshing2"
-          @click="reloadAccount2"
-          >刷新</el-button
-        >
+      <h2 style="margin-top: 40px">
+        我的仓位（<a
+          class="account-link"
+          href="https://polymarket.com/zh/@zjavax2"
+          target="_blank"
+          rel="noopener"
+          >zjavax2</a
+        >）
       </h2>
       <div class="account-wallet">
         <span class="wallet-item">
@@ -581,28 +569,24 @@ const loadWallet2 = async () => {
 };
 
 /**
- * 表头「刷新」按钮：把该账号的仓位和链上钱包一起重取。
- * 单独用 refreshing1/2 驱动按钮转圈 —— 只盯 `loading` 的话，
- * 仓位先回来、钱包还在飞的时候按钮就提前停转了。
+ * 顶栏「刷新仓位」：**两个账号的表格共用一个按钮** ——
+ * 两个账号的仓位 + 链上钱包（资产组合 / 现金 / 持仓总价值）一起重取。
+ * 单独用一个 ref 驱动按钮转圈 —— 只盯 `loading` / `loading2` 的话，
+ * 先回来的那个账号会让按钮提前停转。
  */
-const refreshing1 = ref<boolean>(false);
-const refreshing2 = ref<boolean>(false);
+const positionsRefreshing = ref<boolean>(false);
 
-const reloadAccount1 = async () => {
-  refreshing1.value = true;
+const reloadPositions = async () => {
+  positionsRefreshing.value = true;
   try {
-    await Promise.all([loadPositions(), loadWallet()]);
+    await Promise.all([
+      loadPositions(),
+      loadPositions2(),
+      loadWallet(),
+      loadWallet2(),
+    ]);
   } finally {
-    refreshing1.value = false;
-  }
-};
-
-const reloadAccount2 = async () => {
-  refreshing2.value = true;
-  try {
-    await Promise.all([loadPositions2(), loadWallet2()]);
-  } finally {
-    refreshing2.value = false;
+    positionsRefreshing.value = false;
   }
 };
 
@@ -731,14 +715,6 @@ onMounted(() => {
   margin: 0 0 8px;
   font-size: 17px;
   font-weight: 600;
-}
-
-/* 账号标题行：标题在左、「刷新」按钮贴右 */
-.account-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .positions-table {

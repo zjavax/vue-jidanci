@@ -73,6 +73,7 @@
             <th>当前价值</th>
             <th>收益</th>
             <th>百分比收益</th>
+            <th class="col-note">备注</th>
           </tr>
         </thead>
         <tbody>
@@ -109,6 +110,15 @@
             >
               {{ position.percentPnl.toFixed(2) }}%
             </td>
+            <td class="col-note">
+              <input
+                class="note-input"
+                type="text"
+                placeholder="备注…"
+                :value="positionNotes[position.slug] ?? ''"
+                @input="onNoteInput(position.slug, $event)"
+              />
+            </td>
           </tr>
         </tbody>
         <tfoot v-if="positions.length > 0">
@@ -137,6 +147,7 @@
             >
               {{ total.percentPnl.toFixed(2) }}%
             </td>
+            <td class="col-note"></td>
           </tr>
         </tfoot>
       </table>
@@ -181,6 +192,7 @@
             <th>当前价值</th>
             <th>收益</th>
             <th>百分比收益</th>
+            <th class="col-note">备注</th>
           </tr>
         </thead>
         <tbody>
@@ -217,6 +229,15 @@
             >
               {{ position.percentPnl.toFixed(2) }}%
             </td>
+            <td class="col-note">
+              <input
+                class="note-input"
+                type="text"
+                placeholder="备注…"
+                :value="positionNotes[position.slug] ?? ''"
+                @input="onNoteInput(position.slug, $event)"
+              />
+            </td>
           </tr>
         </tbody>
         <tfoot v-if="positions2.length > 0">
@@ -245,6 +266,7 @@
             >
               {{ total2.percentPnl.toFixed(2) }}%
             </td>
+            <td class="col-note"></td>
           </tr>
         </tfoot>
       </table>
@@ -458,6 +480,43 @@ const cryptosLoading = ref<boolean>(true);
 
 /** 顶部：Hyperliquid io:ANTH 报价（手机端不渲染，见样式里的 @media） */
 const hlQuote = ref<HlQuote | null>(null);
+
+/**
+ * 仓位备注：按仓位的 `slug` 存，**localStorage 持久化**
+ * （和屏蔽词 `polymarket-block-words` 一个路子）。
+ * 备注是用户自己写的东西，不能因为刷新或重开页面就丢。
+ */
+const NOTES_KEY = "polymarket-position-notes";
+
+const loadNotes = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(NOTES_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    // 存坏了（被手动改过 / 旧格式）就当空表，别让整个页面崩掉
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+const positionNotes = ref<Record<string, string>>(loadNotes());
+
+/** 输入即存。清空时把 key 删掉、不留空串，免得 localStorage 里堆垃圾。 */
+const onNoteInput = (slug: string, event: Event) => {
+  const value = (event.target as HTMLInputElement).value;
+  const next = { ...positionNotes.value };
+  if (value) next[slug] = value;
+  else delete next[slug];
+  positionNotes.value = next;
+  try {
+    localStorage.setItem(NOTES_KEY, JSON.stringify(next));
+  } catch {
+    // 隐私模式 / 配额满：备注只在内存里生效，不打断页面其它数据
+  }
+};
 
 /** 金额展示：加载中「…」、取不到「—」，绝不拿 0 冒充读不到 */
 const money = (value: number | null | undefined) =>
@@ -747,6 +806,47 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+/* 备注列：在最后，左对齐（上面那条 nth-child(n+3) 会把它也右对齐，这里覆盖掉）。
+   必须写在 nth-child 规则之后 —— 两者特异性相同，靠源码顺序取胜。 */
+.positions-table th.col-note,
+.positions-table td.col-note {
+  text-align: left;
+  white-space: normal;
+  width: 130px;
+  padding-right: 8px;
+}
+
+.note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background-color: transparent;
+  color: #1f2937;
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* 平时不画边框，hover / 聚焦才浮出来 —— 11 列的表格里少点视觉噪音 */
+.note-input:hover {
+  border-color: #d6d9e0;
+  background-color: #ffffff;
+}
+
+.note-input:focus {
+  border-color: #3538cd;
+  background-color: #ffffff;
+}
+
+.note-input::placeholder {
+  color: #b9c0cc;
+}
+
 .positions-table tbody tr:hover {
   background-color: #f8fafc;
 }
@@ -1018,8 +1118,16 @@ onMounted(() => {
     max-width: 100%;
   }
 
-  /* 手机端不显示右侧行情栏（桌面才有空间放它） */
+  /* 手机端**也显示**右侧行情栏（竹子 10-01 要求）。
+     桌面是并排的 290px 窄栏；手机端 `.positions-page` 变成 block，
+     它自然落到仓位区下面、占满整宽（父级是 block 时 `flex: 0 0 290px` 不生效）。 */
   .side-column {
+    margin-top: 18px;
+  }
+
+  /* 手机端不显示「备注」列（竹子指定）——表格已经 10 列，再加就挤爆了 */
+  .positions-table th.col-note,
+  .positions-table td.col-note {
     display: none;
   }
 

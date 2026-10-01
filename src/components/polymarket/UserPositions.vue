@@ -111,13 +111,25 @@
               {{ position.percentPnl.toFixed(2) }}%
             </td>
             <td class="col-note">
-              <input
-                class="note-input"
-                type="text"
-                placeholder="备注…"
-                :value="positionNotes[position.slug] ?? ''"
-                @input="onNoteInput(position.slug, $event)"
-              />
+              <!-- 备注可能很长：textarea 按内容自动撑高、直接分行显示（见 v-autogrow），
+                   再挂一个悬浮提示看全文。正在编辑这一行时关掉提示，免得挡着打字。 -->
+              <el-tooltip
+                :content="positionNotes[position.slug] ?? ''"
+                :disabled="!positionNotes[position.slug] || editingSlug === position.slug"
+                placement="top"
+                :show-after="250"
+              >
+                <textarea
+                  v-autogrow
+                  class="note-input"
+                  rows="1"
+                  placeholder="备注…"
+                  :value="positionNotes[position.slug] ?? ''"
+                  @input="onNoteInput(position.slug, $event)"
+                  @focus="editingSlug = position.slug"
+                  @blur="editingSlug = ''"
+                ></textarea>
+              </el-tooltip>
             </td>
           </tr>
         </tbody>
@@ -230,13 +242,25 @@
               {{ position.percentPnl.toFixed(2) }}%
             </td>
             <td class="col-note">
-              <input
-                class="note-input"
-                type="text"
-                placeholder="备注…"
-                :value="positionNotes[position.slug] ?? ''"
-                @input="onNoteInput(position.slug, $event)"
-              />
+              <!-- 备注可能很长：textarea 按内容自动撑高、直接分行显示（见 v-autogrow），
+                   再挂一个悬浮提示看全文。正在编辑这一行时关掉提示，免得挡着打字。 -->
+              <el-tooltip
+                :content="positionNotes[position.slug] ?? ''"
+                :disabled="!positionNotes[position.slug] || editingSlug === position.slug"
+                placement="top"
+                :show-after="250"
+              >
+                <textarea
+                  v-autogrow
+                  class="note-input"
+                  rows="1"
+                  placeholder="备注…"
+                  :value="positionNotes[position.slug] ?? ''"
+                  @input="onNoteInput(position.slug, $event)"
+                  @focus="editingSlug = position.slug"
+                  @blur="editingSlug = ''"
+                ></textarea>
+              </el-tooltip>
             </td>
           </tr>
         </tbody>
@@ -439,7 +463,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, type Directive } from "vue";
 import { fetchUserPositions, UserPosition } from "./polymarket-positions";
 import {
   fetchAccountWallet,
@@ -504,9 +528,32 @@ const loadNotes = (): Record<string, string> => {
 
 const positionNotes = ref<Record<string, string>>(loadNotes());
 
+/** 正在编辑备注的那一行（slug）。编辑时关掉悬浮提示，否则提示框会挡住输入。 */
+const editingSlug = ref<string>("");
+
+/**
+ * 备注框按内容自动撑高 —— 字数多时直接分行铺开，
+ * 而不是像单行输入框那样被截在可视区外面。
+ */
+const autoGrow = (el: HTMLTextAreaElement) => {
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+};
+
+/**
+ * 局部指令：挂载时先量一次（备注是从 localStorage 读出来的，首屏就得撑好高度），
+ * 之后每次重渲染再校正一次。
+ */
+const vAutogrow: Directive<HTMLTextAreaElement> = {
+  mounted: (el) => autoGrow(el),
+  updated: (el) => autoGrow(el),
+};
+
 /** 输入即存。清空时把 key 删掉、不留空串，免得 localStorage 里堆垃圾。 */
 const onNoteInput = (slug: string, event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
+  const el = event.target as HTMLTextAreaElement;
+  autoGrow(el);
+  const value = el.value;
   const next = { ...positionNotes.value };
   if (value) next[slug] = value;
   else delete next[slug];
@@ -812,34 +859,50 @@ onMounted(() => {
 .positions-table td.col-note {
   text-align: left;
   white-space: normal;
-  width: 130px;
+  width: 190px;
   padding-right: 8px;
+  /* 备注可能好几行，从单元格顶部开始排，别跟着其它列一起垂直居中 */
+  vertical-align: top;
 }
 
+/* 备注输入框：按内容自动撑高（高度由 v-autogrow 算），直接分行显示。
+   ⚠️ 用 outline 而不是 border 画 hover / 聚焦态 —— outline 不占布局，
+   `scrollHeight` 就等于盒子的实际高度，autoGrow 不会算少 2px 而多出一条滚动条。 */
 .note-input {
+  display: block;
   width: 100%;
   box-sizing: border-box;
   padding: 4px 6px;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 5px;
   background-color: transparent;
   color: #1f2937;
   font-size: 12.5px;
   font-family: inherit;
-  outline: none;
+  line-height: 1.45;
+  /* 长单词 / 长链接也要能断开，否则会把列撑宽 */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  resize: none;
+  /* 上限放到 ~13 行：正常长度的备注（哪怕写两三句话）都能完整铺开、不出现滚动条。
+     真写到超出这个高度，才靠悬浮提示看全文。 */
+  max-height: 240px;
+  overflow-y: auto;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
   transition:
-    border-color 0.15s ease,
+    outline-color 0.15s ease,
     background-color 0.15s ease;
 }
 
-/* 平时不画边框，hover / 聚焦才浮出来 —— 11 列的表格里少点视觉噪音 */
+/* 平时不画边，hover / 聚焦才浮出来 —— 11 列的表格里少点视觉噪音 */
 .note-input:hover {
-  border-color: #d6d9e0;
+  outline-color: #d6d9e0;
   background-color: #ffffff;
 }
 
 .note-input:focus {
-  border-color: #3538cd;
+  outline-color: #3538cd;
   background-color: #ffffff;
 }
 

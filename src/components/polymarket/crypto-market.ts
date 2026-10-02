@@ -24,9 +24,18 @@ const PAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers";
 const COINLORE_URL = "https://api.coinlore.net/api/tickers/";
 
 /** 不参与「市值前二十」展示的币种（10-02 竹子指定）：
- *  稳定币（USDT / USDC / USDS）和包装代币（WBTC / STETH / WSTETH）——
+ *  稳定币（USDT / USDC / USDS）和包装代币（WBTC / STETH / WSTETH / CBBTC / WEETH）——
  *  它们只是 BTC / ETH / 美元的影子，不算独立标的，占掉前十里大半的坑位。 */
-const EXCLUDED_SYMBOLS = new Set(["USDT", "USDC", "USDS", "WBTC", "STETH", "WSTETH"]);
+const EXCLUDED_SYMBOLS = new Set([
+  "USDT",
+  "USDC",
+  "USDS",
+  "WBTC",
+  "STETH",
+  "WSTETH",
+  "CBBTC",
+  "WEETH",
+]);
 
 export interface CryptoCoin {
   /** 数据源内部的币种 id，只用于 `v-for` 的 key */
@@ -124,7 +133,7 @@ async function fetchFromCoinLore(limit: number): Promise<CryptoCoin[] | null> {
 /**
  * 取加密货币市值前 `limit` 名。
  *
- * 多抓 `limit + 6` 条（EXCLUDED_SYMBOLS 里 6 个币）再过滤，
+ * 多抓 `EXCLUDED_SYMBOLS.size` 条再过滤，
  * 这样剔除稳定币 / 包装代币后表格仍是满的 20 行。
  * `rank` 保留数据源的**全局排名**（剔除后不连续，但更真实）。
  *

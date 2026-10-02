@@ -24,13 +24,14 @@ const PAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers";
 const COINLORE_URL = "https://api.coinlore.net/api/tickers/";
 
 /** 不参与「市值前二十」展示的币种（10-02 竹子指定）：
- *  稳定币（USDT / USDC / USDS）和包装代币（WBTC / STETH / WSTETH / CBBTC / WEETH）——
+ *  稳定币（USDT / USDC / USDS）和包装代币（WBTC / WETH / STETH / WSTETH / CBBTC / WEETH）——
  *  它们只是 BTC / ETH / 美元的影子，不算独立标的，占掉前十里大半的坑位。 */
 const EXCLUDED_SYMBOLS = new Set([
   "USDT",
   "USDC",
   "USDS",
   "WBTC",
+  "WETH",
   "STETH",
   "WSTETH",
   "CBBTC",

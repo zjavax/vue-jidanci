@@ -23,6 +23,11 @@ import { formatMarketCap } from "./us-stocks";
 const PAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers";
 const COINLORE_URL = "https://api.coinlore.net/api/tickers/";
 
+/** 不参与「市值前二十」展示的币种（10-02 竹子指定）：
+ *  稳定币（USDT / USDC / USDS）和包装代币（WBTC / STETH / WSTETH）——
+ *  它们只是 BTC / ETH / 美元的影子，不算独立标的，占掉前十里大半的坑位。 */
+const EXCLUDED_SYMBOLS = new Set(["USDT", "USDC", "USDS", "WBTC", "STETH", "WSTETH"]);
+
 export interface CryptoCoin {
   /** 数据源内部的币种 id，只用于 `v-for` 的 key */
   id: string;
@@ -119,15 +124,21 @@ async function fetchFromCoinLore(limit: number): Promise<CryptoCoin[] | null> {
 /**
  * 取加密货币市值前 `limit` 名。
  *
+ * 多抓 `limit + 6` 条（EXCLUDED_SYMBOLS 里 6 个币）再过滤，
+ * 这样剔除稳定币 / 包装代币后表格仍是满的 20 行。
+ * `rank` 保留数据源的**全局排名**（剔除后不连续，但更真实）。
+ *
  * 主源失败（抛错 / 非 2xx / 空结果）自动降级到备源 —— 免费公开 API 随时可能改策略，
  * 单个源挂掉不该让整个面板变「数据获取失败」。
  * 两个都拿不到才返回 `null`（区别于「取到了但为空」）。
  */
 export async function fetchTopCryptos(limit = 20): Promise<CryptoCoin[] | null> {
+  const fetchLimit = limit + EXCLUDED_SYMBOLS.size;
   for (const source of [fetchFromPaprika, fetchFromCoinLore]) {
     try {
-      const list = await source(limit);
-      if (list && list.length > 0) return list;
+      const list = await source(fetchLimit);
+      const kept = (list ?? []).filter((coin) => !EXCLUDED_SYMBOLS.has(coin.symbol));
+      if (kept.length > 0) return kept.slice(0, limit);
     } catch {
       // 网络 / CORS / 解析失败 → 换下一个源，不抛出打断页面其它数据
     }

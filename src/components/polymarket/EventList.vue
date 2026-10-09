@@ -537,6 +537,10 @@ watch(missingActiveSlugs, (pending) => {
 //
 // 收藏记录里只有 slug / 标题，概率和成交量得另外拉。这里把两者配成对，
 // 模板里就不必反复调 getQuote() 再处理 null。
+//
+// ⚠️ 收藏列表**刻意不过滤**已结束的事件：收藏是用户自己存的，收了就得看得见。
+// 只有活跃列表才过滤（见 polymarket.ts 的 isEventOver）——
+// 那边是接口推什么就显示什么，已打完的比赛是纯噪音。
 const favoriteCards = computed(() =>
   favorites.value.map((event) => ({
     event,

@@ -48,10 +48,33 @@ export interface MarketEvent {
   liquidity?: number
   commentCount?: number
   closed?: boolean
+  /**
+   * 事件是否**已结束**（比赛打完 / 事件过期），gamma-api 的官方标记。
+   *
+   * ⚠️ 它和 `closed` 是两回事，而且**接口参数过滤不掉它**：
+   * keyset 的 `closed=false` 只认顶层 `closed`，已打完的比赛顶层 `closed`
+   * 仍然是 `false`、只有 `ended=true`（实测 100 条里有 15~16 条这种）。
+   * 而 `ended=false` 这个参数 gamma-api 根本不支持 —— 传了和没传返回一模一样。
+   * 所以只能在客户端过滤，见 `isEventOver()`。
+   */
+  ended?: boolean
   active?: boolean
   tags?: PolymarketTag[]
   /** 选项组。收藏卡片要展示「选项 / 概率 / 24h量」全靠它 */
   markets?: PolymarketMarket[]
+}
+
+/**
+ * 事件是否已经结束、不该再出现在列表里。
+ *
+ * 两个字段任一为真都算结束：
+ *   - `closed === true` → 已闭市（结算完成）
+ *   - `ended  === true` → 事件已结束（比赛打完，结算可能还在进行中）
+ *
+ * 注意 `active` **不能**用来判断：已结束的事件 `active` 照样是 `true`（实测）。
+ */
+export function isEventOver(event: MarketEvent): boolean {
+  return event.closed === true || event.ended === true
 }
 
 interface ApiResponse {
@@ -70,7 +93,9 @@ export async function fetchPolymarketEvents(): Promise<MarketEvent[]> {
     }
 
     const data: ApiResponse = await response.json()
-    return data.events
+    // 已结束的（比赛打完）不要显示。keyset 的 closed=false 过滤不掉它们 ——
+    // 那些事件顶层 closed 仍是 false、只有 ended=true，所以这里再筛一遍。
+    return (data.events ?? []).filter((event) => !isEventOver(event))
   } catch (error) {
     console.error('Error fetching data:', error)
     return []

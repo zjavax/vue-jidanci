@@ -1,7 +1,7 @@
 // 事件的字段形状和 polymarket.ts 完全一致（同一个 gamma-api），
 // 所以直接复用那份类型，别在这儿再抄一份窄的 —— 抄窄了就拿不到
 // markets / volume24hr / tags，卡片也就渲染不出行情。
-import type { MarketEvent } from './polymarket'
+import { isEventOver, type MarketEvent } from './polymarket'
 
 export type { MarketEvent }
 
@@ -23,7 +23,8 @@ export async function fetchPolymarketEvents(
     }
 
     const data: ApiResponse = await response.json()
-    return data.events
+    // 同 polymarket.ts：closed=false 过滤不掉「已打完但 ended=true」的比赛，这里补筛
+    return (data.events ?? []).filter((event) => !isEventOver(event))
   } catch (error) {
     console.error('Error fetching data:', error)
     return []
